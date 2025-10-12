@@ -9,20 +9,30 @@ type Template = {
   clauses: Clause[];
 };
 
+type TemplateResponse = {
+  template: Template;
+};
+
 export default function ContractDetailPage() {
   const router = useRouter();
   const { id } = router.query as { id?: string };
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState<Template | null>(null);
-  const [form, setForm] = useState<Record<string, any>>({});
+  const [form, setForm] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState('');
 
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/contracts/${id}`)
-      .then((r) => r.json())
-      .then((data) => setTemplate(data.template))
-      .finally(() => setLoading(false));
+    const load = async () => {
+      try {
+        const response = await fetch(`/api/contracts/${id}`);
+        const data: TemplateResponse = await response.json();
+        setTemplate(data.template);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
   }, [id]);
 
   useEffect(() => {
@@ -38,7 +48,7 @@ export default function ContractDetailPage() {
   if (loading) return <main className="container">Chargement…</main>;
   if (!template) return <main className="container">Introuvable</main>;
 
-  const onChange = (key: string, value: any) => setForm((s) => ({ ...s, [key]: value }));
+  const onChange = (key: string, value: string) => setForm((s) => ({ ...s, [key]: value }));
 
   const downloadPdf = async () => {
     const res = await fetch('/api/export', {

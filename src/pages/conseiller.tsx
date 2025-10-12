@@ -1,11 +1,40 @@
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
+
+type AdvisorAction = {
+  type: string;
+  args?: Record<string, unknown>;
+};
 
 type AdvisorOutput = {
   thought: string;
   followup_question: string | null;
-  action: { type: string; args?: Record<string, any> };
+  action: AdvisorAction;
   reply_text: string;
+};
+
+type AdvisorResponse = {
+  output: AdvisorOutput;
+};
+
+type Lawyer = {
+  name: string;
+  address?: string;
+  rating?: number;
+  place_id?: string;
+  lat?: number;
+  lng?: number;
+};
+
+type LawyerSearchResponse = {
+  results?: unknown;
+};
+
+const isLawyer = (value: unknown): value is Lawyer => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<Lawyer>;
+  return typeof candidate.name === 'string';
 };
 
 const LawyerMap = dynamic(() => import('@/components/LawyerMap'), { ssr: false });
@@ -13,7 +42,7 @@ const LawyerMap = dynamic(() => import('@/components/LawyerMap'), { ssr: false }
 export default function ConseillerPage() {
   const [q, setQ] = useState('');
   const [answer, setAnswer] = useState<AdvisorOutput | null>(null);
-  const [lawyers, setLawyers] = useState<any[]>([]);
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [finding, setFinding] = useState(false);
@@ -23,7 +52,7 @@ export default function ConseillerPage() {
     setLoading(true);
     try {
       const r = await fetch('/api/advisor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }) });
-      const data = await r.json();
+      const data: AdvisorResponse = await r.json();
       setAnswer(data.output);
     } finally {
       setLoading(false);
@@ -34,7 +63,7 @@ export default function ConseillerPage() {
     setFinding(true);
     let userLoc: { lat: number; lng: number } | null = null;
     try {
-      userLoc = await new Promise((resolve) => {
+      userLoc = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
         if (!navigator.geolocation) return resolve(null);
         navigator.geolocation.getCurrentPosition(
           (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -46,11 +75,13 @@ export default function ConseillerPage() {
     const nearParam = userLoc ? `${userLoc.lat},${userLoc.lng}` : `48.8566,2.3522`;
     if (!userLoc) alert('Localisation non disponible, affichage des résultats à Paris.');
     setCoords(userLoc || { lat: 48.8566, lng: 2.3522 });
-    const spec = (answer?.action?.args?.topic as string) || 'contrat';
+    const topicArg = answer?.action?.args?.topic;
+    const spec = typeof topicArg === 'string' ? topicArg : 'contrat';
     try {
       const r = await fetch(`/api/lawyers/search?q=${encodeURIComponent('avocat ' + spec)}&near=${encodeURIComponent(nearParam)}`);
-      const data = await r.json();
-      setLawyers(data.results || []);
+      const data: LawyerSearchResponse = await r.json();
+      const list = Array.isArray(data.results) ? data.results.filter(isLawyer) : [];
+      setLawyers(list);
       setSelected(null);
     } finally {
       setFinding(false);
@@ -71,7 +102,7 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text}</p>
           <div className="row">
-            <a href="/contracts" className="btn btn-secondary">Voir les modèles</a>
+            <Link href="/contracts" className="btn btn-secondary">Voir les modèles</Link>
             <button onClick={searchLawyers} className="btn btn-primary">{finding ? 'Recherche…' : 'Trouver un avocat'}</button>
           </div>
         </section>
