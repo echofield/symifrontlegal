@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, Download, Save, Loader2, AlertTriangle, Sparkles, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LexClient } from "../lib/lexClient";
+import { downloadContractPdf } from "../lib/exportPdf";
 import { showToast } from "./SystemToast";
 import { useRateLimitCountdown } from "../hooks/useRateLimit";
 import { ReviewPanel } from "./ReviewPanel";
@@ -96,10 +97,18 @@ export function ContractEditorView({ templateId, onBack }: ContractEditorViewPro
 
     setExporting(true);
     try {
-      await LexClient.export(generatedText, format, {
-        version: template?.metadata.version,
-        date: new Date().toISOString().split('T')[0],
-      });
+      if (format === 'pdf') {
+        await downloadContractPdf({
+          contractText: generatedText,
+          fileName: 'contrat.pdf',
+          metadata: { version: template?.metadata.version, date: new Date().toISOString().split('T')[0] }
+        });
+      } else {
+        await LexClient.export(generatedText, format, {
+          version: template?.metadata.version,
+          date: new Date().toISOString().split('T')[0],
+        });
+      }
       showToast(`Contract exported as ${format.toUpperCase()}`, 'success');
     } catch (err: any) {
       showToast(err.message || 'Export failed', 'error');
