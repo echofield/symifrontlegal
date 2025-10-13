@@ -65,7 +65,8 @@ export default function LawyerMap({ lawyers, center, onSelect, selectedIndex }: 
       if (lawyers.length > 0) {
         const bounds = new maps.LatLngBounds();
         markers.current.forEach((m) => bounds.extend(m.getPosition()!));
-        if (!bounds.isEmpty()) mapObj.current.fitBounds(bounds);
+        const currentMap = mapObj.current;
+        if (!bounds.isEmpty() && currentMap) currentMap.fitBounds(bounds);
       }
     }
 
