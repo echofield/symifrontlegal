@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import type { Lawyer } from '@/components/LawyerMap';
 
 type AdvisorOutput = {
   thought: string;
   followup_question: string | null;
-  action: { type: string; args?: Record<string, any> };
+  action: { type: string; args?: Record<string, unknown> };
   reply_text: string;
 };
 
@@ -13,7 +14,7 @@ const LawyerMap = dynamic(() => import('@/components/LawyerMap'), { ssr: false }
 export default function ConseillerPage() {
   const [q, setQ] = useState('');
   const [answer, setAnswer] = useState<AdvisorOutput | null>(null);
-  const [lawyers, setLawyers] = useState<any[]>([]); // TODO: wire a proper shared Lawyer type
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [finding, setFinding] = useState(false);
