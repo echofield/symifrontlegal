@@ -3,8 +3,8 @@
   "env": {
     "AI_PROVIDER": "openai"
   },
-  "installCommand": "cd symione && npm ci --no-audit --progress=false",
-  "buildCommand": "cd symione && npm run build",
+  "installCommand": "npm --prefix symione install --no-audit --progress=false",
+  "buildCommand": "npm --prefix symione run build",
   "outputDirectory": "symione/build"
 }
 
