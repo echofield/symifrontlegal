@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This repo contains two UIs:
+
+- `src/` Next.js minimal prototype
+- `symione/` Vite React app (primary UI)
+
+Deployment (Vercel): The root uses vercel.json to build `symione/`.
+- Env: `API_BASE_URL` (Vercel) or `VITE_API_BASE_URL` (local) for backend
 
 ## Getting Started
 

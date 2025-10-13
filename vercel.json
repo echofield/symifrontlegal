@@ -2,7 +2,14 @@
   "version": 2,
   "env": {
     "AI_PROVIDER": "openai"
-  }
+  },
+  "installCommand": "cd symione && npm ci --no-audit --progress=false",
+  "buildCommand": "cd symione && npm run build",
+  "outputDirectory": "symione/build",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "${API_BASE_URL}/api/:path*" },
+    { "source": "/((?!api|.*\\..*).*)", "destination": "/index.html" }
+  ]
 }
 
 
