@@ -14,7 +14,7 @@ export default function ContractDetailPage() {
   const { id } = router.query as { id?: string };
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState<Template | null>(null);
-  const [form, setForm] = useState<Record<string, any>>({});
+  const [form, setForm] = useState<Record<string, string | number | boolean>>({});
   const [preview, setPreview] = useState('');
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function ContractDetailPage() {
   if (loading) return <main className="container">Chargement…</main>;
   if (!template) return <main className="container">Introuvable</main>;
 
-  const onChange = (key: string, value: any) => setForm((s) => ({ ...s, [key]: value }));
+  const onChange = (key: string, value: string | number | boolean) => setForm((s) => ({ ...s, [key]: value }));
 
   const downloadPdf = async () => {
     const res = await fetch('/api/export', {

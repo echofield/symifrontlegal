@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 type AdvisorOutput = {
@@ -13,7 +13,7 @@ const LawyerMap = dynamic(() => import('@/components/LawyerMap'), { ssr: false }
 export default function ConseillerPage() {
   const [q, setQ] = useState('');
   const [answer, setAnswer] = useState<AdvisorOutput | null>(null);
-  const [lawyers, setLawyers] = useState<any[]>([]);
+  const [lawyers, setLawyers] = useState<any[]>([]); // TODO: wire a proper shared Lawyer type
   const [selected, setSelected] = useState<number | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [finding, setFinding] = useState(false);
@@ -71,6 +71,7 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text}</p>
           <div className="row">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/contracts" className="btn btn-secondary">Voir les modèles</a>
             <button onClick={searchLawyers} className="btn btn-primary">{finding ? 'Recherche…' : 'Trouver un avocat'}</button>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-type Lawyer = {
+export type Lawyer = {
   name: string;
   address?: string;
   rating?: number;
@@ -26,6 +26,7 @@ export default function LawyerMap({ lawyers, center, onSelect, selectedIndex }: 
 
     async function ensureMaps() {
       if (typeof window === 'undefined') return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existing = (window as any).google?.maps;
       if (existing) return existing;
       const apiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY) as string | undefined;
@@ -38,6 +39,7 @@ export default function LawyerMap({ lawyers, center, onSelect, selectedIndex }: 
         s.onerror = () => reject(new Error('Failed to load Google Maps'));
         document.head.appendChild(s);
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (window as any).google?.maps;
     }
 
@@ -75,7 +77,8 @@ export default function LawyerMap({ lawyers, center, onSelect, selectedIndex }: 
   useEffect(() => {
     // Optional: bounce selected marker
     if (!markers.current.length || selectedIndex == null) return;
-    markers.current.forEach((m, i) => m.setAnimation(null as any));
+    markers.current.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maps = (window as any).google?.maps;
     if (!maps) return;
     const sel = markers.current[selectedIndex];
