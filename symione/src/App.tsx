@@ -21,11 +21,13 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [navigationHistory, setNavigationHistory] = useState<View[]>(['home']);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
 
-  const handleNavigate = (view: View, templateId?: string) => {
+  const handleNavigate = (view: View, templateId?: string, jurisdiction?: string) => {
     setNavigationHistory(prev => [...prev, view]);
     setCurrentView(view);
     if (templateId) setSelectedTemplateId(templateId);
+    if (jurisdiction) setSelectedJurisdiction(jurisdiction);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -219,7 +221,7 @@ export default function App() {
             >
               <ContractsListView 
                 onBack={handleBack}
-                onSelectTemplate={(templateId) => handleNavigate('editor', templateId)}
+                onSelectTemplate={(templateId, jurisdiction) => handleNavigate('editor', templateId, jurisdiction)}
               />
             </motion.div>
           )}
@@ -234,6 +236,7 @@ export default function App() {
             >
               <ContractEditorView 
                 templateId={selectedTemplateId}
+                jurisdiction={selectedJurisdiction || undefined}
                 onBack={handleBack}
               />
             </motion.div>

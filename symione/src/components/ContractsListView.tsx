@@ -7,7 +7,7 @@ import type { ContractIndexEntry } from "../types/contracts";
 
 interface ContractsListViewProps {
   onBack: () => void;
-  onSelectTemplate: (templateId: string) => void;
+  onSelectTemplate: (templateId: string, jurisdiction: string) => void;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -132,7 +132,7 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.04, ease: 'linear' }}
-                onClick={() => onSelectTemplate(contract.id)}
+                onClick={() => onSelectTemplate(contract.id, jurisdiction)}
                 className="group bg-card p-6 lg:p-8 text-left hover:bg-accent/5 transition-all duration-200 relative w-full border-l-2 border-transparent hover:border-l-accent"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">

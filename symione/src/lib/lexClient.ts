@@ -21,8 +21,10 @@ export const LexClient = {
     ),
 
   // Get specific template
-  getTemplate: (id: string) =>
-    apiGet<{ template: ContractTemplate; timestamp: string }>(`/api/contracts/${id}`),
+  getTemplate: (id: string, jurisdiction?: string) =>
+    apiGet<{ template: ContractTemplate; timestamp: string }>(
+      jurisdiction ? `/api/contracts/${id}?jurisdiction=${encodeURIComponent(jurisdiction)}` : `/api/contracts/${id}`
+    ),
 
   // Get clauses for a contract
   getClauses: (id: string) =>

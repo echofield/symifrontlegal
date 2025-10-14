@@ -10,10 +10,11 @@ import type { ContractTemplate, GenerateResponse } from "../types/contracts";
 
 interface ContractEditorViewProps {
   templateId: string;
+  jurisdiction?: string;
   onBack: () => void;
 }
 
-export function ContractEditorView({ templateId, onBack }: ContractEditorViewProps) {
+export function ContractEditorView({ templateId, jurisdiction, onBack }: ContractEditorViewProps) {
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -28,7 +29,7 @@ export function ContractEditorView({ templateId, onBack }: ContractEditorViewPro
   useEffect(() => {
     async function loadTemplate() {
       try {
-        const { template: tmpl } = await LexClient.getTemplate(templateId);
+        const { template: tmpl } = await LexClient.getTemplate(templateId, jurisdiction);
         setTemplate(tmpl);
         
         // Initialize form with default values
