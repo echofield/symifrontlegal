@@ -5,6 +5,7 @@
   "outputDirectory": "build",
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "https://symilegalback-virid.vercel.app/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
