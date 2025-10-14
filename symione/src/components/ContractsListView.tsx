@@ -24,11 +24,12 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
   const [contracts, setContracts] = useState<ContractIndexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [jurisdiction, setJurisdiction] = useState<string>((import.meta as any).env?.VITE_JURISDICTION || 'FR');
 
   useEffect(() => {
     async function loadContracts() {
       try {
-        const { index } = await LexClient.listContracts();
+        const { index } = await LexClient.listContracts(jurisdiction);
         setContracts(index);
       } catch (err: any) {
         showToast(err.message || 'Failed to load templates', 'error');
@@ -36,8 +37,9 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
         setLoading(false);
       }
     }
+    setLoading(true);
     loadContracts();
-  }, []);
+  }, [jurisdiction]);
 
   const filteredContracts = contracts.filter((contract) => {
     const query = searchQuery.toLowerCase();
@@ -78,7 +80,8 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
             </div>
 
             {/* Search */}
-            <div className="relative lg:w-96">
+            <div className="flex items-center gap-3">
+              <div className="relative lg:w-96">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
               <input
                 type="text"
@@ -88,6 +91,16 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
                 className="w-full pl-10 pr-4 py-3 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
               />
+              </div>
+              <select
+                value={jurisdiction}
+                onChange={(e) => setJurisdiction(e.target.value)}
+                className="px-3 py-2 bg-input-background border border-border text-[0.75rem] uppercase tracking-[0.12em]"
+                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+              >
+                <option value="FR">FR</option>
+                <option value="EN">EN</option>
+              </select>
             </div>
           </div>
 

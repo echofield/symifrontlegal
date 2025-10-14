@@ -7,7 +7,7 @@ import type {
   ExplainResponse,
 } from '../types/contracts';
 
-const JURISDICTION = ((import.meta as any).env?.VITE_JURISDICTION || 'FR') as string;
+const DEFAULT_JURISDICTION = ((import.meta as any).env?.VITE_JURISDICTION || 'FR') as string;
 
 export const LexClient = {
   // Health check
@@ -15,9 +15,9 @@ export const LexClient = {
     apiGet<{ status: string; timestamp: string }>('/api/health'),
 
   // Contracts catalog
-  listContracts: () =>
+  listContracts: (jurisdiction?: string) =>
     apiGet<{ index: ContractIndexEntry[]; timestamp: string }>(
-      `/api/contracts?jurisdiction=${encodeURIComponent(JURISDICTION)}`
+      `/api/contracts?jurisdiction=${encodeURIComponent(jurisdiction || DEFAULT_JURISDICTION)}`
     ),
 
   // Get specific template
