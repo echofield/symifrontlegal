@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom'; // ✅ Vite often uses react-router-dom for params
 
 type InputDef = { key: string; label: string; type: string; required: boolean };
 type Clause = { id: string; title: string; body: string };
@@ -10,22 +10,22 @@ type Template = {
 };
 
 export default function ContractDetailPage() {
-  const router = useRouter();
-  const { id } = router.query as { id?: string };
+  const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState<Template | null>(null);
   const [form, setForm] = useState<Record<string, string | number | boolean>>({});
   const [preview, setPreview] = useState('');
 
+  const api = import.meta.env.VITE_API_BASE_URL;
+
   // fetch the template from backend
   useEffect(() => {
     if (!id) return;
-    const api = process.env.NEXT_PUBLIC_API_URL;
     fetch(`${api}/api/contracts/${id}`)
       .then((r) => r.json())
       .then((data) => setTemplate(data.template))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, api]);
 
   // generate live preview
   useEffect(() => {
@@ -45,7 +45,6 @@ export default function ContractDetailPage() {
     setForm((s) => ({ ...s, [key]: value }));
 
   const downloadPdf = async () => {
-    const api = process.env.NEXT_PUBLIC_API_URL;
     const res = await fetch(`${api}/api/export`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
