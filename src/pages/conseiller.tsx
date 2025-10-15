@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic'; // If not using Next, replace this import by a normal import
 import type { Lawyer } from '@/components/LawyerMap';
 
 type AdvisorOutput = {
@@ -20,10 +20,11 @@ export default function ConseillerPage() {
   const [finding, setFinding] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const api = import.meta.env.VITE_API_BASE_URL;
+
   const ask = async () => {
     setLoading(true);
     try {
-      const api = process.env.NEXT_PUBLIC_API_URL;
       const r = await fetch(`${api}/api/advisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +49,7 @@ export default function ConseillerPage() {
         navigator.geolocation.getCurrentPosition(
           (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
           () => resolve(null),
-          { timeout: 3000 }
+          { timeout: 3000 },
         );
       });
     } catch {}
@@ -60,7 +61,6 @@ export default function ConseillerPage() {
 
     const spec = (answer?.action?.args?.topic as string) || 'contrat';
     try {
-      const api = process.env.NEXT_PUBLIC_API_URL;
       const r = await fetch(`${api}/api/lawyers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,7 +106,6 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text}</p>
           <div className="row">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/contracts" className="btn btn-secondary">
               Voir les modèles
             </a>
@@ -139,4 +138,37 @@ export default function ConseillerPage() {
                       {typeof l.rating === 'number' ? `⭐️ ${l.rating} ` : ''}
                       {l.address ? `• ${l.address}` : ''}
                     </div>
-                    <div
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                      {l.place_id && (
+                        <a
+                          href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="link"
+                        >
+                          Voir sur Google Maps
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="footer-note" style={{ marginTop: 12 }}>
+                Les avocats affichés proviennent de Google Maps. SYMIONE ne garantit ni ne recommande
+                aucune prestation.
+              </div>
+            </aside>
+            <div style={{ height: 420 }}>
+              <LawyerMap
+                lawyers={lawyers}
+                center={coords || undefined}
+                onSelect={setSelected}
+                selectedIndex={selected}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
