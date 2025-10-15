@@ -23,9 +23,17 @@ export default function ConseillerPage() {
   const ask = async () => {
     setLoading(true);
     try {
-      const r = await fetch('/api/advisor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }) });
+      const api = process.env.NEXT_PUBLIC_API_URL;
+      const r = await fetch(`${api}/api/advisor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q }),
+      });
       const data = await r.json();
       setAnswer(data.output);
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la consultation.');
     } finally {
       setLoading(false);
     }
@@ -44,15 +52,30 @@ export default function ConseillerPage() {
         );
       });
     } catch {}
-    const nearParam = userLoc ? `${userLoc.lat},${userLoc.lng}` : `48.8566,2.3522`;
+
+    const fallback = { lat: 48.8566, lng: 2.3522 };
     if (!userLoc) alert('Localisation non disponible, affichage des résultats à Paris.');
-    setCoords(userLoc || { lat: 48.8566, lng: 2.3522 });
+    const loc = userLoc || fallback;
+    setCoords(loc);
+
     const spec = (answer?.action?.args?.topic as string) || 'contrat';
     try {
-      const r = await fetch(`/api/lawyers/search?q=${encodeURIComponent('avocat ' + spec)}&near=${encodeURIComponent(nearParam)}`);
+      const api = process.env.NEXT_PUBLIC_API_URL;
+      const r = await fetch(`${api}/api/lawyers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `avocat ${spec}`,
+          lat: loc.lat,
+          lng: loc.lng,
+        }),
+      });
       const data = await r.json();
-      setLawyers(data.results || []);
+      setLawyers(data.lawyers || []);
       setSelected(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la recherche.');
     } finally {
       setFinding(false);
     }
@@ -61,10 +84,21 @@ export default function ConseillerPage() {
   return (
     <main className="container">
       <h1>Conseiller</h1>
-      <p>Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.</p>
+      <p>
+        Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.
+      </p>
+
       <div className="row" style={{ marginBottom: 16 }}>
-        <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex: Je veux rompre un CDD, que faire ?" style={{ flex: 1 }} />
-        <button onClick={ask} disabled={loading} className="btn btn-primary">Demander</button>
+        <input
+          className="input"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Ex: Je veux rompre un CDD, que faire ?"
+          style={{ flex: 1 }}
+        />
+        <button onClick={ask} disabled={loading} className="btn btn-primary">
+          {loading ? 'Analyse…' : 'Demander'}
+        </button>
       </div>
 
       {answer && (
@@ -73,8 +107,12 @@ export default function ConseillerPage() {
           <p>{answer.reply_text}</p>
           <div className="row">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/contracts" className="btn btn-secondary">Voir les modèles</a>
-            <button onClick={searchLawyers} className="btn btn-primary">{finding ? 'Recherche…' : 'Trouver un avocat'}</button>
+            <a href="/contracts" className="btn btn-secondary">
+              Voir les modèles
+            </a>
+            <button onClick={searchLawyers} className="btn btn-primary">
+              {finding ? 'Recherche…' : 'Trouver un avocat'}
+            </button>
           </div>
         </section>
       )}
@@ -89,40 +127,16 @@ export default function ConseillerPage() {
                   <li
                     key={i}
                     onClick={() => setSelected(i)}
-                    style={{ padding: 10, borderRadius: 8, cursor: 'pointer', background: selected === i ? 'var(--accent-weak)' : 'transparent' }}
+                    style={{
+                      padding: 10,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      background: selected === i ? 'var(--accent-weak)' : 'transparent',
+                    }}
                   >
                     <div style={{ fontWeight: 600 }}>{l.name}</div>
                     <div className="muted" style={{ fontSize: 13 }}>
                       {typeof l.rating === 'number' ? `⭐️ ${l.rating} ` : ''}
                       {l.address ? `• ${l.address}` : ''}
                     </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                      {l.place_id && (
-                        <a
-                          href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="link"
-                        >
-                          Voir sur Google Maps
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="footer-note" style={{ marginTop: 12 }}>
-                Les avocats affichés proviennent de Google Maps. SYMIONE ne garantit ni ne recommande aucune prestation.
-              </div>
-            </aside>
-            <div style={{ height: 420 }}>
-              <LawyerMap lawyers={lawyers} center={coords || undefined} onSelect={setSelected} selectedIndex={selected} />
-            </div>
-          </div>
-        </section>
-      )}
-    </main>
-  );
-}
-
-
+                    <div
