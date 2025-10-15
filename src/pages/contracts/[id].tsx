@@ -17,14 +17,17 @@ export default function ContractDetailPage() {
   const [form, setForm] = useState<Record<string, string | number | boolean>>({});
   const [preview, setPreview] = useState('');
 
+  // fetch the template from backend
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/contracts/${id}`)
+    const api = process.env.NEXT_PUBLIC_API_URL;
+    fetch(`${api}/api/contracts/${id}`)
       .then((r) => r.json())
       .then((data) => setTemplate(data.template))
       .finally(() => setLoading(false));
   }, [id]);
 
+  // generate live preview
   useEffect(() => {
     if (!template) return;
     const filled = template.clauses
@@ -38,10 +41,12 @@ export default function ContractDetailPage() {
   if (loading) return <main className="container">Chargement…</main>;
   if (!template) return <main className="container">Introuvable</main>;
 
-  const onChange = (key: string, value: string | number | boolean) => setForm((s) => ({ ...s, [key]: value }));
+  const onChange = (key: string, value: string | number | boolean) =>
+    setForm((s) => ({ ...s, [key]: value }));
 
   const downloadPdf = async () => {
-    const res = await fetch('/api/export', {
+    const api = process.env.NEXT_PUBLIC_API_URL;
+    const res = await fetch(`${api}/api/export`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -50,6 +55,12 @@ export default function ContractDetailPage() {
         metadata: { version: template.metadata.version },
       }),
     });
+
+    if (!res.ok) {
+      alert('Erreur lors de la génération du PDF.');
+      return;
+    }
+
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -77,17 +88,15 @@ export default function ContractDetailPage() {
               />
             </div>
           ))}
-          <button onClick={downloadPdf} className="btn btn-primary">Télécharger le PDF</button>
+          <button onClick={downloadPdf} className="btn btn-primary">
+            Télécharger le PDF
+          </button>
         </section>
 
         <section className="card">
-          <pre className="pre">
-{preview}
-          </pre>
+          <pre className="pre">{preview}</pre>
         </section>
       </div>
     </main>
   );
 }
-
-
