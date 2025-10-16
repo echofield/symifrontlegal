@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import dynamic from 'next/dynamic'; // If not using Next, replace this import by a normal import
+import dynamic from 'next/dynamic';
 import type { Lawyer } from '@/components/LawyerMap';
 
 type AdvisorOutput = {
@@ -20,7 +20,8 @@ export default function ConseillerPage() {
   const [finding, setFinding] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const api = import.meta.env.VITE_API_BASE_URL;
+  // ✅ Correct for Next.js
+  const api = process.env.NEXT_PUBLIC_API_URL;
 
   const ask = async () => {
     setLoading(true);
