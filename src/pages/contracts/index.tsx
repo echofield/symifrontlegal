@@ -3,14 +3,14 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Fuse from "fuse.js";
 
-// ✅ helper for safety
-function ensureArray<T>(value: unknown, label = "list"): T[] {
-  if (!Array.isArray(value)) {
-    console.warn(`[ensureArray] expected array for ${label}, got`, value);
+// ✅ universal guard
+const ensureArray = (val: unknown, label = "unknown") => {
+  if (!Array.isArray(val)) {
+    console.warn(`[ensureArray] expected array for ${label}, got`, val);
     return [];
   }
-  return value;
-}
+  return val;
+};
 
 type IndexEntry = {
   id: string;
@@ -42,79 +42,93 @@ export default function ContractsListPage() {
   const [sortAlpha, setSortAlpha] = useState(true);
   const [page, setPage] = useState(1);
   const [autoOpened, setAutoOpened] = useState(false);
-  const pageSize = 20;
 
+  const pageSize = 20;
   const api = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
 
-  // ---- Load contracts safely
+  // ---- Fetch contracts safely
   useEffect(() => {
-    async function loadContracts() {
+    async function load() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const raw =
           data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        setItems(ensureArray(raw, "contracts"));
+        const safe = ensureArray(raw, "contracts");
+        setItems(safe);
+        console.log(`✅ Loaded ${safe.length} contracts`);
       } catch (err) {
-        console.error("❌ loadContracts failed:", err);
+        console.error("❌ Failed to load contracts:", err);
         setItems([]);
       } finally {
         setLoading(false);
       }
     }
-    loadContracts();
+    load();
   }, [api, lang]);
 
-  // ---- Fuse search setup
-  const fuse = useMemo(
-    () =>
-      new Fuse(items, {
-        keys: ["title", "category", "keywords"],
-        threshold: 0.35,
-        ignoreLocation: true,
-      }),
-    [items]
-  );
+  // ---- Fuse search
+  const fuse = useMemo(() => {
+    const safe = ensureArray(items, "fuseItems");
+    return new Fuse(safe, {
+      keys: ["title", "category", "keywords"],
+      threshold: 0.35,
+      ignoreLocation: true,
+    });
+  }, [items]);
 
-  // ---- Filter + sort safely
+  // ---- Compute results safely
   const results = useMemo(() => {
-    const baseItems = ensureArray(items, "items");
+    let base: IndexEntry[] = ensureArray(items, "items");
+    let searched: IndexEntry[] = [];
 
-    let base =
-      query.trim().length > 0
-        ? ensureArray(fuse.search(query).map((r) => r.item), "searchResults")
-        : baseItems;
+    if (query.trim().length > 0) {
+      try {
+        const fuseResults = fuse.search(query);
+        searched = ensureArray(fuseResults.map((r) => r.item), "fuseResults");
+      } catch (e) {
+        console.warn("⚠️ Fuse search error:", e);
+        searched = [];
+      }
+    } else {
+      searched = base;
+    }
 
-    if (cat !== "all") base = base.filter((i) => i.category === cat);
-    if (lang) base = base.filter((i) => i.lang === lang);
+    let filtered = ensureArray(searched, "filteredStart");
 
-    base.sort((a, b) =>
+    if (cat !== "all") {
+      filtered = filtered.filter((i) => i.category === cat);
+    }
+
+    if (lang) {
+      filtered = filtered.filter((i) => i.lang === lang);
+    }
+
+    filtered = filtered.sort((a, b) =>
       sortAlpha
-        ? a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
-        : b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
+        ? a.title.localeCompare(b.title, lang)
+        : b.title.localeCompare(a.title, lang)
     );
 
-    return base;
+    return filtered;
   }, [query, cat, lang, sortAlpha, items, fuse]);
 
-  const totalPages = Math.max(1, Math.ceil(ensureArray(results).length / pageSize));
-  const paged = ensureArray(results).slice((page - 1) * pageSize, page * pageSize);
+  const safeResults = ensureArray(results, "results");
+  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
+  const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
 
-  // ---- Auto-open single match
+  // ---- Auto-open if one result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    const safeResults = ensureArray(results, "autoOpenResults");
     if (safeResults.length === 1) {
-      const top = safeResults[0];
       setAutoOpened(true);
-      router.push(`/contracts/${top.id}`);
+      router.push(`/contracts/${safeResults[0].id}`);
     }
-  }, [results, query, autoOpened, router]);
+  }, [safeResults, query, autoOpened, router]);
 
-  // ---- UI
+  // ---- Render
   return (
     <main className="container">
       <h1>Modèles de contrats</h1>
@@ -148,7 +162,10 @@ export default function ContractsListPage() {
             </option>
           ))}
         </select>
-        <button onClick={() => setSortAlpha(!sortAlpha)} className="btn btn-secondary">
+        <button
+          onClick={() => setSortAlpha(!sortAlpha)}
+          className="btn btn-secondary"
+        >
           {sortAlpha ? "A → Z" : "Z → A"}
         </button>
       </div>
@@ -175,7 +192,7 @@ export default function ContractsListPage() {
       {/* Results */}
       {loading ? (
         <p>Chargement…</p>
-      ) : ensureArray(paged).length > 0 ? (
+      ) : paged.length > 0 ? (
         <ul className="list">
           {paged.map((i) => (
             <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
@@ -206,7 +223,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {ensureArray(results).length > pageSize && (
+      {safeResults.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"
