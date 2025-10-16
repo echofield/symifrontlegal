@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import Fuse from "fuse.js";
+
+import { ensureArray } from "@/utils/ensureArray";
 
 type IndexEntry = {
   id: string;
@@ -43,10 +44,45 @@ export default function ContractsListPage() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
+        if (!res.ok) {
+          console.warn(`Impossible de charger les contrats (${res.status}).`);
+          setItems([]);
+          return;
+        }
+
         const data = await res.json();
+        const contracts = ensureArray<IndexEntry>(data?.contracts, "contracts");
+        const indexEntries = ensureArray<IndexEntry>(data?.index, "index");
+        const fallback = Array.isArray(data)
+          ? ensureArray<IndexEntry>(data, "contractsResponse")
+          : [];
         const list =
-          data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        setItems(Array.isArray(list) ? list : []);
+          contracts.length > 0
+            ? contracts
+            : indexEntries.length > 0
+            ? indexEntries
+            : fallback;
+
+        if (list.length === 0) {
+          console.warn("Aucun contrat reçu depuis l'API contracts.", data);
+        }
+
+        const sanitized = list.filter((item): item is IndexEntry => {
+          if (!item || typeof item !== "object") {
+            return false;
+          }
+
+          const candidate = item as Partial<IndexEntry>;
+          return typeof candidate.id === "string" && typeof candidate.title === "string";
+        });
+
+        if (sanitized.length !== list.length) {
+          console.warn(
+            `${list.length - sanitized.length} entrée(s) de contrat ignorée(s) car sans id ou titre valide.`,
+          );
+        }
+
+        setItems(sanitized);
       } catch (err) {
         console.error(err);
         setItems([]);
@@ -57,59 +93,91 @@ export default function ContractsListPage() {
     loadContracts();
   }, [api, lang]);
 
-  // Fuzzy search setup
-  const fuse = useMemo(
-    () =>
-      new Fuse(items, {
-        keys: ["title", "category", "keywords"],
-        threshold: 0.35,
-        ignoreLocation: true,
-      }),
-    [items]
-  );
-
   // Filter + sort
-  const results = useMemo(() => {
-    const safeItems = Array.isArray(items) ? items : [];
-    
-    let base = query.trim() 
-      ? (fuse.search(query).map((r) => r.item) || [])
-      : safeItems;
-    
-    base = Array.isArray(base) ? base : [];
+  const { list: results, warnSearch } = useMemo(() => {
+    const safeItems = ensureArray<IndexEntry>(items, "contractsItems");
+
+    const normalizedQuery = query.trim().toLowerCase();
+    const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    let base: IndexEntry[] = safeItems;
+    let warnNoMatch = false;
+
+    if (tokens.length > 0) {
+      const filteredByQuery = safeItems.filter((item) => {
+        const haystacks = [
+          item.title,
+          item.category,
+          item.jurisdiction,
+          ...ensureArray<string>(item.keywords, "contract.keywords"),
+        ]
+          .filter((value): value is string => typeof value === "string")
+          .map((value) => value.toLowerCase());
+
+        if (haystacks.length === 0) {
+          return false;
+        }
+
+        return tokens.every((token) => haystacks.some((field) => field.includes(token)));
+      });
+
+      if (filteredByQuery.length === 0 && safeItems.length > 0) {
+        warnNoMatch = true;
+      }
+
+      base = filteredByQuery;
+    }
 
     if (cat !== "all") {
       base = base.filter((i) => i.category === cat);
     }
-    
+
     if (lang) {
       base = base.filter((i) => i.lang === lang);
     }
 
-    if (sortAlpha)
-      base = [...base].sort((a, b) =>
-        a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
-      );
-    else
-      base = [...base].sort((a, b) =>
-        b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
-      );
+    const sorted = [...base].sort((a, b) => {
+      const locale = lang === "fr" ? "fr" : "en";
+      return sortAlpha
+        ? a.title.localeCompare(b.title, locale)
+        : b.title.localeCompare(a.title, locale);
+    });
 
-    return base;
-  }, [query, cat, lang, sortAlpha, items, fuse]);
+    return { list: sorted, warnSearch: warnNoMatch };
+  }, [query, cat, lang, sortAlpha, items]);
 
-  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
-  const paged = results.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => {
+    if (warnSearch) {
+      console.warn("Aucun contrat ne correspond à la recherche fournie.");
+    }
+  }, [warnSearch]);
+
+  const safeResults = ensureArray<IndexEntry>(results, "contractsResults");
+  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
+  const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
+  const safePaged = ensureArray<IndexEntry>(paged, "contractsPaged");
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [cat, lang]);
 
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    if (Array.isArray(results) && results.length === 1) {
-      const top = results[0];
+    if (safeResults.length === 1) {
+      const top = safeResults[0];
+      if (!top?.id) {
+        console.warn("Résultat de contrat invalide sans identifiant:", top);
+        return;
+      }
       setAutoOpened(true);
       router.push(`/contracts/${top.id}`);
     }
-  }, [results, query, autoOpened, router]);
+  }, [safeResults, query, autoOpened, router]);
 
   return (
     <main className="container">
@@ -173,9 +241,9 @@ export default function ContractsListPage() {
         <p>Chargement…</p>
       ) : (
         <>
-          {Array.isArray(paged) && paged.length > 0 ? (
+          {safePaged.length > 0 ? (
             <ul className="list">
-              {paged.map((i) => (
+              {safePaged.map((i) => (
                 <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
                   <div
                     style={{
@@ -209,7 +277,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {Array.isArray(results) && results.length > pageSize && (
+      {safeResults.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"

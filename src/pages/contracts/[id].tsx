@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { ensureArray } from '@/utils/ensureArray';
 
 type InputDef = { key: string; label: string; type: string; required: boolean };
 type Clause = { id: string; title: string; body: string };
@@ -23,9 +25,18 @@ export default function ContractDetailPage() {
   // Fetch the contract template
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
     fetch(`${api}/api/contracts/${id}`)
-      .then((r) => r.json())
-      .then((data) => setTemplate(data.template))
+      .then((r) => {
+        if (!r.ok) {
+          console.warn(`Impossible de charger le contrat ${id} (${r.status}).`);
+          return null;
+        }
+        return r.json();
+      })
+      .then((data) => {
+        setTemplate(data?.template ?? null);
+      })
       .catch((err) => {
         console.error('Error loading template:', err);
         setTemplate(null);
@@ -34,15 +45,56 @@ export default function ContractDetailPage() {
   }, [id, api]);
 
   // Generate the contract preview text
+  const { list: safeClauses, dropped: droppedClauses } = useMemo(() => {
+    if (!template) {
+      return { list: [], dropped: 0 };
+    }
+
+    const normalized = ensureArray<Clause>(template.clauses, 'template.clauses');
+    const filtered = normalized.filter(
+      (clause): clause is Clause => Boolean(clause) && typeof clause?.body === 'string',
+    );
+
+    return { list: filtered, dropped: normalized.length - filtered.length };
+  }, [template]);
+
+  useEffect(() => {
+    if (droppedClauses > 0) {
+      console.warn(`${droppedClauses} clause(s) ignorée(s) car sans contenu valide.`);
+    }
+  }, [droppedClauses]);
+
   useEffect(() => {
     if (!template) return;
-    const filled = (template.clauses || [])
+
+    const filled = safeClauses
       .map((c) =>
         c.body.replace(/\{\{(.*?)\}\}/g, (_, k) => String(form[String(k).trim()] ?? `{{${k}}}`)),
       )
       .join('\n\n');
-    setPreview(`# ${template.metadata.title}\n\n${filled}`);
-  }, [template, form]);
+    const title = template?.metadata?.title ?? 'Modèle de contrat';
+    setPreview(`# ${title}\n\n${filled}`);
+  }, [template, form, safeClauses]);
+
+  const { list: safeInputs, dropped: droppedInputs } = useMemo(() => {
+    if (!template) {
+      return { list: [], dropped: 0 };
+    }
+
+    const normalized = ensureArray<InputDef>(template.inputs, 'template.inputs');
+    const filtered = normalized.filter(
+      (input): input is InputDef =>
+        Boolean(input) && typeof input.key === 'string' && typeof input.label === 'string',
+    );
+
+    return { list: filtered, dropped: normalized.length - filtered.length };
+  }, [template]);
+
+  useEffect(() => {
+    if (droppedInputs > 0) {
+      console.warn(`${droppedInputs} champ(s) ignoré(s) car sans métadonnées valides.`);
+    }
+  }, [droppedInputs]);
 
   if (loading) return <main className="container">Chargement…</main>;
   if (!template) return <main className="container">Introuvable</main>;
@@ -87,8 +139,8 @@ export default function ContractDetailPage() {
 
       <div className="grid grid-2" style={{ gap: 24 }}>
         <section className="card">
-          {Array.isArray(template?.inputs) && template.inputs.length > 0 ? (
-            template.inputs.map((inp) => (
+          {safeInputs.length > 0 ? (
+            safeInputs.map((inp) => (
               <div key={inp.key} style={{ marginBottom: 12 }}>
                 <label style={{ display: 'block', marginBottom: 6 }}>{inp.label}</label>
                 <input
