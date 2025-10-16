@@ -70,10 +70,21 @@ export default function ContractsListPage() {
 
   // Filter + sort
   const results = useMemo(() => {
-    let base = query.trim() ? fuse.search(query).map((r) => r.item) : items;
+    const safeItems = Array.isArray(items) ? items : [];
+    
+    let base = query.trim() 
+      ? (fuse.search(query).map((r) => r.item) || [])
+      : safeItems;
+    
+    base = Array.isArray(base) ? base : [];
 
-    if (cat !== "all") base = base.filter((i) => i.category === cat);
-    if (lang) base = base.filter((i) => i.lang === lang);
+    if (cat !== "all") {
+      base = base.filter((i) => i.category === cat);
+    }
+    
+    if (lang) {
+      base = base.filter((i) => i.lang === lang);
+    }
 
     if (sortAlpha)
       base = [...base].sort((a, b) =>
@@ -93,7 +104,7 @@ export default function ContractsListPage() {
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    if (results.length === 1) {
+    if (Array.isArray(results) && results.length === 1) {
       const top = results[0];
       setAutoOpened(true);
       router.push(`/contracts/${top.id}`);
@@ -162,7 +173,7 @@ export default function ContractsListPage() {
         <p>Chargement…</p>
       ) : (
         <>
-          {paged.length > 0 ? (
+          {Array.isArray(paged) && paged.length > 0 ? (
             <ul className="list">
               {paged.map((i) => (
                 <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
@@ -198,7 +209,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {results.length > pageSize && (
+      {Array.isArray(results) && results.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"
