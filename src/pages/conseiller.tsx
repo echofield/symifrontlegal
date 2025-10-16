@@ -108,6 +108,7 @@ export default function ConseillerPage() {
       <h1>Conseiller</h1>
       <p>Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.</p>
 
+      {/* --- Question Input --- */}
       <div className="row" style={{ marginBottom: 16 }}>
         <input
           className="input"
@@ -121,6 +122,7 @@ export default function ConseillerPage() {
         </button>
       </div>
 
+      {/* --- Advisor Response --- */}
       {answer && (
         <section className="card" style={{ marginTop: 16 }}>
           <h2>Réponse</h2>
@@ -136,6 +138,7 @@ export default function ConseillerPage() {
         </section>
       )}
 
+      {/* --- Lawyer Results --- */}
       {Array.isArray(lawyers) && lawyers.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
@@ -143,10 +146,10 @@ export default function ConseillerPage() {
             <aside className="card">
               <ul className="list">
                 {lawyers.map((l, i) => {
-                  const ratingText = typeof l.rating === "number" ? `Note: ${l.rating}` : "";
+                  const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
                   const addressText = l.address ? l.address : "";
-                  const displayText = [ratingText, addressText].filter(Boolean).join(" - ");
-                  
+                  const displayText = [ratingText, addressText].filter(Boolean).join(" • ");
+
                   return (
                     <li
                       key={i}
@@ -166,7 +169,7 @@ export default function ConseillerPage() {
                       )}
                       <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                         {l.place_id && (
-                          
+                          <a
                             href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
                             target="_blank"
                             rel="noreferrer"
@@ -198,6 +201,7 @@ export default function ConseillerPage() {
         </section>
       )}
 
+      {/* --- Empty state --- */}
       {Array.isArray(lawyers) && lawyers.length === 0 && answer && !finding && (
         <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
       )}
