@@ -3,8 +3,9 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Fuse from "fuse.js";
 
-// ✅ Ultra-safe helper functions
+// 🛡️ Ultra-safe helper functions
 function ensureArray<T>(value: unknown, label = "list"): T[] {
+  if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
     console.warn(`[ensureArray] expected array for ${label}, got`, value);
     return [];
@@ -91,9 +92,11 @@ export default function ContractsListPage() {
 
   // ---- Safe Fuse search setup
   const fuse = useMemo(() => {
-    if (!items || items.length === 0) return null;
+    const safeItems = ensureArray<IndexEntry>(items, "fuseItems");
+    if (safeItems.length === 0) return null;
+    
     try {
-      return new Fuse(items, {
+      return new Fuse(safeItems, {
         keys: ["title", "category", "keywords"],
         threshold: 0.35,
         ignoreLocation: true,
@@ -107,7 +110,6 @@ export default function ContractsListPage() {
   // ---- Ultra-safe filter + sort
   const results = useMemo(() => {
     const safeItems = ensureArray<IndexEntry>(items, "items");
-    
     if (safeItems.length === 0) return [];
 
     let filtered: IndexEntry[] = [];
@@ -116,7 +118,7 @@ export default function ContractsListPage() {
     if (query.trim().length > 0 && fuse) {
       try {
         const searchResults = safeFuseSearch(fuse, query);
-        filtered = searchResults.map((r) => r.item).filter(Boolean);
+        filtered = ensureArray(searchResults.map((r) => r.item).filter(Boolean), "searchItems");
       } catch (error) {
         console.warn("❌ Search failed, falling back to full list");
         filtered = [...safeItems];
@@ -125,13 +127,13 @@ export default function ContractsListPage() {
       filtered = [...safeItems];
     }
 
-    // Safe filtering
+    // Safe filtering with null checks
     if (cat !== "all") {
-      filtered = filtered.filter((i) => i && i.category === cat);
+      filtered = ensureArray(filtered.filter((i) => i && i.category === cat), "categoryFilter");
     }
     
     if (lang) {
-      filtered = filtered.filter((i) => i && i.lang === lang);
+      filtered = ensureArray(filtered.filter((i) => i && i.lang === lang), "langFilter");
     }
 
     // Safe sorting
@@ -151,9 +153,10 @@ export default function ContractsListPage() {
   }, [query, cat, lang, sortAlpha, items, fuse]);
 
   // ---- Safe pagination
-  const totalPages = Math.max(1, Math.ceil(ensureArray(results).length / pageSize));
+  const safeResults = ensureArray(results, "paginationResults");
+  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
   const safePage = Math.max(1, Math.min(page, totalPages));
-  const paged = ensureArray(results).slice(
+  const paged = safeResults.slice(
     (safePage - 1) * pageSize, 
     safePage * pageSize
   );
@@ -274,7 +277,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {ensureArray(results).length > pageSize && (
+      {safeResults.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"
