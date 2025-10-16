@@ -96,7 +96,7 @@ export default function ConseillerPage() {
       setSelected(null);
     } catch (err) {
       console.error("Erreur recherche avocat:", err);
-      alert("Erreur lors de la recherche d’avocats.");
+      alert("Erreur lors de la recherche d'avocats.");
       setLawyers([]); // ensure safe fallback
     } finally {
       setFinding(false);
@@ -163,7 +163,7 @@ export default function ConseillerPage() {
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                       {l.place_id && (
-                        <a
+                        
                           href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
                           target="_blank"
                           rel="noreferrer"
