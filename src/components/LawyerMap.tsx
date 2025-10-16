@@ -30,6 +30,7 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existing = (window as any).google?.maps;
       if (existing) return existing;
+
       const apiKey =
         process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
       if (!apiKey) return null;
@@ -42,6 +43,7 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
         s.onerror = () => reject(new Error("Failed to load Google Maps"));
         document.head.appendChild(s);
       });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (window as any).google?.maps;
     }
@@ -59,7 +61,9 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
       });
 
       // Remove old markers safely
-      (markers.current || []).forEach((m) => m.setMap(null));
+      if (Array.isArray(markers.current)) {
+        markers.current.forEach((m) => m && m.setMap(null));
+      }
       markers.current = [];
 
       // ✅ Safely handle missing or empty lawyers list
@@ -67,17 +71,19 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
 
       lawyers.forEach((l, idx) => {
         if (typeof l.lat !== "number" || typeof l.lng !== "number") return;
+
         const marker = new maps.Marker({
           position: { lat: l.lat, lng: l.lng },
           map: mapObj.current!,
           title: l.name || `Avocat ${idx + 1}`,
         });
+
         marker.addListener("click", () => onSelect && onSelect(idx));
         markers.current.push(marker);
       });
 
       // Fit bounds if multiple markers
-      if (markers.current.length > 0) {
+      if (Array.isArray(markers.current) && markers.current.length > 0) {
         const bounds = new maps.LatLngBounds();
         markers.current.forEach((m) => {
           const pos = m.getPosition();
@@ -88,6 +94,7 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
     }
 
     init();
+
     return () => {
       cancelled = true;
     };
@@ -95,11 +102,16 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
 
   useEffect(() => {
     // Optional: bounce selected marker
-    if (!markers.current || markers.current.length === 0 || selectedIndex == null) return;
+    if (!Array.isArray(markers.current) || markers.current.length === 0 || selectedIndex == null) {
+      return;
+    }
+
     markers.current.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maps = (window as any).google?.maps;
     if (!maps) return;
+
     const sel = markers.current[selectedIndex];
     if (sel) sel.setAnimation(maps.Animation.BOUNCE);
   }, [selectedIndex]);
