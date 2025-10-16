@@ -70,7 +70,7 @@ export default function ContractsListPage() {
   const [autoOpened, setAutoOpened] = useState(false);
   const pageSize = 20;
 
-  const api = process.env.NEXT_PUBLIC_API_URL;
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
   const router = useRouter();
 
   // ---- Load contracts safely
@@ -78,8 +78,8 @@ export default function ContractsListPage() {
     async function loadContracts() {
       setLoading(true);
       try {
-        console.log("📡 Loading contracts from:", `${api}/api/contracts?lang=${lang}`);
-        const res = await fetch(`${api}/api/contracts?lang=${lang}`);
+        console.log("📡 Loading contracts from:", `${apiBase}/api/contracts?lang=${lang}`);
+        const res = await fetch(`${apiBase}/api/contracts?lang=${lang}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
@@ -103,13 +103,8 @@ export default function ContractsListPage() {
       }
     }
     
-    if (api) {
-      loadContracts();
-    } else {
-      console.warn("❌ No API URL configured");
-      setLoading(false);
-    }
-  }, [api, lang]);
+    loadContracts();
+  }, [apiBase, lang]);
 
   // ---- Ultra-safe filter + sort (NO FUSE.JS)
   const results = useMemo(() => {
