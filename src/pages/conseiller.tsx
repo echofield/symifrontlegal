@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link"; // ✅ added for Next.js internal routing
+import Link from "next/link";
 import type { Lawyer } from "@/components/LawyerMap";
+
+import { ensureArray } from "@/utils/ensureArray";
 
 type AdvisorOutput = {
   thought: string;
@@ -22,6 +24,23 @@ export default function ConseillerPage() {
   const [loading, setLoading] = useState(false);
 
   const api = process.env.NEXT_PUBLIC_API_URL;
+
+  const { list: safeLawyers, dropped: droppedLocalLawyers } = useMemo(() => {
+    const normalized = ensureArray<Lawyer>(lawyers, "state.lawyers");
+    const filtered = normalized.filter(
+      (lawyer): lawyer is Lawyer => Boolean(lawyer) && typeof lawyer?.name === "string",
+    );
+
+    return { list: filtered, dropped: normalized.length - filtered.length };
+  }, [lawyers]);
+
+  useEffect(() => {
+    if (droppedLocalLawyers > 0) {
+      console.warn(
+        `${droppedLocalLawyers} avocat(s) invalide(s) ignoré(s) dans l'état local.`,
+      );
+    }
+  }, [droppedLocalLawyers]);
 
   // ---- Ask the AI advisor ----
   const ask = async () => {
@@ -88,9 +107,14 @@ export default function ConseillerPage() {
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r.json();
 
-      const validLawyers = Array.isArray(data?.lawyers)
-        ? data.lawyers.filter((l: Lawyer) => typeof l.name === "string")
-        : [];
+      const normalizedLawyers = ensureArray<Lawyer>(data?.lawyers, "api.lawyers");
+      const validLawyers = normalizedLawyers.filter((l) => typeof l?.name === "string");
+
+      if (validLawyers.length !== normalizedLawyers.length) {
+        console.warn(
+          `${normalizedLawyers.length - validLawyers.length} avocat(s) ignoré(s) car sans nom valide.`,
+        );
+      }
 
       setLawyers(validLawyers);
       setSelected(null);
@@ -128,7 +152,6 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text || "Aucune réponse disponible."}</p>
           <div className="row">
-            {/* ✅ changed to Next.js <Link> */}
             <Link href="/contracts" className="btn btn-secondary">
               Voir les modèles
             </Link>
@@ -140,13 +163,13 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Lawyer Results --- */}
-      {Array.isArray(lawyers) && lawyers.length > 0 && (
+      {safeLawyers.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
           <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
             <aside className="card">
               <ul className="list">
-                {lawyers.map((l, i) => {
+                {safeLawyers.map((l, i) => {
                   const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
                   const addressText = l.address ? l.address : "";
                   const displayText = [ratingText, addressText].filter(Boolean).join(" • ");
@@ -192,7 +215,7 @@ export default function ConseillerPage() {
 
             <div style={{ height: 420 }}>
               <LawyerMap
-                lawyers={lawyers}
+                lawyers={safeLawyers}
                 center={coords || undefined}
                 onSelect={setSelected}
                 selectedIndex={selected}
@@ -203,7 +226,7 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Empty state --- */}
-      {Array.isArray(lawyers) && lawyers.length === 0 && answer && !finding && (
+      {safeLawyers.length === 0 && answer && !finding && (
         <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
       )}
     </main>
