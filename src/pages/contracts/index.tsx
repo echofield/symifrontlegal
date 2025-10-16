@@ -3,6 +3,15 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Fuse from "fuse.js";
 
+// ✅ helper for safety
+function ensureArray<T>(value: unknown, label = "list"): T[] {
+  if (!Array.isArray(value)) {
+    console.warn(`[ensureArray] expected array for ${label}, got`, value);
+    return [];
+  }
+  return value;
+}
+
 type IndexEntry = {
   id: string;
   title: string;
@@ -21,6 +30,7 @@ const CATS = [
   "closure",
   "custom",
 ] as const;
+
 const LANGS = ["fr", "en"] as const;
 
 export default function ContractsListPage() {
@@ -37,18 +47,19 @@ export default function ContractsListPage() {
   const api = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
 
-  // Load contracts
+  // ---- Load contracts safely
   useEffect(() => {
     async function loadContracts() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        const list =
+        const raw =
           data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        setItems(Array.isArray(list) ? list : []);
+        setItems(ensureArray(raw, "contracts"));
       } catch (err) {
-        console.error(err);
+        console.error("❌ loadContracts failed:", err);
         setItems([]);
       } finally {
         setLoading(false);
@@ -57,7 +68,7 @@ export default function ContractsListPage() {
     loadContracts();
   }, [api, lang]);
 
-  // Fuzzy search setup
+  // ---- Fuse search setup
   const fuse = useMemo(
     () =>
       new Fuse(items, {
@@ -68,49 +79,42 @@ export default function ContractsListPage() {
     [items]
   );
 
-  // Filter + sort
+  // ---- Filter + sort safely
   const results = useMemo(() => {
-    const safeItems = Array.isArray(items) ? items : [];
-    
-    let base = query.trim() 
-      ? (fuse.search(query).map((r) => r.item) || [])
-      : safeItems;
-    
-    base = Array.isArray(base) ? base : [];
+    const baseItems = ensureArray(items, "items");
 
-    if (cat !== "all") {
-      base = base.filter((i) => i.category === cat);
-    }
-    
-    if (lang) {
-      base = base.filter((i) => i.lang === lang);
-    }
+    let base =
+      query.trim().length > 0
+        ? ensureArray(fuse.search(query).map((r) => r.item), "searchResults")
+        : baseItems;
 
-    if (sortAlpha)
-      base = [...base].sort((a, b) =>
-        a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
-      );
-    else
-      base = [...base].sort((a, b) =>
-        b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
-      );
+    if (cat !== "all") base = base.filter((i) => i.category === cat);
+    if (lang) base = base.filter((i) => i.lang === lang);
+
+    base.sort((a, b) =>
+      sortAlpha
+        ? a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
+        : b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
+    );
 
     return base;
   }, [query, cat, lang, sortAlpha, items, fuse]);
 
-  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
-  const paged = results.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.max(1, Math.ceil(ensureArray(results).length / pageSize));
+  const paged = ensureArray(results).slice((page - 1) * pageSize, page * pageSize);
 
-  // 🔮 Auto-open the best match if only one strong result
+  // ---- Auto-open single match
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    if (Array.isArray(results) && results.length === 1) {
-      const top = results[0];
+    const safeResults = ensureArray(results, "autoOpenResults");
+    if (safeResults.length === 1) {
+      const top = safeResults[0];
       setAutoOpened(true);
       router.push(`/contracts/${top.id}`);
     }
   }, [results, query, autoOpened, router]);
 
+  // ---- UI
   return (
     <main className="container">
       <h1>Modèles de contrats</h1>
@@ -171,45 +175,38 @@ export default function ContractsListPage() {
       {/* Results */}
       {loading ? (
         <p>Chargement…</p>
-      ) : (
-        <>
-          {Array.isArray(paged) && paged.length > 0 ? (
-            <ul className="list">
-              {paged.map((i) => (
-                <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{i.title}</div>
-                      <div className="muted" style={{ fontSize: 12 }}>
-                        {i.category || "Autre"} • {i.lang?.toUpperCase() || "?"}
-                      </div>
-                    </div>
-                    <Link
-                      href={`/contracts/${i.id}`}
-                      className="btn btn-primary"
-                    >
-                      Ouvrir
-                    </Link>
+      ) : ensureArray(paged).length > 0 ? (
+        <ul className="list">
+          {paged.map((i) => (
+            <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600 }}>{i.title}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {i.category || "Autre"} • {i.lang?.toUpperCase() || "?"}
                   </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted" style={{ marginTop: 16 }}>
-              Aucun contrat trouvé pour cette recherche.
-            </p>
-          )}
-        </>
+                </div>
+                <Link href={`/contracts/${i.id}`} className="btn btn-primary">
+                  Ouvrir
+                </Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted" style={{ marginTop: 16 }}>
+          Aucun contrat trouvé pour cette recherche.
+        </p>
       )}
 
       {/* Pagination */}
-      {Array.isArray(results) && results.length > pageSize && (
+      {ensureArray(results).length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"
