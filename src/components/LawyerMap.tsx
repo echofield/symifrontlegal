@@ -17,6 +17,12 @@ type Props = {
   selectedIndex?: number | null;
 };
 
+const ensureArray = <T,>(value: unknown, label: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  console.warn(`[LawyerMap] Fallback to [] for ${label}`, value);
+  return [];
+};
+
 export default function LawyerMap({ lawyers = [], center, onSelect, selectedIndex }: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapObj = useRef<google.maps.Map | null>(null);
@@ -60,16 +66,17 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
         streetViewControl: false,
       });
 
-      // Remove old markers safely
-      if (Array.isArray(markers.current)) {
-        markers.current.forEach((m) => m && m.setMap(null));
-      }
+      const existingMarkers = ensureArray<google.maps.Marker>(
+        markers.current,
+        "existing-markers"
+      );
+      existingMarkers.forEach((m) => m && m.setMap(null));
       markers.current = [];
 
-      // ✅ Safely handle missing or empty lawyers list
-      if (!Array.isArray(lawyers) || lawyers.length === 0) return;
+      const normalizedLawyers = ensureArray<Lawyer>(lawyers, "lawyers-prop");
+      if (normalizedLawyers.length === 0) return;
 
-      lawyers.forEach((l, idx) => {
+      normalizedLawyers.forEach((l, idx) => {
         if (typeof l.lat !== "number" || typeof l.lng !== "number") return;
 
         const marker = new maps.Marker({
@@ -83,9 +90,13 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
       });
 
       // Fit bounds if multiple markers
-      if (Array.isArray(markers.current) && markers.current.length > 0) {
+      const markersArray = ensureArray<google.maps.Marker>(
+        markers.current,
+        "markers-after-create"
+      );
+      if (markersArray.length > 0) {
         const bounds = new maps.LatLngBounds();
-        markers.current.forEach((m) => {
+        markersArray.forEach((m) => {
           const pos = m.getPosition();
           if (pos) bounds.extend(pos);
         });
@@ -106,13 +117,17 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
       return;
     }
 
-    markers.current.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
+    const markersArray = ensureArray<google.maps.Marker>(
+      markers.current,
+      "markers-highlight"
+    );
+    markersArray.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maps = (window as any).google?.maps;
     if (!maps) return;
 
-    const sel = markers.current[selectedIndex];
+    const sel = markersArray[selectedIndex];
     if (sel) sel.setAnimation(maps.Animation.BOUNCE);
   }, [selectedIndex]);
 

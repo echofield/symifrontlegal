@@ -23,6 +23,21 @@ const CATS = [
 ] as const;
 const LANGS = ["fr", "en"] as const;
 
+const ensureArray = <T,>(value: unknown, label?: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (label) {
+    console.warn(`[contracts/index] Fallback to [] for ${label}`, value);
+  }
+  return [];
+};
+
+const sanitizeIndexEntries = (value: unknown, label?: string): IndexEntry[] =>
+  ensureArray<unknown>(value, label).filter((entry): entry is IndexEntry => {
+    if (!entry || typeof entry !== "object") return false;
+    const candidate = entry as Partial<IndexEntry>;
+    return typeof candidate.id === "string" && typeof candidate.title === "string";
+  });
+
 export default function ContractsListPage() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<IndexEntry[]>([]);
@@ -43,10 +58,38 @@ export default function ContractsListPage() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
-        const data = await res.json();
-        const list =
-          data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        setItems(Array.isArray(list) ? list : []);
+        if (!res.ok) throw new Error('Invalid response');
+        const data = await res
+          .json()
+          .catch((err) => {
+            console.warn("[contracts/index] Failed to parse contracts response", err);
+            return {} as unknown;
+          });
+        const fromContracts = sanitizeIndexEntries(
+          (data as { contracts?: unknown })?.contracts,
+          "contracts"
+        );
+        const fromIndex = sanitizeIndexEntries(
+          (data as { index?: unknown })?.index,
+          "index"
+        );
+        const fallbackArray = sanitizeIndexEntries(data as unknown, "contracts-response-root");
+        const arrayCandidates =
+          fromContracts.length > 0
+            ? fromContracts
+            : fromIndex.length > 0
+            ? fromIndex
+            : fallbackArray;
+        if (
+          arrayCandidates === fallbackArray &&
+          fromContracts.length === 0 &&
+          fromIndex.length === 0
+        ) {
+          console.warn(
+            "[contracts/index] Using fallback array because API response lacked valid contract entries"
+          );
+        }
+        setItems(sanitizeIndexEntries(arrayCandidates, "final-items"));
       } catch (err) {
         console.error(err);
         setItems([]);
@@ -58,56 +101,73 @@ export default function ContractsListPage() {
   }, [api, lang]);
 
   // Fuzzy search setup
+  const safeItems = sanitizeIndexEntries(items, "state-items");
+
   const fuse = useMemo(
     () =>
-      new Fuse(items, {
+      new Fuse(safeItems, {
         keys: ["title", "category", "keywords"],
         threshold: 0.35,
         ignoreLocation: true,
       }),
-    [items]
+    [safeItems]
   );
 
   // Filter + sort
   const results = useMemo(() => {
-    const safeItems = Array.isArray(items) ? items : [];
-    
-    let base = query.trim() 
-      ? (fuse.search(query).map((r) => r.item) || [])
-      : safeItems;
-    
-    base = Array.isArray(base) ? base : [];
+    const rawSearchResults = query.trim() ? fuse.search(query) : [];
+    const searchArray = ensureArray<IndexEntry | { item: IndexEntry }>(
+      rawSearchResults as unknown,
+      "search-results"
+    );
+    const safeSearchResults = sanitizeIndexEntries(
+      searchArray.map((r) =>
+        typeof r === "object" && r !== null && "item" in r
+          ? (r as { item: IndexEntry }).item
+          : (r as IndexEntry)
+      ),
+      "search-results-items"
+    );
+
+    const base = query.trim() ? safeSearchResults : safeItems;
+    const baseArray = ensureArray(base, "base-results");
+    let working = sanitizeIndexEntries(baseArray, "working-results");
 
     if (cat !== "all") {
-      base = base.filter((i) => i.category === cat);
+      const workingForCat = ensureArray(working, "working-before-cat-filter");
+      working = workingForCat.filter((i) => i.category === cat);
     }
-    
+
     if (lang) {
-      base = base.filter((i) => i.lang === lang);
+      const workingForLang = ensureArray(working, "working-before-lang-filter");
+      working = workingForLang.filter((i) => i.lang === lang);
     }
 
-    if (sortAlpha)
-      base = [...base].sort((a, b) =>
-        a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
-      );
-    else
-      base = [...base].sort((a, b) =>
-        b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
-      );
+    const locale = lang === "fr" ? "fr" : "en";
+    const workingArray = ensureArray(working, "working-filtered-results");
+    const sorted = workingArray.slice();
+    sorted.sort((a, b) =>
+      sortAlpha
+        ? String(a?.title || "").localeCompare(String(b?.title || ""), locale)
+        : String(b?.title || "").localeCompare(String(a?.title || ""), locale)
+    );
 
-    return base;
-  }, [query, cat, lang, sortAlpha, items, fuse]);
+    return sorted;
+  }, [query, cat, lang, sortAlpha, safeItems, fuse]);
 
-  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
-  const paged = results.slice((page - 1) * pageSize, page * pageSize);
+  const safeResults = sanitizeIndexEntries(results, "memo-results");
+  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
+  const pagedSource = ensureArray(safeResults, "paged-results");
+  const paged = pagedSource.slice((page - 1) * pageSize, page * pageSize);
 
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    if (Array.isArray(results) && results.length === 1) {
-      const top = results[0];
+    const normalizedResults = sanitizeIndexEntries(results, "auto-open-results");
+    if (normalizedResults.length === 1) {
+      const top = normalizedResults[0];
       setAutoOpened(true);
-      router.push(`/contracts/${top.id}`);
+      if (top?.id) router.push(`/contracts/${top.id}`);
     }
   }, [results, query, autoOpened, router]);
 
@@ -138,7 +198,7 @@ export default function ContractsListPage() {
           className="input"
           style={{ width: 120 }}
         >
-          {LANGS.map((l) => (
+          {(Array.isArray(LANGS) ? LANGS : []).map((l) => (
             <option key={l} value={l}>
               {l.toUpperCase()}
             </option>
@@ -157,7 +217,7 @@ export default function ContractsListPage() {
         >
           Tous
         </button>
-        {CATS.map((c) => (
+        {(Array.isArray(CATS) ? CATS : []).map((c) => (
           <button
             key={c}
             className={`chip ${cat === c ? "chip-active" : ""}`}
@@ -173,7 +233,7 @@ export default function ContractsListPage() {
         <p>Chargement…</p>
       ) : (
         <>
-          {Array.isArray(paged) && paged.length > 0 ? (
+          {paged.length > 0 ? (
             <ul className="list">
               {paged.map((i) => (
                 <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
@@ -209,7 +269,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {Array.isArray(results) && results.length > pageSize && (
+      {safeResults.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"

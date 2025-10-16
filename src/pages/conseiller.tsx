@@ -3,6 +3,14 @@ import dynamic from "next/dynamic";
 import Link from "next/link"; // ✅ added for Next.js internal routing
 import type { Lawyer } from "@/components/LawyerMap";
 
+const ensureArray = <T,>(value: unknown, label?: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (label) {
+    console.warn(`[conseiller] Fallback to [] for ${label}`, value);
+  }
+  return [];
+};
+
 type AdvisorOutput = {
   thought: string;
   followup_question: string | null;
@@ -39,8 +47,20 @@ export default function ConseillerPage() {
       });
 
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
-      const data = await r.json();
-      setAnswer(data?.output || null);
+      const data = await r
+        .json()
+        .catch((err) => {
+          console.warn("[conseiller] Failed to parse advisor response", err);
+          return {} as unknown;
+        });
+      const output =
+        data && typeof data === "object"
+          ? (data as { output?: AdvisorOutput }).output
+          : null;
+      if (!output || typeof output !== "object") {
+        console.warn("[conseiller] Advisor output missing or invalid", data);
+      }
+      setAnswer(output && typeof output === "object" ? output : null);
     } catch (err) {
       console.error("Erreur:", err);
       alert("Erreur lors de la consultation.");
@@ -72,7 +92,17 @@ export default function ConseillerPage() {
     if (!userLoc) alert("Localisation non disponible, affichage des résultats à Paris.");
     setCoords(loc);
 
-    const spec = (answer?.action?.args?.topic as string) || "contrat";
+    const topicArg =
+      answer &&
+      typeof answer === "object" &&
+      answer?.action &&
+      typeof answer.action === "object" &&
+      answer.action !== null &&
+      typeof answer.action.args === "object" &&
+      answer.action.args !== null
+        ? (answer.action.args as Record<string, unknown>).topic
+        : undefined;
+    const spec = typeof topicArg === "string" && topicArg.trim() ? topicArg : "contrat";
 
     try {
       const r = await fetch(`${api}/api/lawyers`, {
@@ -86,11 +116,20 @@ export default function ConseillerPage() {
       });
 
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
-      const data = await r.json();
+      const data = await r
+        .json()
+        .catch((err) => {
+          console.warn("[conseiller] Failed to parse lawyer search response", err);
+          return {} as unknown;
+        });
 
-      const validLawyers = Array.isArray(data?.lawyers)
-        ? data.lawyers.filter((l: Lawyer) => typeof l.name === "string")
-        : [];
+      const lawyersRaw =
+        data && typeof data === "object"
+          ? (data as { lawyers?: unknown }).lawyers
+          : null;
+      const validLawyers = ensureArray<Lawyer>(lawyersRaw, "lawyers-response").filter(
+        (l: Lawyer) => typeof l?.name === "string"
+      );
 
       setLawyers(validLawyers);
       setSelected(null);
@@ -102,6 +141,11 @@ export default function ConseillerPage() {
       setFinding(false);
     }
   };
+
+  const safeLawyersList = ensureArray<unknown>(lawyers, "state-lawyers").filter(
+    (entry): entry is Lawyer =>
+      !!entry && typeof entry === "object" && typeof (entry as Lawyer).name === "string"
+  );
 
   return (
     <main className="container">
@@ -140,16 +184,19 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Lawyer Results --- */}
-      {Array.isArray(lawyers) && lawyers.length > 0 && (
+      {safeLawyersList.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
           <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
             <aside className="card">
               <ul className="list">
-                {lawyers.map((l, i) => {
+                {safeLawyersList.map((l, i) => {
                   const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
                   const addressText = l.address ? l.address : "";
-                  const displayText = [ratingText, addressText].filter(Boolean).join(" • ");
+                  const details = [ratingText, addressText];
+                  const displayText = (Array.isArray(details) ? details : [])
+                    .filter(Boolean)
+                    .join(" • ");
 
                   return (
                     <li
@@ -192,7 +239,7 @@ export default function ConseillerPage() {
 
             <div style={{ height: 420 }}>
               <LawyerMap
-                lawyers={lawyers}
+                lawyers={safeLawyersList}
                 center={coords || undefined}
                 onSelect={setSelected}
                 selectedIndex={selected}
@@ -203,7 +250,7 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Empty state --- */}
-      {Array.isArray(lawyers) && lawyers.length === 0 && answer && !finding && (
+      {safeLawyersList.length === 0 && answer && !finding && (
         <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
       )}
     </main>
