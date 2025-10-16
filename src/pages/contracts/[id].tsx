@@ -1,5 +1,5 @@
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // ✅ Vite often uses react-router-dom for params
 
 type InputDef = { key: string; label: string; type: string; required: boolean };
 type Clause = { id: string; title: string; body: string };
@@ -10,15 +10,17 @@ type Template = {
 };
 
 export default function ContractDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { id } = router.query as { id?: string };
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState<Template | null>(null);
   const [form, setForm] = useState<Record<string, string | number | boolean>>({});
   const [preview, setPreview] = useState('');
 
-  const api = import.meta.env.VITE_API_BASE_URL;
+  // ✅ Correct variable for Next.js
+  const api = process.env.NEXT_PUBLIC_API_URL;
 
-  // fetch the template from backend
+  // Fetch the contract template
   useEffect(() => {
     if (!id) return;
     fetch(`${api}/api/contracts/${id}`)
@@ -27,7 +29,7 @@ export default function ContractDetailPage() {
       .finally(() => setLoading(false));
   }, [id, api]);
 
-  // generate live preview
+  // Generate the contract preview text
   useEffect(() => {
     if (!template) return;
     const filled = template.clauses
