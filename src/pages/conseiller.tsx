@@ -142,40 +142,43 @@ export default function ConseillerPage() {
           <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
             <aside className="card">
               <ul className="list">
-                {lawyers.map((l, i) => (
-                  <li
-                    key={i}
-                    onClick={() => setSelected(i)}
-                    style={{
-                      padding: 10,
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      background: selected === i ? "var(--accent-weak)" : "transparent",
-                    }}
-                  >
-                    <div style={{ fontWeight: 600 }}>{l.name}</div>
-                    <div className="muted" style={{ fontSize: 13 }}>
-                      {typeof l.rating === "number" && (
-                        <span>★ {l.rating} </span>
+                {lawyers.map((l, i) => {
+                  const ratingText = typeof l.rating === "number" ? `Note: ${l.rating}` : "";
+                  const addressText = l.address ? l.address : "";
+                  const displayText = [ratingText, addressText].filter(Boolean).join(" - ");
+                  
+                  return (
+                    <li
+                      key={i}
+                      onClick={() => setSelected(i)}
+                      style={{
+                        padding: 10,
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        background: selected === i ? "var(--accent-weak)" : "transparent",
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>{l.name}</div>
+                      {displayText && (
+                        <div className="muted" style={{ fontSize: 13 }}>
+                          {displayText}
+                        </div>
                       )}
-                      {l.address && (
-                        <span>• {l.address}</span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                      {l.place_id && (
-                        
-                          href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="link"
-                        >
-                          Voir sur Google Maps
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                        {l.place_id && (
+                          
+                            href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="link"
+                          >
+                            Voir sur Google Maps
+                          </a>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
               <div className="footer-note" style={{ marginTop: 12 }}>
                 Les avocats affichés proviennent de Google Maps. SYMIONE ne garantit ni ne recommande
