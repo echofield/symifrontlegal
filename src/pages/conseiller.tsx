@@ -23,7 +23,13 @@ export default function ConseillerPage() {
   // ✅ Correct for Next.js
   const api = process.env.NEXT_PUBLIC_API_URL;
 
+  // --- Ask SYMIONE ---
   const ask = async () => {
+    if (!q.trim()) {
+      alert('Veuillez poser une question.');
+      return;
+    }
+
     setLoading(true);
     try {
       const r = await fetch(`${api}/api/advisor`, {
@@ -32,28 +38,32 @@ export default function ConseillerPage() {
         body: JSON.stringify({ question: q }),
       });
       const data = await r.json();
-      setAnswer(data.output);
+      setAnswer(data?.output || null);
     } catch (err) {
-      console.error(err);
+      console.error('Erreur de requête:', err);
       alert('Erreur lors de la consultation.');
     } finally {
       setLoading(false);
     }
   };
 
+  // --- Search Lawyers ---
   const searchLawyers = async () => {
     setFinding(true);
     let userLoc: { lat: number; lng: number } | null = null;
+
     try {
       userLoc = await new Promise((resolve) => {
         if (!navigator.geolocation) return resolve(null);
         navigator.geolocation.getCurrentPosition(
           (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
           () => resolve(null),
-          { timeout: 3000 },
+          { timeout: 3000 }
         );
       });
-    } catch {}
+    } catch (err) {
+      console.warn('Erreur localisation:', err);
+    }
 
     const fallback = { lat: 48.8566, lng: 2.3522 };
     if (!userLoc) alert('Localisation non disponible, affichage des résultats à Paris.');
@@ -61,6 +71,7 @@ export default function ConseillerPage() {
     setCoords(loc);
 
     const spec = (answer?.action?.args?.topic as string) || 'contrat';
+
     try {
       const r = await fetch(`${api}/api/lawyers`, {
         method: 'POST',
@@ -71,12 +82,18 @@ export default function ConseillerPage() {
           lng: loc.lng,
         }),
       });
+
       const data = await r.json();
-      setLawyers(data.lawyers || []);
+      if (Array.isArray(data?.lawyers)) {
+        setLawyers(data.lawyers);
+      } else {
+        console.warn('Réponse inattendue:', data);
+        setLawyers([]);
+      }
       setSelected(null);
     } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la recherche.');
+      console.error('Erreur lors de la recherche:', err);
+      alert('Erreur lors de la recherche d’avocats.');
     } finally {
       setFinding(false);
     }
@@ -105,7 +122,7 @@ export default function ConseillerPage() {
       {answer && (
         <section className="card" style={{ marginTop: 16 }}>
           <h2>Réponse</h2>
-          <p>{answer.reply_text}</p>
+          <p>{answer.reply_text || 'Aucune réponse disponible.'}</p>
           <div className="row">
             <a href="/contracts" className="btn btn-secondary">
               Voir les modèles
@@ -117,7 +134,7 @@ export default function ConseillerPage() {
         </section>
       )}
 
-      {lawyers.length > 0 && (
+      {Array.isArray(lawyers) && lawyers.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
           <div className="grid grid-5-7" style={{ gap: 16, alignItems: 'stretch' }}>
