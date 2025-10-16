@@ -3,14 +3,25 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Fuse from "fuse.js";
 
-// ✅ universal guard
-const ensureArray = (val: unknown, label = "unknown") => {
-  if (!Array.isArray(val)) {
-    console.warn(`[ensureArray] expected array for ${label}, got`, val);
+// ✅ Ultra-safe helper functions
+function ensureArray<T>(value: unknown, label = "list"): T[] {
+  if (!Array.isArray(value)) {
+    console.warn(`[ensureArray] expected array for ${label}, got`, value);
     return [];
   }
-  return val;
-};
+  return value;
+}
+
+function safeFuseSearch(fuseInstance: Fuse<any> | null, query: string): any[] {
+  if (!fuseInstance) return [];
+  try {
+    const results = fuseInstance.search(query);
+    return Array.isArray(results) ? results : [];
+  } catch (error) {
+    console.warn("[safeFuseSearch] search failed:", error);
+    return [];
+  }
+}
 
 type IndexEntry = {
   id: string;
@@ -42,93 +53,131 @@ export default function ContractsListPage() {
   const [sortAlpha, setSortAlpha] = useState(true);
   const [page, setPage] = useState(1);
   const [autoOpened, setAutoOpened] = useState(false);
-
   const pageSize = 20;
+
   const api = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
 
-  // ---- Fetch contracts safely
+  // ---- Load contracts safely
   useEffect(() => {
-    async function load() {
+    async function loadContracts() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        const raw =
-          data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        const safe = ensureArray(raw, "contracts");
-        setItems(safe);
-        console.log(`✅ Loaded ${safe.length} contracts`);
+        
+        // Multiple fallback strategies for data extraction
+        const raw = data?.contracts || data?.index || data || [];
+        const safeArray = Array.isArray(raw) ? raw : [];
+        
+        console.log(`✅ Loaded ${safeArray.length} contracts`);
+        setItems(safeArray);
       } catch (err) {
-        console.error("❌ Failed to load contracts:", err);
+        console.error("❌ loadContracts failed:", err);
         setItems([]);
       } finally {
         setLoading(false);
       }
     }
-    load();
+    
+    if (api) {
+      loadContracts();
+    } else {
+      console.warn("❌ No API URL configured");
+      setLoading(false);
+    }
   }, [api, lang]);
 
-  // ---- Fuse search
+  // ---- Safe Fuse search setup
   const fuse = useMemo(() => {
-    const safe = ensureArray(items, "fuseItems");
-    return new Fuse(safe, {
-      keys: ["title", "category", "keywords"],
-      threshold: 0.35,
-      ignoreLocation: true,
-    });
+    if (!items || items.length === 0) return null;
+    try {
+      return new Fuse(items, {
+        keys: ["title", "category", "keywords"],
+        threshold: 0.35,
+        ignoreLocation: true,
+      });
+    } catch (error) {
+      console.error("❌ Fuse initialization failed:", error);
+      return null;
+    }
   }, [items]);
 
-  // ---- Compute results safely
+  // ---- Ultra-safe filter + sort
   const results = useMemo(() => {
-    let base: IndexEntry[] = ensureArray(items, "items");
-    let searched: IndexEntry[] = [];
+    const safeItems = ensureArray<IndexEntry>(items, "items");
+    
+    if (safeItems.length === 0) return [];
 
-    if (query.trim().length > 0) {
+    let filtered: IndexEntry[] = [];
+
+    // Safe search
+    if (query.trim().length > 0 && fuse) {
       try {
-        const fuseResults = fuse.search(query);
-        searched = ensureArray(fuseResults.map((r) => r.item), "fuseResults");
-      } catch (e) {
-        console.warn("⚠️ Fuse search error:", e);
-        searched = [];
+        const searchResults = safeFuseSearch(fuse, query);
+        filtered = searchResults.map((r) => r.item).filter(Boolean);
+      } catch (error) {
+        console.warn("❌ Search failed, falling back to full list");
+        filtered = [...safeItems];
       }
     } else {
-      searched = base;
+      filtered = [...safeItems];
     }
 
-    let filtered = ensureArray(searched, "filteredStart");
-
+    // Safe filtering
     if (cat !== "all") {
-      filtered = filtered.filter((i) => i.category === cat);
+      filtered = filtered.filter((i) => i && i.category === cat);
     }
-
+    
     if (lang) {
-      filtered = filtered.filter((i) => i.lang === lang);
+      filtered = filtered.filter((i) => i && i.lang === lang);
     }
 
-    filtered = filtered.sort((a, b) =>
-      sortAlpha
-        ? a.title.localeCompare(b.title, lang)
-        : b.title.localeCompare(a.title, lang)
-    );
+    // Safe sorting
+    try {
+      filtered.sort((a, b) => {
+        const titleA = a?.title || "";
+        const titleB = b?.title || "";
+        return sortAlpha
+          ? titleA.localeCompare(titleB, lang === "fr" ? "fr" : "en")
+          : titleB.localeCompare(titleA, lang === "fr" ? "fr" : "en");
+      });
+    } catch (error) {
+      console.warn("❌ Sort failed, keeping original order");
+    }
 
     return filtered;
   }, [query, cat, lang, sortAlpha, items, fuse]);
 
-  const safeResults = ensureArray(results, "results");
-  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
-  const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
+  // ---- Safe pagination
+  const totalPages = Math.max(1, Math.ceil(ensureArray(results).length / pageSize));
+  const safePage = Math.max(1, Math.min(page, totalPages));
+  const paged = ensureArray(results).slice(
+    (safePage - 1) * pageSize, 
+    safePage * pageSize
+  );
 
-  // ---- Auto-open if one result
+  // Reset page if results change
+  useEffect(() => {
+    setPage(1);
+  }, [query, cat, lang]);
+
+  // ---- Safe auto-open single match
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
+    
+    const safeResults = ensureArray(results, "autoOpenResults");
     if (safeResults.length === 1) {
-      setAutoOpened(true);
-      router.push(`/contracts/${safeResults[0].id}`);
+      const top = safeResults[0];
+      if (top && top.id) {
+        setAutoOpened(true);
+        router.push(`/contracts/${top.id}`);
+      }
     }
-  }, [safeResults, query, autoOpened, router]);
+  }, [results, query, autoOpened, router]);
 
-  // ---- Render
+  // ---- UI
   return (
     <main className="container">
       <h1>Modèles de contrats</h1>
@@ -162,8 +211,8 @@ export default function ContractsListPage() {
             </option>
           ))}
         </select>
-        <button
-          onClick={() => setSortAlpha(!sortAlpha)}
+        <button 
+          onClick={() => setSortAlpha(!sortAlpha)} 
           className="btn btn-secondary"
         >
           {sortAlpha ? "A → Z" : "Z → A"}
@@ -192,10 +241,10 @@ export default function ContractsListPage() {
       {/* Results */}
       {loading ? (
         <p>Chargement…</p>
-      ) : paged.length > 0 ? (
+      ) : ensureArray(paged).length > 0 ? (
         <ul className="list">
           {paged.map((i) => (
-            <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
+            <li key={i?.id || Math.random()} className="list-item" style={{ marginBottom: 8 }}>
               <div
                 style={{
                   display: "flex",
@@ -204,14 +253,16 @@ export default function ContractsListPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600 }}>{i.title}</div>
+                  <div style={{ fontWeight: 600 }}>{i?.title || "Sans titre"}</div>
                   <div className="muted" style={{ fontSize: 12 }}>
-                    {i.category || "Autre"} • {i.lang?.toUpperCase() || "?"}
+                    {i?.category || "Autre"} • {i?.lang?.toUpperCase() || "?"}
                   </div>
                 </div>
-                <Link href={`/contracts/${i.id}`} className="btn btn-primary">
-                  Ouvrir
-                </Link>
+                {i?.id && (
+                  <Link href={`/contracts/${i.id}`} className="btn btn-primary">
+                    Ouvrir
+                  </Link>
+                )}
               </div>
             </li>
           ))}
@@ -223,22 +274,22 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {safeResults.length > pageSize && (
+      {ensureArray(results).length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+            disabled={safePage === 1}
           >
             Précédent
           </button>
           <span className="muted">
-            Page {page}/{totalPages}
+            Page {safePage}/{totalPages}
           </span>
           <button
             className="btn"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
+            disabled={safePage === totalPages}
           >
             Suivant
           </button>
