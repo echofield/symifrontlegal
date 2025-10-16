@@ -49,18 +49,23 @@ export default function ConseillerPage() {
 
     setLoading(true);
     try {
+      console.log("📡 Asking advisor:", `${api}/api/advisor`);
       const r = await fetch(`${api}/api/advisor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q }),
       });
 
-      if (!r.ok) throw new Error("Réponse invalide du serveur.");
+      if (!r.ok) {
+        const errorText = await r.text();
+        throw new Error(`API error (${r.status}): ${errorText}`);
+      }
+      
       const data = await r.json();
       setAnswer(data?.output || null);
-    } catch (err) {
-      console.error("Erreur:", err);
-      alert("Erreur lors de la consultation.");
+    } catch (err: any) {
+      console.error("❌ Advisor error:", err);
+      alert(`Erreur lors de la consultation: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -92,6 +97,7 @@ export default function ConseillerPage() {
     const spec = (answer?.action?.args?.topic as string) || "contrat";
 
     try {
+      console.log("📡 Searching lawyers for:", spec);
       const r = await fetch(`${api}/api/lawyers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,19 +108,24 @@ export default function ConseillerPage() {
         }),
       });
 
-      if (!r.ok) throw new Error("Réponse invalide du serveur.");
+      if (!r.ok) {
+        const errorText = await r.text();
+        throw new Error(`API error (${r.status}): ${errorText}`);
+      }
+      
       const data = await r.json();
 
       const validLawyers = Array.isArray(data?.lawyers)
-        ? data.lawyers.filter((l: Lawyer) => typeof l.name === "string")
+        ? data.lawyers.filter((l: Lawyer) => l && typeof l.name === "string")
         : [];
 
+      console.log(`✅ Found ${validLawyers.length} lawyers`);
       setLawyers(validLawyers);
       setSelected(null);
-    } catch (err) {
-      console.error("Erreur recherche avocat:", err);
-      alert("Erreur lors de la recherche d'avocats.");
-      setLawyers([]); // ensure safe fallback
+    } catch (err: any) {
+      console.error("❌ Lawyer search error:", err);
+      alert(`Erreur lors de la recherche d'avocats: ${err.message}`);
+      setLawyers([]);
     } finally {
       setFinding(false);
     }
