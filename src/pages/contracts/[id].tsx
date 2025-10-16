@@ -12,12 +12,14 @@ type Template = {
   category?: string;
 };
 
-const ensureArray = (val: any, label: string) => {
+// 🛡️ Ultra-safe array helper
+const ensureArray = <T,>(val: unknown, label: string): T[] => {
+  if (!val) return [];
   if (!Array.isArray(val)) {
     console.warn(`[ensureArray] Expected array for ${label}, got`, val);
     return [];
   }
-  return val;
+  return val as T[];
 };
 
 export default function ContractDetailPage() {
@@ -31,36 +33,46 @@ export default function ContractDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const res = await fetch(`${api}/api/contracts/${id}`);
         if (!res.ok) throw new Error(`Failed to load template (${res.status})`);
         const data = await res.json();
+        
+        // 🛡️ Validate the response structure
+        if (!data || typeof data !== 'object') {
+          throw new Error("Invalid response format");
+        }
+        
         setTemplate(data);
         console.log("✅ Template loaded:", data);
       } catch (err: any) {
-        console.error(err);
+        console.error("❌ Template load error:", err);
         setError(err.message || "Erreur de chargement");
+        setTemplate(null);
       } finally {
         setLoading(false);
       }
     }
+    
     load();
   }, [api, id]);
 
-  if (loading) return <p>Chargement…</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (!template) return <p>Aucun modèle trouvé.</p>;
+  // 🛡️ Safe data extraction - only after template is loaded
+  const clauses = template ? ensureArray<Clause>(template.clauses, "clauses") : [];
+  const inputs = template ? ensureArray<InputField>(template.inputs, "inputs") : [];
 
-  // 🧱 Defensive normalization
-  const clauses = ensureArray(template.clauses, "clauses");
-  const inputs = ensureArray(template.inputs, "inputs");
+  if (loading) return <main className="container"><p>Chargement…</p></main>;
+  if (error) return <main className="container"><p style={{ color: "red" }}>{error}</p></main>;
+  if (!template) return <main className="container"><p>Aucun modèle trouvé.</p></main>;
 
   return (
     <main className="container">
-      <h1>{template.title}</h1>
-      <p className="muted">{template.description}</p>
+      <h1>{template.title || "Sans titre"}</h1>
+      {template.description && <p className="muted">{template.description}</p>}
 
       {inputs.length > 0 && (
         <section style={{ marginTop: 20 }}>
@@ -81,7 +93,7 @@ export default function ContractDetailPage() {
           <ul>
             {clauses.map((c, i) => (
               <li key={i}>
-                <strong>{c.title}</strong>: {c.text}
+                <strong>{c.title || "Sans titre"}</strong>: {c.text || "Contenu manquant"}
               </li>
             ))}
           </ul>
@@ -90,7 +102,7 @@ export default function ContractDetailPage() {
 
       {inputs.length === 0 && clauses.length === 0 && (
         <p className="muted" style={{ marginTop: 16 }}>
-          Ce modèle n’a pas encore de contenu détaillé.
+          Ce modèle n'a pas encore de contenu détaillé.
         </p>
       )}
     </main>
