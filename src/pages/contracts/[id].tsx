@@ -9,8 +9,13 @@ type Template = {
   clauses: Clause[];
 };
 
-const ensureArray = <T,>(value: unknown): T[] =>
-  Array.isArray(value) ? (value as T[]) : [];
+const ensureArray = <T,>(value: unknown, label?: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (label) {
+    console.warn(`[contracts/[id]] Fallback to [] for ${label}`, value);
+  }
+  return [];
+};
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -35,11 +40,28 @@ export default function ContractDetailPage() {
         if (!res.ok) throw new Error('Invalid response');
         const data = await res
           .json()
-          .catch(() => ({} as unknown));
+          .catch((err) => {
+            console.warn("[contracts/[id]] Failed to parse contract detail response", err);
+            return {} as unknown;
+          });
         const templateData =
           data && typeof data === 'object' && data !== null
             ? (data as { template?: unknown }).template
             : null;
+        if (
+          templateData &&
+          typeof templateData === 'object' &&
+          !Array.isArray((templateData as Template).clauses)
+        ) {
+          console.warn('[contracts/[id]] Template clauses missing or invalid', templateData);
+        }
+        if (
+          templateData &&
+          typeof templateData === 'object' &&
+          !Array.isArray((templateData as Template).inputs)
+        ) {
+          console.warn('[contracts/[id]] Template inputs missing or invalid', templateData);
+        }
         const safeTemplate =
           templateData && typeof templateData === 'object'
             ? (templateData as Template)
@@ -63,7 +85,7 @@ export default function ContractDetailPage() {
   // Generate the contract preview text
   useEffect(() => {
     if (!template) return;
-    const safeClauses = ensureArray<unknown>(template?.clauses).filter(
+    const safeClauses = ensureArray<unknown>(template?.clauses, 'template-clauses').filter(
       (clause): clause is Clause =>
         !!clause &&
         typeof clause === 'object' &&
@@ -84,7 +106,7 @@ export default function ContractDetailPage() {
   const onChange = (key: string, value: string | number | boolean) =>
     setForm((s) => ({ ...s, [key]: value }));
 
-  const validInputs = ensureArray<unknown>(template.inputs).filter(
+  const validInputs = ensureArray<unknown>(template.inputs, 'template-inputs').filter(
     (input): input is InputDef =>
       !!input &&
       typeof input === 'object' &&

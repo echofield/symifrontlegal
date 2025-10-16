@@ -23,11 +23,16 @@ const CATS = [
 ] as const;
 const LANGS = ["fr", "en"] as const;
 
-const ensureArray = <T,>(value: unknown): T[] =>
-  Array.isArray(value) ? (value as T[]) : [];
+const ensureArray = <T,>(value: unknown, label?: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (label) {
+    console.warn(`[contracts/index] Fallback to [] for ${label}`, value);
+  }
+  return [];
+};
 
-const sanitizeIndexEntries = (value: unknown): IndexEntry[] =>
-  ensureArray<unknown>(value).filter((entry): entry is IndexEntry => {
+const sanitizeIndexEntries = (value: unknown, label?: string): IndexEntry[] =>
+  ensureArray<unknown>(value, label).filter((entry): entry is IndexEntry => {
     if (!entry || typeof entry !== "object") return false;
     const candidate = entry as Partial<IndexEntry>;
     return typeof candidate.id === "string" && typeof candidate.title === "string";
@@ -56,21 +61,35 @@ export default function ContractsListPage() {
         if (!res.ok) throw new Error('Invalid response');
         const data = await res
           .json()
-          .catch(() => ({} as unknown));
+          .catch((err) => {
+            console.warn("[contracts/index] Failed to parse contracts response", err);
+            return {} as unknown;
+          });
         const fromContracts = sanitizeIndexEntries(
-          (data as { contracts?: unknown })?.contracts
+          (data as { contracts?: unknown })?.contracts,
+          "contracts"
         );
         const fromIndex = sanitizeIndexEntries(
-          (data as { index?: unknown })?.index
+          (data as { index?: unknown })?.index,
+          "index"
         );
-        const fallbackArray = sanitizeIndexEntries(data as unknown);
+        const fallbackArray = sanitizeIndexEntries(data as unknown, "contracts-response-root");
         const arrayCandidates =
           fromContracts.length > 0
             ? fromContracts
             : fromIndex.length > 0
             ? fromIndex
             : fallbackArray;
-        setItems(sanitizeIndexEntries(arrayCandidates));
+        if (
+          arrayCandidates === fallbackArray &&
+          fromContracts.length === 0 &&
+          fromIndex.length === 0
+        ) {
+          console.warn(
+            "[contracts/index] Using fallback array because API response lacked valid contract entries"
+          );
+        }
+        setItems(sanitizeIndexEntries(arrayCandidates, "final-items"));
       } catch (err) {
         console.error(err);
         setItems([]);
@@ -82,7 +101,7 @@ export default function ContractsListPage() {
   }, [api, lang]);
 
   // Fuzzy search setup
-  const safeItems = sanitizeIndexEntries(items);
+  const safeItems = sanitizeIndexEntries(items, "state-items");
 
   const fuse = useMemo(
     () =>
@@ -96,28 +115,37 @@ export default function ContractsListPage() {
 
   // Filter + sort
   const results = useMemo(() => {
-    const searchResults = query.trim() ? fuse.search(query) : [];
+    const rawSearchResults = query.trim() ? fuse.search(query) : [];
+    const searchArray = ensureArray<IndexEntry | { item: IndexEntry }>(
+      rawSearchResults as unknown,
+      "search-results"
+    );
     const safeSearchResults = sanitizeIndexEntries(
-      ensureArray<IndexEntry | { item: IndexEntry }>(searchResults as unknown).map((r) =>
+      searchArray.map((r) =>
         typeof r === "object" && r !== null && "item" in r
           ? (r as { item: IndexEntry }).item
           : (r as IndexEntry)
-      )
+      ),
+      "search-results-items"
     );
 
     const base = query.trim() ? safeSearchResults : safeItems;
-    let working = sanitizeIndexEntries(base);
+    const baseArray = ensureArray(base, "base-results");
+    let working = sanitizeIndexEntries(baseArray, "working-results");
 
     if (cat !== "all") {
-      working = working.filter((i) => i.category === cat);
+      const workingForCat = ensureArray(working, "working-before-cat-filter");
+      working = workingForCat.filter((i) => i.category === cat);
     }
 
     if (lang) {
-      working = working.filter((i) => i.lang === lang);
+      const workingForLang = ensureArray(working, "working-before-lang-filter");
+      working = workingForLang.filter((i) => i.lang === lang);
     }
 
     const locale = lang === "fr" ? "fr" : "en";
-    const sorted = working.slice();
+    const workingArray = ensureArray(working, "working-filtered-results");
+    const sorted = workingArray.slice();
     sorted.sort((a, b) =>
       sortAlpha
         ? String(a?.title || "").localeCompare(String(b?.title || ""), locale)
@@ -127,14 +155,15 @@ export default function ContractsListPage() {
     return sorted;
   }, [query, cat, lang, sortAlpha, safeItems, fuse]);
 
-  const safeResults = sanitizeIndexEntries(results);
+  const safeResults = sanitizeIndexEntries(results, "memo-results");
   const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
-  const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
+  const pagedSource = ensureArray(safeResults, "paged-results");
+  const paged = pagedSource.slice((page - 1) * pageSize, page * pageSize);
 
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    const normalizedResults = sanitizeIndexEntries(results);
+    const normalizedResults = sanitizeIndexEntries(results, "auto-open-results");
     if (normalizedResults.length === 1) {
       const top = normalizedResults[0];
       setAutoOpened(true);

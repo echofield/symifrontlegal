@@ -3,8 +3,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link"; // ✅ added for Next.js internal routing
 import type { Lawyer } from "@/components/LawyerMap";
 
-const ensureArray = <T,>(value: unknown): T[] =>
-  Array.isArray(value) ? (value as T[]) : [];
+const ensureArray = <T,>(value: unknown, label?: string): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (label) {
+    console.warn(`[conseiller] Fallback to [] for ${label}`, value);
+  }
+  return [];
+};
 
 type AdvisorOutput = {
   thought: string;
@@ -44,11 +49,17 @@ export default function ConseillerPage() {
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r
         .json()
-        .catch(() => ({} as unknown));
+        .catch((err) => {
+          console.warn("[conseiller] Failed to parse advisor response", err);
+          return {} as unknown;
+        });
       const output =
         data && typeof data === "object"
           ? (data as { output?: AdvisorOutput }).output
           : null;
+      if (!output || typeof output !== "object") {
+        console.warn("[conseiller] Advisor output missing or invalid", data);
+      }
       setAnswer(output && typeof output === "object" ? output : null);
     } catch (err) {
       console.error("Erreur:", err);
@@ -107,13 +118,16 @@ export default function ConseillerPage() {
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r
         .json()
-        .catch(() => ({} as unknown));
+        .catch((err) => {
+          console.warn("[conseiller] Failed to parse lawyer search response", err);
+          return {} as unknown;
+        });
 
       const lawyersRaw =
         data && typeof data === "object"
           ? (data as { lawyers?: unknown }).lawyers
           : null;
-      const validLawyers = ensureArray<Lawyer>(lawyersRaw).filter(
+      const validLawyers = ensureArray<Lawyer>(lawyersRaw, "lawyers-response").filter(
         (l: Lawyer) => typeof l?.name === "string"
       );
 
@@ -128,7 +142,7 @@ export default function ConseillerPage() {
     }
   };
 
-  const safeLawyersList = ensureArray<unknown>(lawyers).filter(
+  const safeLawyersList = ensureArray<unknown>(lawyers, "state-lawyers").filter(
     (entry): entry is Lawyer =>
       !!entry && typeof entry === "object" && typeof (entry as Lawyer).name === "string"
   );
