@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
-import type { Lawyer } from '@/components/LawyerMap';
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import type { Lawyer } from "@/components/LawyerMap";
 
 type AdvisorOutput = {
   thought: string;
@@ -9,10 +9,10 @@ type AdvisorOutput = {
   reply_text: string;
 };
 
-const LawyerMap = dynamic(() => import('@/components/LawyerMap'), { ssr: false });
+const LawyerMap = dynamic(() => import("@/components/LawyerMap"), { ssr: false });
 
 export default function ConseillerPage() {
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState("");
   const [answer, setAnswer] = useState<AdvisorOutput | null>(null);
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -20,34 +20,36 @@ export default function ConseillerPage() {
   const [finding, setFinding] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Correct for Next.js
   const api = process.env.NEXT_PUBLIC_API_URL;
 
-  // --- Ask SYMIONE ---
+  // ---- Ask the AI advisor ----
   const ask = async () => {
     if (!q.trim()) {
-      alert('Veuillez poser une question.');
+      alert("Veuillez poser une question.");
       return;
     }
 
     setLoading(true);
     try {
       const r = await fetch(`${api}/api/advisor`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q }),
       });
+
+      if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r.json();
+
       setAnswer(data?.output || null);
     } catch (err) {
-      console.error('Erreur de requête:', err);
-      alert('Erreur lors de la consultation.');
+      console.error("Erreur:", err);
+      alert("Erreur lors de la consultation.");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Search Lawyers ---
+  // ---- Search nearby lawyers ----
   const searchLawyers = async () => {
     setFinding(true);
     let userLoc: { lat: number; lng: number } | null = null;
@@ -62,20 +64,20 @@ export default function ConseillerPage() {
         );
       });
     } catch (err) {
-      console.warn('Erreur localisation:', err);
+      console.warn("Erreur géolocalisation:", err);
     }
 
-    const fallback = { lat: 48.8566, lng: 2.3522 };
-    if (!userLoc) alert('Localisation non disponible, affichage des résultats à Paris.');
+    const fallback = { lat: 48.8566, lng: 2.3522 }; // Paris default
     const loc = userLoc || fallback;
+    if (!userLoc) alert("Localisation non disponible, affichage des résultats à Paris.");
     setCoords(loc);
 
-    const spec = (answer?.action?.args?.topic as string) || 'contrat';
+    const spec = (answer?.action?.args?.topic as string) || "contrat";
 
     try {
       const r = await fetch(`${api}/api/lawyers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: `avocat ${spec}`,
           lat: loc.lat,
@@ -83,17 +85,19 @@ export default function ConseillerPage() {
         }),
       });
 
+      if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r.json();
-      if (Array.isArray(data?.lawyers)) {
-        setLawyers(data.lawyers);
-      } else {
-        console.warn('Réponse inattendue:', data);
-        setLawyers([]);
-      }
+
+      const validLawyers = Array.isArray(data?.lawyers)
+        ? data.lawyers.filter((l: Lawyer) => typeof l.name === "string")
+        : [];
+
+      setLawyers(validLawyers);
       setSelected(null);
     } catch (err) {
-      console.error('Erreur lors de la recherche:', err);
-      alert('Erreur lors de la recherche d’avocats.');
+      console.error("Erreur recherche avocat:", err);
+      alert("Erreur lors de la recherche d’avocats.");
+      setLawyers([]); // ensure safe fallback
     } finally {
       setFinding(false);
     }
@@ -102,42 +106,43 @@ export default function ConseillerPage() {
   return (
     <main className="container">
       <h1>Conseiller</h1>
-      <p>
-        Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.
-      </p>
+      <p>Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.</p>
 
+      {/* --- Question Input --- */}
       <div className="row" style={{ marginBottom: 16 }}>
         <input
           className="input"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Ex: Je veux rompre un CDD, que faire ?"
+          placeholder="Ex : Je veux rompre un CDD, que faire ?"
           style={{ flex: 1 }}
         />
         <button onClick={ask} disabled={loading} className="btn btn-primary">
-          {loading ? 'Analyse…' : 'Demander'}
+          {loading ? "Analyse…" : "Demander"}
         </button>
       </div>
 
+      {/* --- Advisor Response --- */}
       {answer && (
         <section className="card" style={{ marginTop: 16 }}>
           <h2>Réponse</h2>
-          <p>{answer.reply_text || 'Aucune réponse disponible.'}</p>
+          <p>{answer.reply_text || "Aucune réponse disponible."}</p>
           <div className="row">
             <a href="/contracts" className="btn btn-secondary">
               Voir les modèles
             </a>
             <button onClick={searchLawyers} className="btn btn-primary">
-              {finding ? 'Recherche…' : 'Trouver un avocat'}
+              {finding ? "Recherche…" : "Trouver un avocat"}
             </button>
           </div>
         </section>
       )}
 
+      {/* --- Lawyer Results --- */}
       {Array.isArray(lawyers) && lawyers.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
-          <div className="grid grid-5-7" style={{ gap: 16, alignItems: 'stretch' }}>
+          <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
             <aside className="card">
               <ul className="list">
                 {lawyers.map((l, i) => (
@@ -147,16 +152,16 @@ export default function ConseillerPage() {
                     style={{
                       padding: 10,
                       borderRadius: 8,
-                      cursor: 'pointer',
-                      background: selected === i ? 'var(--accent-weak)' : 'transparent',
+                      cursor: "pointer",
+                      background: selected === i ? "var(--accent-weak)" : "transparent",
                     }}
                   >
                     <div style={{ fontWeight: 600 }}>{l.name}</div>
                     <div className="muted" style={{ fontSize: 13 }}>
-                      {typeof l.rating === 'number' ? `⭐️ ${l.rating} ` : ''}
-                      {l.address ? `• ${l.address}` : ''}
+                      {typeof l.rating === "number" ? `⭐️ ${l.rating} ` : ""}
+                      {l.address ? `• ${l.address}` : ""}
                     </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                       {l.place_id && (
                         <a
                           href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
@@ -176,6 +181,7 @@ export default function ConseillerPage() {
                 aucune prestation.
               </div>
             </aside>
+
             <div style={{ height: 420 }}>
               <LawyerMap
                 lawyers={lawyers}
@@ -186,6 +192,11 @@ export default function ConseillerPage() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* --- Empty state --- */}
+      {Array.isArray(lawyers) && lawyers.length === 0 && answer && !finding && (
+        <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
       )}
     </main>
   );
