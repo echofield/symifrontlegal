@@ -1,7 +1,24 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link"; // ✅ added for Next.js internal routing
-import type { Lawyer } from "@/components/LawyerMap";
+import Link from "next/link";
+
+// 🛡️ Safe array helper
+const ensureArray = <T,>(val: unknown, label: string): T[] => {
+  if (!val) return [];
+  if (!Array.isArray(val)) {
+    console.warn(`[ensureArray] Expected array for ${label}, got`, val);
+    return [];
+  }
+  return val as T[];
+};
+
+type Lawyer = {
+  name: string;
+  address?: string;
+  rating?: number;
+  place_id?: string;
+  location?: { lat: number; lng: number };
+};
 
 type AdvisorOutput = {
   thought: string;
@@ -103,6 +120,9 @@ export default function ConseillerPage() {
     }
   };
 
+  // Safe lawyers array for rendering
+  const safeLawyers = ensureArray<Lawyer>(lawyers, "lawyers");
+
   return (
     <main className="container">
       <h1>Conseiller</h1>
@@ -128,7 +148,6 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text || "Aucune réponse disponible."}</p>
           <div className="row">
-            {/* ✅ changed to Next.js <Link> */}
             <Link href="/contracts" className="btn btn-secondary">
               Voir les modèles
             </Link>
@@ -140,13 +159,13 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Lawyer Results --- */}
-      {Array.isArray(lawyers) && lawyers.length > 0 && (
+      {safeLawyers.length > 0 && (
         <section style={{ marginTop: 24 }}>
           <h3>Avocats recommandés</h3>
           <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
             <aside className="card">
               <ul className="list">
-                {lawyers.map((l, i) => {
+                {safeLawyers.map((l, i) => {
                   const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
                   const addressText = l.address ? l.address : "";
                   const displayText = [ratingText, addressText].filter(Boolean).join(" • ");
@@ -192,7 +211,7 @@ export default function ConseillerPage() {
 
             <div style={{ height: 420 }}>
               <LawyerMap
-                lawyers={lawyers}
+                lawyers={safeLawyers}
                 center={coords || undefined}
                 onSelect={setSelected}
                 selectedIndex={selected}
@@ -203,7 +222,7 @@ export default function ConseillerPage() {
       )}
 
       {/* --- Empty state --- */}
-      {Array.isArray(lawyers) && lawyers.length === 0 && answer && !finding && (
+      {safeLawyers.length === 0 && answer && !finding && (
         <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
       )}
     </main>
