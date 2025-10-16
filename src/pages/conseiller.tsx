@@ -122,7 +122,18 @@ export default function ConseillerPage() {
         location: 'ConseillerPage searchLawyers'
       });
       const validLawyers = Array.isArray(data?.lawyers)
-        ? (data.lawyers || []).filter((l: Lawyer) => l && typeof l.name === "string")
+        ? (data.lawyers || [])
+            .filter((l: any) => l && typeof l.name === "string")
+            .map((l: any) => ({
+              name: l.name,
+              address: l.address,
+              rating: l.rating,
+              // Accept both camelCase and snake_case from backend
+              place_id: l.place_id || l.placeId,
+              // Normalize coordinates: accept top-level lat/lng or nested location.lat/lng
+              lat: typeof l.lat === 'number' ? l.lat : (l.location?.lat ?? undefined),
+              lng: typeof l.lng === 'number' ? l.lng : (l.location?.lng ?? undefined),
+            }))
         : [];
 
       console.log(`✅ Found ${validLawyers.length} lawyers`);
