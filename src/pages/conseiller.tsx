@@ -1,5 +1,6 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link"; // ✅ added for Next.js internal routing
 import type { Lawyer } from "@/components/LawyerMap";
 
 type AdvisorOutput = {
@@ -39,7 +40,6 @@ export default function ConseillerPage() {
 
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
       const data = await r.json();
-
       setAnswer(data?.output || null);
     } catch (err) {
       console.error("Erreur:", err);
@@ -128,9 +128,10 @@ export default function ConseillerPage() {
           <h2>Réponse</h2>
           <p>{answer.reply_text || "Aucune réponse disponible."}</p>
           <div className="row">
-            <a href="/contracts" className="btn btn-secondary">
+            {/* ✅ changed to Next.js <Link> */}
+            <Link href="/contracts" className="btn btn-secondary">
               Voir les modèles
-            </a>
+            </Link>
             <button onClick={searchLawyers} className="btn btn-primary">
               {finding ? "Recherche…" : "Trouver un avocat"}
             </button>
