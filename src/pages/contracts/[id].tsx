@@ -1,116 +1,98 @@
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
-type InputDef = { key: string; label: string; type: string; required: boolean };
-type Clause = { id: string; title: string; body: string };
+type Clause = { title: string; text: string };
+type InputField = { name: string; label: string; type?: string };
 type Template = {
-  metadata: { title: string; jurisdiction: string; governing_law: string; version: string };
-  inputs: InputDef[];
-  clauses: Clause[];
+  id: string;
+  title: string;
+  description?: string;
+  clauses?: Clause[];
+  inputs?: InputField[];
+  category?: string;
+};
+
+const ensureArray = (val: any, label: string) => {
+  if (!Array.isArray(val)) {
+    console.warn(`[ensureArray] Expected array for ${label}, got`, val);
+    return [];
+  }
+  return val;
 };
 
 export default function ContractDetailPage() {
   const router = useRouter();
-  const { id } = router.query as { id?: string };
-  const [loading, setLoading] = useState(true);
+  const { id } = router.query;
   const [template, setTemplate] = useState<Template | null>(null);
-  const [form, setForm] = useState<Record<string, string | number | boolean>>({});
-  const [preview, setPreview] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Correct variable for Next.js
   const api = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fetch the contract template
   useEffect(() => {
     if (!id) return;
-    fetch(`${api}/api/contracts/${id}`)
-      .then((r) => r.json())
-      .then((data) => setTemplate(data.template))
-      .catch((err) => {
-        console.error('Error loading template:', err);
-        setTemplate(null);
-      })
-      .finally(() => setLoading(false));
-  }, [id, api]);
-
-  // Generate the contract preview text
-  useEffect(() => {
-    if (!template) return;
-    const filled = (template.clauses || [])
-      .map((c) =>
-        c.body.replace(/\{\{(.*?)\}\}/g, (_, k) => String(form[String(k).trim()] ?? `{{${k}}}`)),
-      )
-      .join('\n\n');
-    setPreview(`# ${template.metadata.title}\n\n${filled}`);
-  }, [template, form]);
-
-  if (loading) return <main className="container">Chargement…</main>;
-  if (!template) return <main className="container">Introuvable</main>;
-
-  const onChange = (key: string, value: string | number | boolean) =>
-    setForm((s) => ({ ...s, [key]: value }));
-
-  const downloadPdf = async () => {
-    try {
-      const res = await fetch(`${api}/api/export`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contract_text: preview,
-          format: 'pdf',
-          metadata: { version: template?.metadata?.version },
-        }),
-      });
-
-      if (!res.ok) {
-        alert('Erreur lors de la génération du PDF.');
-        return;
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await fetch(`${api}/api/contracts/${id}`);
+        if (!res.ok) throw new Error(`Failed to load template (${res.status})`);
+        const data = await res.json();
+        setTemplate(data);
+        console.log("✅ Template loaded:", data);
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Erreur de chargement");
+      } finally {
+        setLoading(false);
       }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${id}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Error exporting PDF:', err);
-      alert('Erreur lors de la génération du PDF.');
     }
-  };
+    load();
+  }, [api, id]);
+
+  if (loading) return <p>Chargement…</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (!template) return <p>Aucun modèle trouvé.</p>;
+
+  // 🧱 Defensive normalization
+  const clauses = ensureArray(template.clauses, "clauses");
+  const inputs = ensureArray(template.inputs, "inputs");
 
   return (
     <main className="container">
-      <h1 style={{ marginBottom: 8 }}>{template?.metadata?.title || 'Modèle de contrat'}</h1>
-      <p style={{ color: '#6b7280', marginTop: 0 }}>Générer le contrat</p>
+      <h1>{template.title}</h1>
+      <p className="muted">{template.description}</p>
 
-      <div className="grid grid-2" style={{ gap: 24 }}>
-        <section className="card">
-          {Array.isArray(template?.inputs) && template.inputs.length > 0 ? (
-            template.inputs.map((inp) => (
-              <div key={inp.key} style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', marginBottom: 6 }}>{inp.label}</label>
-                <input
-                  className="input"
-                  type={inp.type === 'textarea' ? 'text' : inp.type}
-                  onChange={(e) => onChange(inp.key, e.target.value)}
-                  placeholder={inp.label}
-                />
-              </div>
-            ))
-          ) : (
-            <p style={{ color: '#888', fontSize: 14 }}>Aucun champ à remplir.</p>
-          )}
-          <button onClick={downloadPdf} className="btn btn-primary">
-            Télécharger le PDF
-          </button>
+      {inputs.length > 0 && (
+        <section style={{ marginTop: 20 }}>
+          <h3>Champs à remplir</h3>
+          <ul>
+            {inputs.map((field, i) => (
+              <li key={i}>
+                {field.label} ({field.type || "text"})
+              </li>
+            ))}
+          </ul>
         </section>
+      )}
 
-        <section className="card">
-          <pre className="pre">{preview || 'Prévisualisation du contrat...'}</pre>
+      {clauses.length > 0 && (
+        <section style={{ marginTop: 20 }}>
+          <h3>Clauses principales</h3>
+          <ul>
+            {clauses.map((c, i) => (
+              <li key={i}>
+                <strong>{c.title}</strong>: {c.text}
+              </li>
+            ))}
+          </ul>
         </section>
-      </div>
+      )}
+
+      {inputs.length === 0 && clauses.length === 0 && (
+        <p className="muted" style={{ marginTop: 16 }}>
+          Ce modèle n’a pas encore de contenu détaillé.
+        </p>
+      )}
     </main>
   );
 }
