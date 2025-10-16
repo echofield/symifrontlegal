@@ -155,8 +155,12 @@ export default function ConseillerPage() {
                   >
                     <div style={{ fontWeight: 600 }}>{l.name}</div>
                     <div className="muted" style={{ fontSize: 13 }}>
-                      {typeof l.rating === "number" ? `⭐️ ${l.rating} ` : ""}
-                      {l.address ? `• ${l.address}` : ""}
+                      {typeof l.rating === "number" && (
+                        <span>★ {l.rating} </span>
+                      )}
+                      {l.address && (
+                        <span>• {l.address}</span>
+                      )}
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                       {l.place_id && (
