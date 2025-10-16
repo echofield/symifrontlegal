@@ -23,6 +23,16 @@ const CATS = [
 ] as const;
 const LANGS = ["fr", "en"] as const;
 
+const ensureArray = <T,>(value: unknown): T[] =>
+  Array.isArray(value) ? (value as T[]) : [];
+
+const sanitizeIndexEntries = (value: unknown): IndexEntry[] =>
+  ensureArray<unknown>(value).filter((entry): entry is IndexEntry => {
+    if (!entry || typeof entry !== "object") return false;
+    const candidate = entry as Partial<IndexEntry>;
+    return typeof candidate.id === "string" && typeof candidate.title === "string";
+  });
+
 export default function ContractsListPage() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<IndexEntry[]>([]);
@@ -47,19 +57,20 @@ export default function ContractsListPage() {
         const data = await res
           .json()
           .catch(() => ({} as unknown));
-        const fromContracts = Array.isArray(
-          (data as { contracts?: IndexEntry[] | unknown }).contracts
-        )
-          ? ((data as { contracts?: IndexEntry[] }).contracts as IndexEntry[])
-          : null;
-        const fromIndex = Array.isArray(
-          (data as { index?: IndexEntry[] | unknown }).index
-        )
-          ? ((data as { index?: IndexEntry[] }).index as IndexEntry[])
-          : null;
-        const fallbackArray = Array.isArray(data) ? (data as IndexEntry[]) : [];
-        const arrayCandidates = fromContracts || fromIndex || fallbackArray;
-        setItems(Array.isArray(arrayCandidates) ? arrayCandidates : []);
+        const fromContracts = sanitizeIndexEntries(
+          (data as { contracts?: unknown })?.contracts
+        );
+        const fromIndex = sanitizeIndexEntries(
+          (data as { index?: unknown })?.index
+        );
+        const fallbackArray = sanitizeIndexEntries(data as unknown);
+        const arrayCandidates =
+          fromContracts.length > 0
+            ? fromContracts
+            : fromIndex.length > 0
+            ? fromIndex
+            : fallbackArray;
+        setItems(sanitizeIndexEntries(arrayCandidates));
       } catch (err) {
         console.error(err);
         setItems([]);
@@ -71,60 +82,63 @@ export default function ContractsListPage() {
   }, [api, lang]);
 
   // Fuzzy search setup
+  const safeItems = sanitizeIndexEntries(items);
+
   const fuse = useMemo(
     () =>
-      new Fuse(items, {
+      new Fuse(safeItems, {
         keys: ["title", "category", "keywords"],
         threshold: 0.35,
         ignoreLocation: true,
       }),
-    [items]
+    [safeItems]
   );
 
   // Filter + sort
   const results = useMemo(() => {
-    const safeItems = Array.isArray(items) ? items : [];
-
     const searchResults = query.trim() ? fuse.search(query) : [];
-    const safeSearchResults = Array.isArray(searchResults)
-      ? searchResults.map((r) => r.item)
-      : [];
+    const safeSearchResults = sanitizeIndexEntries(
+      ensureArray<IndexEntry | { item: IndexEntry }>(searchResults as unknown).map((r) =>
+        typeof r === "object" && r !== null && "item" in r
+          ? (r as { item: IndexEntry }).item
+          : (r as IndexEntry)
+      )
+    );
 
-    let base = query.trim() ? safeSearchResults : safeItems;
-
-    base = Array.isArray(base) ? base : [];
+    const base = query.trim() ? safeSearchResults : safeItems;
+    let working = sanitizeIndexEntries(base);
 
     if (cat !== "all") {
-      base = base.filter((i) => i.category === cat);
+      working = working.filter((i) => i.category === cat);
     }
-    
+
     if (lang) {
-      base = base.filter((i) => i.lang === lang);
+      working = working.filter((i) => i.lang === lang);
     }
 
-    if (sortAlpha)
-      base = [...base].sort((a, b) =>
-        a.title.localeCompare(b.title, lang === "fr" ? "fr" : "en")
-      );
-    else
-      base = [...base].sort((a, b) =>
-        b.title.localeCompare(a.title, lang === "fr" ? "fr" : "en")
-      );
+    const locale = lang === "fr" ? "fr" : "en";
+    const sorted = working.slice();
+    sorted.sort((a, b) =>
+      sortAlpha
+        ? String(a?.title || "").localeCompare(String(b?.title || ""), locale)
+        : String(b?.title || "").localeCompare(String(a?.title || ""), locale)
+    );
 
-    return base;
-  }, [query, cat, lang, sortAlpha, items, fuse]);
+    return sorted;
+  }, [query, cat, lang, sortAlpha, safeItems, fuse]);
 
-  const safeResults = Array.isArray(results) ? results : [];
+  const safeResults = sanitizeIndexEntries(results);
   const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
   const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
 
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
     if (autoOpened || query.trim().length < 3) return;
-    if (Array.isArray(results) && results.length === 1) {
-      const top = results[0];
+    const normalizedResults = sanitizeIndexEntries(results);
+    if (normalizedResults.length === 1) {
+      const top = normalizedResults[0];
       setAutoOpened(true);
-      router.push(`/contracts/${top.id}`);
+      if (top?.id) router.push(`/contracts/${top.id}`);
     }
   }, [results, query, autoOpened, router]);
 
@@ -190,7 +204,7 @@ export default function ContractsListPage() {
         <p>Chargement…</p>
       ) : (
         <>
-          {Array.isArray(paged) && paged.length > 0 ? (
+          {paged.length > 0 ? (
             <ul className="list">
               {paged.map((i) => (
                 <li key={i.id} className="list-item" style={{ marginBottom: 8 }}>
@@ -226,7 +240,7 @@ export default function ContractsListPage() {
       )}
 
       {/* Pagination */}
-      {Array.isArray(results) && results.length > pageSize && (
+      {safeResults.length > pageSize && (
         <div className="pagination" style={{ marginTop: 12 }}>
           <button
             className="btn"

@@ -9,6 +9,9 @@ type Template = {
   clauses: Clause[];
 };
 
+const ensureArray = <T,>(value: unknown): T[] =>
+  Array.isArray(value) ? (value as T[]) : [];
+
 export default function ContractDetailPage() {
   const router = useRouter();
   const { id } = router.query as { id?: string };
@@ -60,7 +63,12 @@ export default function ContractDetailPage() {
   // Generate the contract preview text
   useEffect(() => {
     if (!template) return;
-    const safeClauses = Array.isArray(template?.clauses) ? template.clauses : [];
+    const safeClauses = ensureArray<unknown>(template?.clauses).filter(
+      (clause): clause is Clause =>
+        !!clause &&
+        typeof clause === 'object' &&
+        typeof (clause as Clause).body === 'string'
+    );
     const filled = safeClauses
       .map((c) =>
         c.body.replace(/\{\{(.*?)\}\}/g, (_, k) => String(form[String(k).trim()] ?? `{{${k}}}`)),
@@ -75,6 +83,14 @@ export default function ContractDetailPage() {
 
   const onChange = (key: string, value: string | number | boolean) =>
     setForm((s) => ({ ...s, [key]: value }));
+
+  const validInputs = ensureArray<unknown>(template.inputs).filter(
+    (input): input is InputDef =>
+      !!input &&
+      typeof input === 'object' &&
+      typeof (input as InputDef).key === 'string' &&
+      typeof (input as InputDef).label === 'string'
+  );
 
   const downloadPdf = async () => {
     try {
@@ -113,13 +129,19 @@ export default function ContractDetailPage() {
 
       <div className="grid grid-2" style={{ gap: 24 }}>
         <section className="card">
-          {Array.isArray(template?.inputs) && template.inputs.length > 0 ? (
-            template.inputs.map((inp) => (
+          {validInputs.length > 0 ? (
+            validInputs.map((inp) => (
               <div key={inp.key} style={{ marginBottom: 12 }}>
                 <label style={{ display: 'block', marginBottom: 6 }}>{inp.label}</label>
                 <input
                   className="input"
-                  type={inp.type === 'textarea' ? 'text' : inp.type}
+                  type={
+                    typeof inp.type === 'string'
+                      ? inp.type === 'textarea'
+                        ? 'text'
+                        : inp.type
+                      : 'text'
+                  }
                   onChange={(e) => onChange(inp.key, e.target.value)}
                   placeholder={inp.label}
                 />
