@@ -64,7 +64,8 @@ export default function ContractsListPage() {
     async function loadContracts() {
       setLoading(true);
       try {
-        const res = await fetch(`${apiBase}/api/contracts?lang=${lang}`);
+        const jurisdiction = lang.toUpperCase();
+        const res = await fetch(`${apiBase}/api/contracts?jurisdiction=${jurisdiction}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
