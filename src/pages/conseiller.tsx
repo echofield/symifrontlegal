@@ -39,8 +39,14 @@ export default function ConseillerPage() {
       });
 
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
-      const data = await r.json();
-      setAnswer(data?.output || null);
+      const data = await r
+        .json()
+        .catch(() => ({} as unknown));
+      const output =
+        data && typeof data === "object"
+          ? (data as { output?: AdvisorOutput }).output
+          : null;
+      setAnswer(output && typeof output === "object" ? output : null);
     } catch (err) {
       console.error("Erreur:", err);
       alert("Erreur lors de la consultation.");
@@ -72,7 +78,17 @@ export default function ConseillerPage() {
     if (!userLoc) alert("Localisation non disponible, affichage des résultats à Paris.");
     setCoords(loc);
 
-    const spec = (answer?.action?.args?.topic as string) || "contrat";
+    const topicArg =
+      answer &&
+      typeof answer === "object" &&
+      answer?.action &&
+      typeof answer.action === "object" &&
+      answer.action !== null &&
+      typeof answer.action.args === "object" &&
+      answer.action.args !== null
+        ? (answer.action.args as Record<string, unknown>).topic
+        : undefined;
+    const spec = typeof topicArg === "string" && topicArg.trim() ? topicArg : "contrat";
 
     try {
       const r = await fetch(`${api}/api/lawyers`, {
@@ -86,10 +102,16 @@ export default function ConseillerPage() {
       });
 
       if (!r.ok) throw new Error("Réponse invalide du serveur.");
-      const data = await r.json();
+      const data = await r
+        .json()
+        .catch(() => ({} as unknown));
 
-      const validLawyers = Array.isArray(data?.lawyers)
-        ? data.lawyers.filter((l: Lawyer) => typeof l.name === "string")
+      const lawyersRaw =
+        data && typeof data === "object"
+          ? (data as { lawyers?: unknown }).lawyers
+          : null;
+      const validLawyers = Array.isArray(lawyersRaw)
+        ? (lawyersRaw as Lawyer[]).filter((l: Lawyer) => typeof l?.name === "string")
         : [];
 
       setLawyers(validLawyers);
@@ -149,7 +171,10 @@ export default function ConseillerPage() {
                 {lawyers.map((l, i) => {
                   const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
                   const addressText = l.address ? l.address : "";
-                  const displayText = [ratingText, addressText].filter(Boolean).join(" • ");
+                  const details = [ratingText, addressText];
+                  const displayText = (Array.isArray(details) ? details : [])
+                    .filter(Boolean)
+                    .join(" • ");
 
                   return (
                     <li

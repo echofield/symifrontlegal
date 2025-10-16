@@ -60,16 +60,14 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
         streetViewControl: false,
       });
 
-      // Remove old markers safely
-      if (Array.isArray(markers.current)) {
-        markers.current.forEach((m) => m && m.setMap(null));
-      }
+      const existingMarkers = Array.isArray(markers.current) ? markers.current : [];
+      existingMarkers.forEach((m) => m && m.setMap(null));
       markers.current = [];
 
-      // ✅ Safely handle missing or empty lawyers list
-      if (!Array.isArray(lawyers) || lawyers.length === 0) return;
+      const normalizedLawyers = Array.isArray(lawyers) ? lawyers : [];
+      if (normalizedLawyers.length === 0) return;
 
-      lawyers.forEach((l, idx) => {
+      normalizedLawyers.forEach((l, idx) => {
         if (typeof l.lat !== "number" || typeof l.lng !== "number") return;
 
         const marker = new maps.Marker({
@@ -106,13 +104,14 @@ export default function LawyerMap({ lawyers = [], center, onSelect, selectedInde
       return;
     }
 
-    markers.current.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
+    const markersArray = Array.isArray(markers.current) ? markers.current : [];
+    markersArray.forEach((m) => m.setAnimation(null as unknown as google.maps.Animation));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maps = (window as any).google?.maps;
     if (!maps) return;
 
-    const sel = markers.current[selectedIndex];
+    const sel = markersArray[selectedIndex];
     if (sel) sel.setAnimation(maps.Animation.BOUNCE);
   }, [selectedIndex]);
 

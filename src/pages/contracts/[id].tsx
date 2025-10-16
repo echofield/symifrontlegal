@@ -23,25 +23,51 @@ export default function ContractDetailPage() {
   // Fetch the contract template
   useEffect(() => {
     if (!id) return;
-    fetch(`${api}/api/contracts/${id}`)
-      .then((r) => r.json())
-      .then((data) => setTemplate(data.template))
-      .catch((err) => {
+    let cancelled = false;
+
+    async function loadTemplate() {
+      setLoading(true);
+      try {
+        const res = await fetch(`${api}/api/contracts/${id}`);
+        if (!res.ok) throw new Error('Invalid response');
+        const data = await res
+          .json()
+          .catch(() => ({} as unknown));
+        const templateData =
+          data && typeof data === 'object' && data !== null
+            ? (data as { template?: unknown }).template
+            : null;
+        const safeTemplate =
+          templateData && typeof templateData === 'object'
+            ? (templateData as Template)
+            : null;
+        if (!cancelled) setTemplate(safeTemplate);
+      } catch (err) {
         console.error('Error loading template:', err);
-        setTemplate(null);
-      })
-      .finally(() => setLoading(false));
+        if (!cancelled) setTemplate(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadTemplate();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, api]);
 
   // Generate the contract preview text
   useEffect(() => {
     if (!template) return;
-    const filled = (template.clauses || [])
+    const safeClauses = Array.isArray(template?.clauses) ? template.clauses : [];
+    const filled = safeClauses
       .map((c) =>
         c.body.replace(/\{\{(.*?)\}\}/g, (_, k) => String(form[String(k).trim()] ?? `{{${k}}}`)),
       )
       .join('\n\n');
-    setPreview(`# ${template.metadata.title}\n\n${filled}`);
+    const title = template?.metadata?.title || 'Modèle de contrat';
+    setPreview(`# ${title}\n\n${filled}`);
   }, [template, form]);
 
   if (loading) return <main className="container">Chargement…</main>;

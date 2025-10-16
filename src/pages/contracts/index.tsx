@@ -43,10 +43,23 @@ export default function ContractsListPage() {
       setLoading(true);
       try {
         const res = await fetch(`${api}/api/contracts?lang=${lang}`);
-        const data = await res.json();
-        const list =
-          data?.contracts || data?.index || (Array.isArray(data) ? data : []);
-        setItems(Array.isArray(list) ? list : []);
+        if (!res.ok) throw new Error('Invalid response');
+        const data = await res
+          .json()
+          .catch(() => ({} as unknown));
+        const fromContracts = Array.isArray(
+          (data as { contracts?: IndexEntry[] | unknown }).contracts
+        )
+          ? ((data as { contracts?: IndexEntry[] }).contracts as IndexEntry[])
+          : null;
+        const fromIndex = Array.isArray(
+          (data as { index?: IndexEntry[] | unknown }).index
+        )
+          ? ((data as { index?: IndexEntry[] }).index as IndexEntry[])
+          : null;
+        const fallbackArray = Array.isArray(data) ? (data as IndexEntry[]) : [];
+        const arrayCandidates = fromContracts || fromIndex || fallbackArray;
+        setItems(Array.isArray(arrayCandidates) ? arrayCandidates : []);
       } catch (err) {
         console.error(err);
         setItems([]);
@@ -71,11 +84,14 @@ export default function ContractsListPage() {
   // Filter + sort
   const results = useMemo(() => {
     const safeItems = Array.isArray(items) ? items : [];
-    
-    let base = query.trim() 
-      ? (fuse.search(query).map((r) => r.item) || [])
-      : safeItems;
-    
+
+    const searchResults = query.trim() ? fuse.search(query) : [];
+    const safeSearchResults = Array.isArray(searchResults)
+      ? searchResults.map((r) => r.item)
+      : [];
+
+    let base = query.trim() ? safeSearchResults : safeItems;
+
     base = Array.isArray(base) ? base : [];
 
     if (cat !== "all") {
@@ -98,8 +114,9 @@ export default function ContractsListPage() {
     return base;
   }, [query, cat, lang, sortAlpha, items, fuse]);
 
-  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
-  const paged = results.slice((page - 1) * pageSize, page * pageSize);
+  const safeResults = Array.isArray(results) ? results : [];
+  const totalPages = Math.max(1, Math.ceil(safeResults.length / pageSize));
+  const paged = safeResults.slice((page - 1) * pageSize, page * pageSize);
 
   // 🔮 Auto-open the best match if only one strong result
   useEffect(() => {
@@ -138,7 +155,7 @@ export default function ContractsListPage() {
           className="input"
           style={{ width: 120 }}
         >
-          {LANGS.map((l) => (
+          {(Array.isArray(LANGS) ? LANGS : []).map((l) => (
             <option key={l} value={l}>
               {l.toUpperCase()}
             </option>
@@ -157,7 +174,7 @@ export default function ContractsListPage() {
         >
           Tous
         </button>
-        {CATS.map((c) => (
+        {(Array.isArray(CATS) ? CATS : []).map((c) => (
           <button
             key={c}
             className={`chip ${cat === c ? "chip-active" : ""}`}
