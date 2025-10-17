@@ -80,12 +80,26 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
     }
 
     // Free plan monthly limit (2/mo) using localStorage
+    // Anonymous generation allowed: enforce localStorage 2 free limit
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) {
-        showToast('Veuillez vous connecter pour générer un contrat', 'error');
-        return;
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+        const key = 'symi_free_gen';
+        const raw = localStorage.getItem(key);
+        let obj = { month: monthKey, count: 0 } as { month: string; count: number };
+        if (raw) {
+          try { obj = JSON.parse(raw); } catch {}
+        }
+        if (obj.month !== monthKey) obj = { month: monthKey, count: 0 };
+        if (obj.count >= 2) {
+          setShowUpgradeModal(true);
+          return;
+        }
+        obj.count += 1;
+        localStorage.setItem(key, JSON.stringify(obj));
       }
     } catch {}
 

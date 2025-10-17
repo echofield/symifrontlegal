@@ -269,6 +269,13 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                   </div>
                 </div>
               )}
+
+              {/* Soft CTA */}
+              <div className="border border-border p-4 text-[0.875rem] bg-accent/5">
+                <span className="mr-2">💡</span>
+                Créez un compte gratuit pour sauvegarder vos consultations et générer des contrats personnalisés.
+                <button onClick={() => (window.location.href = '/login')} className="ml-3 underline">Créer un compte</button>
+              </div>
             </motion.div>
           )}
           </div>

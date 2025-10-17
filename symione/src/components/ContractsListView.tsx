@@ -71,6 +71,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
   ]);
 
   const isLocked = (id: string) => plan === 'free' && !FREE_TEMPLATE_IDS.has(id);
+  const [showLockModal, setShowLockModal] = useState(false);
   return (
     <div className="min-h-screen pt-16">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-12">
@@ -156,7 +157,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.04, ease: 'linear' }}
-                onClick={() => { if (!locked) onSelectTemplate(contract.id, jurisdiction); }}
+                onClick={() => { if (!locked) onSelectTemplate(contract.id, jurisdiction); else setShowLockModal(true); }}
                 className={`group bg-card p-6 lg:p-8 text-left transition-all duration-200 relative w-full border-l-2 ${locked ? 'opacity-70 cursor-not-allowed' : 'hover:bg-accent/5 hover:border-l-accent border-transparent'}`}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
@@ -221,6 +222,23 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
                 )}
               </motion.button>
             );})}
+          </div>
+        )}
+
+        {/* Lock modal */}
+        {showLockModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-card border border-border p-6 w-full max-w-md">
+              <h3 className="text-[1.125rem] mb-2" style={{ fontWeight: 600 }}>Template Premium</h3>
+              <p className="text-[0. NineTwoFiverem] text-muted-foreground" style={{ lineHeight: 1.6 }}>
+                Ce template est disponible dans le Plan Pro (149€/mois) qui inclut 50+ templates et 20 contrats/mois.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button onClick={() => setShowLockModal(false)} className="px-4 py-2 border border-border">Annuler</button>
+                <button onClick={() => { window.location.href = '/login'; }} className="px-4 py-2 border border-border">Créer un compte gratuit</button>
+                <button onClick={() => { window.location.href = '/prix'; }} className="px-4 py-2 bg-accent text-accent-foreground">Passer au Plan Pro</button>
+              </div>
+            </div>
           </div>
         )}
       </div>

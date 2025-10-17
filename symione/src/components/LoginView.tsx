@@ -167,17 +167,19 @@ export function LoginView({ onNavigate }: LoginViewProps) {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
+              onClick={async () => { await supabase.auth.signInWithOAuth({ provider: 'google' }); }}
               className="px-6 py-4 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.08em] uppercase"
               style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
             >
-              Google
+              Se connecter avec Google
             </button>
             <button
               type="button"
+              onClick={async () => { await supabase.auth.signInWithOAuth({ provider: 'azure' }); }}
               className="px-6 py-4 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.08em] uppercase"
               style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
             >
-              Microsoft
+              Se connecter avec Microsoft
             </button>
           </div>
         </div>

@@ -61,11 +61,11 @@ export function ContactView() {
                     Email
                   </h3>
                   <a 
-                    href="mailto:contact@symione.com"
+                    href="mailto:contact@symi.io"
                     className="text-[0.875rem] text-muted-foreground hover:text-accent transition-colors duration-200"
                     style={{ fontFamily: 'var(--font-mono)' }}
                   >
-                    contact@symione.com
+                    contact@symi.io
                   </a>
                 </div>
               </div>
