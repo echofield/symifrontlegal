@@ -108,7 +108,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="Search by name, category, ID..."
+                placeholder="🔍 Rechercher un contrat (ex: bail, CDI, NDA...)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
@@ -143,9 +143,16 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
           </div>
         ) : filteredContracts.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-[0.875rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-              {searchQuery ? 'No templates match your search' : 'No templates available'}
+            <p className="text-[0.875rem] text-muted-foreground mb-4" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+              Aucun template ne correspond à votre recherche
             </p>
+            <button
+              onClick={() => { window.location.href = '#conseiller'; }}
+              className="px-6 py-3 border border-border text-[0.75rem] uppercase tracking-[0.12em]"
+              style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+            >
+              💬 Décrire mon besoin au Conseiller Juridique
+            </button>
           </div>
         ) : (
           <div className="space-y-px bg-border">

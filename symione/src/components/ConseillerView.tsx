@@ -26,7 +26,8 @@ interface LawyerRec {
 
 interface AnalyzeResult {
   audit: { summary: string; risks: string[]; urgency: string; complexity: string };
-  recommendedTemplate?: { id: string; name: string; reason?: string } | null;
+  recommendedTemplate?: { id: string | null; name: string | null; slug: string | null; available: boolean; reason?: string } | null;
+  needsLawyer?: boolean;
   recommendedLawyers?: LawyerRec[];
 }
 
@@ -242,13 +243,31 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                   {result.recommendedTemplate.reason && (
                     <p className="text-[0.875rem] mt-1 text-muted-foreground">{result.recommendedTemplate.reason}</p>
                   )}
+                  <div className="mt-2">
+                    {result.recommendedTemplate.available ? (
+                      <span className="px-2 py-1 text-[0.75rem] bg-green-50 text-green-800 border border-green-200">✓ Disponible gratuitement</span>
+                    ) : (
+                      <span className="px-2 py-1 text-[0.75rem] bg-amber-50 text-amber-800 border border-amber-200">⭐ Plan Pro requis</span>
+                    )}
+                  </div>
+                  {result.recommendedTemplate.slug && (
+                    <button className="mt-4 px-4 py-2 border border-border" onClick={() => (window.location.href = `/contracts/${result.recommendedTemplate!.slug}`)}>Utiliser ce modèle →</button>
+                  )}
+                  {result.needsLawyer && (
+                    <div className="mt-3 text-[0.875rem] text-amber-800 bg-amber-50 border border-amber-200 p-3">
+                      ⚠️ <strong>Attention:</strong> Votre situation est complexe. Nous recommandons aussi de consulter un avocat.
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Lawyers */}
-              {Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
+              {result.needsLawyer && Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
                 <div className="bg-card border border-border p-6 lg:p-8">
                   <h2 className="text-[1.25rem] mb-4" style={{ fontWeight: 600 }}>Avocats recommandés</h2>
+                  {!result.recommendedTemplate && (
+                    <p className="text-[0.875rem] text-muted-foreground mb-3">Ce cas nécessite l'expertise d'un avocat spécialisé. Aucun template standard ne correspond à votre situation.</p>
+                  )}
                   <div className="space-y-3">
                     {result.recommendedLawyers.map((l, i) => (
                       <div key={i} className="border border-border p-4">
