@@ -23,9 +23,17 @@ export async function apiGet<T>(path: string): Promise<T> {
 }
 
 export async function apiPost<T>(path: string, body: any): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const { supabase } = await import('./supabaseClient');
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  } catch {}
+
   const res = await fetch(withBase(path), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
 

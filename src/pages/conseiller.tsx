@@ -1,5 +1,4 @@
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 // 🛡️ Safe array helper
@@ -27,7 +26,7 @@ type AdvisorOutput = {
   reply_text: string;
 };
 
-const LawyerMap = dynamic(() => import("@/components/LawyerMap"), { ssr: false });
+// Google Maps removed per product decision
 
 export default function ConseillerPage() {
   const [q, setQ] = useState("");
@@ -221,36 +220,15 @@ export default function ConseillerPage() {
                           {displayText}
                         </div>
                       )}
-                      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                        {l.place_id && (
-                          <a
-                            href={`https://www.google.com/maps/place/?q=place_id:${l.place_id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="link"
-                          >
-                            Voir sur Google Maps
-                          </a>
-                        )}
-                      </div>
+                      <div style={{ display: "flex", gap: 8, marginTop: 6 }} />
                     </li>
                   );
                 })}
               </ul>
-              <div className="footer-note" style={{ marginTop: 12 }}>
-                Les avocats affichés proviennent de Google Maps. SYMIONE ne garantit ni ne recommande
-                aucune prestation.
-              </div>
+              <div className="footer-note" style={{ marginTop: 12 }} />
             </aside>
 
-            <div style={{ height: 420 }}>
-              <LawyerMap
-                lawyers={safeLawyers}
-                center={coords || undefined}
-                onSelect={setSelected}
-                selectedIndex={selected}
-              />
-            </div>
+            <div style={{ height: 0 }} />
           </div>
         </section>
       )}

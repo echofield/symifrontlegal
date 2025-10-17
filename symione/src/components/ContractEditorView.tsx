@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, Download, Save, Loader2, AlertTriangle, Sparkles, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LexClient } from "../lib/lexClient";
+import { supabase } from "../lib/supabaseClient";
 import { downloadContractPdf } from "../lib/exportPdf";
 import { showToast } from "./SystemToast";
 import { useRateLimitCountdown } from "../hooks/useRateLimit";
@@ -19,6 +20,9 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [generatedText, setGeneratedText] = useState<string>('');
   const [rateLimitRetry, setRateLimitRetry] = useState(0);
@@ -75,6 +79,16 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
       return;
     }
 
+    // Free plan monthly limit (2/mo) using localStorage
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) {
+        showToast('Veuillez vous connecter pour générer un contrat', 'error');
+        return;
+      }
+    } catch {}
+
     setGenerating(true);
     try {
       const response: GenerateResponse = await LexClient.generate({
@@ -88,6 +102,10 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
       if (err.code === 'RATE_LIMIT') {
         setRateLimitRetry(err.retryInSec || 60);
         showToast(`Rate limit exceeded. Retry in ${err.retryInSec}s`, 'error');
+      } else if (err.code === 'LIMIT_REACHED') {
+        setShowDownloadModal(false);
+        setAcceptedTerms(false);
+        setShowUpgradeModal(true);
       } else {
         showToast(err.message || 'Generation failed', 'error');
       }
@@ -105,11 +123,10 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
     setExporting(true);
     try {
       if (format === 'pdf') {
-        await downloadContractPdf({
-          contractText: generatedText,
-          fileName: 'contrat.pdf',
-          metadata: { version: template?.metadata.version, date: new Date().toISOString().split('T')[0] }
-        });
+        // Gate with modal
+        setShowDownloadModal(true);
+        setExporting(false);
+        return;
       } else {
         await LexClient.export(generatedText, format, {
           version: template?.metadata.version,
@@ -117,6 +134,25 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
         });
       }
       showToast(`Contract exported as ${format.toUpperCase()}`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Export failed', 'error');
+    } finally {
+      if (format !== 'pdf') setExporting(false);
+    }
+  };
+
+  const confirmDownloadPdf = async () => {
+    if (!acceptedTerms) return;
+    setExporting(true);
+    try {
+      await downloadContractPdf({
+        contractText: generatedText,
+        fileName: 'contrat.pdf',
+        metadata: { version: template?.metadata.version, date: new Date().toISOString().split('T')[0] }
+      });
+      showToast('Contract exported as PDF', 'success');
+      setShowDownloadModal(false);
+      setAcceptedTerms(false);
     } catch (err: any) {
       showToast(err.message || 'Export failed', 'error');
     } finally {
@@ -320,6 +356,60 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
           onClose={() => setShowReview(false)}
         />
       )}
+
+    {/* Modal before download */}
+    {showDownloadModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-card border border-border p-6 w-full max-w-lg">
+          <h3 className="text-[1.125rem] mb-3" style={{ fontWeight: 600 }}>Conditions d'utilisation du document</h3>
+          <div className="space-y-3 text-[0. NineTwoFiverem]" style={{ lineHeight: 1.6 }}>
+            <p>Ce document est généré automatiquement par intelligence artificielle et fourni à titre informatif uniquement.</p>
+            <p>Il ne remplace pas l'avis personnalisé d'un avocat et n'a pas de valeur juridique sans validation par un professionnel du droit.</p>
+            <p>Symione décline toute responsabilité en cas de litige découlant de l'utilisation de ce document sans consultation juridique préalable.</p>
+            <p>Pour une situation à enjeu important, nous recommandons de faire valider ce document par un avocat.</p>
+          </div>
+          <div className="mt-4 space-y-4">
+            <label className="flex items-center gap-2 text-[0.875rem]">
+              <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+              J'ai lu et j'accepte ces conditions d'utilisation
+            </label>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setShowDownloadModal(false); setAcceptedTerms(false); }} className="px-4 py-2 border border-border">Annuler</button>
+              <button onClick={confirmDownloadPdf} disabled={!acceptedTerms || exporting} className="px-4 py-2 bg-accent text-accent-foreground disabled:opacity-50">Télécharger le contrat PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Upgrade modal */}
+    {showUpgradeModal && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-card border border-border p-6 w-full max-w-md">
+          <h3 className="text-[1.125rem] mb-2" style={{ fontWeight: 600 }}>Limite gratuite atteinte</h3>
+          <p className="text-[0. NineTwoFiverem] text-muted-foreground" style={{ lineHeight: 1.6 }}>
+            Vous avez généré 2 contrats ce mois. Passez au Plan Pro pour débloquer 20 contrats/mois.
+          </p>
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={() => setShowUpgradeModal(false)} className="px-4 py-2 border border-border">Annuler</button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/stripe/create-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: 'pro' }) });
+                  const data = await res.json();
+                  if (data?.url) window.location.href = data.url; else window.location.href = '/prix';
+                } catch {
+                  window.location.href = '/prix';
+                }
+              }}
+              className="px-4 py-2 bg-accent text-accent-foreground"
+            >
+              Passer au Plan Pro (149€/mois)
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login';
 
@@ -10,12 +12,19 @@ interface NavigationHeaderProps {
 }
 
 export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }: NavigationHeaderProps) {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user?.email || null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setEmail(session?.user?.email || null));
+    return () => { sub.subscription.unsubscribe(); };
+  }, []);
   const navItems = [
     { label: 'Modèles', view: 'contracts' as View },
     { label: 'Conseiller', view: 'conseiller' as View },
     { label: 'Prix', view: 'pricing' as View },
     { label: 'Documentation', view: 'docs' as View },
     { label: 'Nous consulter', view: 'contact' as View },
+    { label: 'Connexion', view: 'login' as View },
   ];
 
   return (
@@ -79,23 +88,38 @@ export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }:
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => onNavigate('login')}
-              className="hidden sm:block px-10 py-3.5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase"
-              style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
-            >
-              Connexion
-            </button>
-            <button
-              onClick={() => onNavigate('contracts')}
-              className="px-10 py-3.5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center gap-2"
-              style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-            >
-              Commencer
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="stroke-current">
-                <path d="M2 6H10M10 6L7 3M10 6L7 9" strokeWidth="1" strokeLinecap="square" />
-              </svg>
-            </button>
+            {email ? (
+              <>
+                <span className="hidden md:block text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>{email}</span>
+                <button
+                  onClick={async () => { await supabase.auth.signOut(); onNavigate('home'); }}
+                  className="px-4 py-2 border border-border text-[0.75rem] uppercase tracking-[0.12em]"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => onNavigate('login')}
+                  className="hidden sm:block px-10 py-3.5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
+                >
+                  Connexion
+                </button>
+                <button
+                  onClick={() => onNavigate('contracts')}
+                  className="px-10 py-3.5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center gap-2"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+                >
+                  Commencer
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="stroke-current">
+                    <path d="M2 6H10M10 6L7 3M10 6L7 9" strokeWidth="1" strokeLinecap="square" />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         </div>
 

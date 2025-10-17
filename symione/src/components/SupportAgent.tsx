@@ -11,7 +11,7 @@ const faqs = [
   {
     id: 'plans',
     question: 'Quels sont les plans disponibles ?',
-    answer: 'Nous proposons 3 plans : Découverte Pro (50€/mois), Plan Pro (149€/mois), et Cabinet sur consultation. Consultez la page Prix pour plus de détails.',
+    answer: 'Nous proposons 3 plans : Pro (149€/mois), Cabinet (349€/mois), et Entreprise (sur consultation). Consultez la page Prix pour plus de détails.',
   },
   {
     id: 'templates',
@@ -21,7 +21,7 @@ const faqs = [
   {
     id: 'export',
     question: 'Comment exporter mes contrats ?',
-    answer: 'Avec le plan Découverte Pro, vous exportez en PDF. Avec le plan Pro et Cabinet, vous pouvez exporter en PDF et DOCX.',
+    answer: 'Avec le plan Pro et Cabinet, vous pouvez exporter en PDF et DOCX.',
   },
   {
     id: 'time',
@@ -31,7 +31,7 @@ const faqs = [
   {
     id: 'lawyer',
     question: 'Puis-je faire valider par un avocat ?',
-    answer: 'Oui, nous proposons une option Validation Avocat à 100€ par document : relecture + cachet professionnel + archivage sécurisé.',
+    answer: "Le référencement avocat n'est pas inclus dans le plan Pro. Les partenaires Cabinet bénéficient d'un référencement prioritaire.",
   },
   {
     id: 'support',

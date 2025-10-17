@@ -65,37 +65,6 @@ function buildFallback(query: string): LawyerSuggestion[] {
 export async function getNearbyLawyers(query: string, lat?: number, lng?: number): Promise<LawyerSuggestion[]> {
   const trimmedQuery = query?.trim();
   if (!trimmedQuery) return [];
-
-  const key = process.env.GOOGLE_MAPS_API_KEY;
-  if (!key) {
-    return buildFallback(trimmedQuery);
-  }
-
-  const centreLat = typeof lat === 'number' ? lat : DEFAULT_LOCATION.lat;
-  const centreLng = typeof lng === 'number' ? lng : DEFAULT_LOCATION.lng;
-  const textQuery = encodeURIComponent(`${trimmedQuery} avocat`);
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${textQuery}&location=${centreLat},${centreLng}&radius=50000&key=${key}`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      return buildFallback(trimmedQuery);
-    }
-    const data = (await response.json()) as { results?: GooglePlacesResult[] };
-    if (!Array.isArray(data.results) || data.results.length === 0) {
-      return buildFallback(trimmedQuery);
-    }
-
-    return data.results.slice(0, 10).map((result) => ({
-      name: result.name,
-      address: result.formatted_address,
-      rating: typeof result.rating === 'number' ? result.rating : undefined,
-      lat: result.geometry?.location?.lat,
-      lng: result.geometry?.location?.lng,
-      placeId: result.place_id,
-    }));
-  } catch (error) {
-    console.error('googleMaps:getNearbyLawyers', error);
-    return buildFallback(trimmedQuery);
-  }
+  // Google Maps usage disabled per product decision. Always return curated fallback suggestions.
+  return buildFallback(trimmedQuery);
 }

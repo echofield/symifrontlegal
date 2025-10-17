@@ -1,5 +1,7 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import { showToast } from './SystemToast';
 
 interface LoginViewProps {
   onNavigate: (view: 'home' | 'contracts') => void;
@@ -10,12 +12,23 @@ export function LoginView({ onNavigate }: LoginViewProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in production, this would call your auth API
-    console.log('Login attempt:', { email, password, mode: isSignup ? 'signup' : 'login' });
-    // Redirect to contracts after "login"
-    onNavigate('contracts');
+    try {
+      if (isSignup) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        showToast('Inscription réussie. Vérifiez votre email.', 'success');
+        onNavigate('contracts');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        showToast('Connexion réussie', 'success');
+        onNavigate('contracts');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Erreur authentification', 'error');
+    }
   };
 
   return (

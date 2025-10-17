@@ -1,126 +1,61 @@
 import { motion } from "motion/react";
-import { ArrowLeft, MapPin, Phone, Mail, Search, Loader2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, MapPin, Phone, Mail, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { showToast } from "./SystemToast";
+
+const SYSTEM_GREETING = `Bonjour, je suis votre assistant juridique intelligent.
+
+Je fournis des informations générales et des recommandations basées sur votre situation, mais je ne remplace pas un avocat.
+
+Pour toute situation complexe, à fort enjeu, ou nécessitant une action en justice, je vous recommanderai de consulter un professionnel du droit.
+
+Comment puis-je vous aider aujourd'hui?`;
 
 interface ConseillerViewProps {
   onBack: () => void;
 }
 
-interface Lawyer {
-  id: string;
+interface LawyerRec {
   name: string;
-  specialties: string[];
-  address: string;
-  phone: string;
-  email: string;
-  distance?: string;
+  firm?: string;
+  specialty?: string;
+  city?: string;
+  phone?: string;
+  rating?: number;
+}
+
+interface AnalyzeResult {
+  audit: { summary: string; risks: string[]; urgency: string; complexity: string };
+  recommendedTemplate?: { id: string; name: string; reason?: string } | null;
+  recommendedLawyers?: LawyerRec[];
 }
 
 export function ConseillerView({ onBack }: ConseillerViewProps) {
-  const [question, setQuestion] = useState('');
-  const [asking, setAsking] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [problem, setProblem] = useState('');
+  const [city, setCity] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AnalyzeResult | null>(null);
 
-  // Initialize Google Maps
-  useEffect(() => {
-    const initMap = () => {
-      if (!mapRef.current || !(window as any).google) return;
-
-      const map = new (window as any).google.maps.Map(mapRef.current, {
-        center: { lat: 48.8566, lng: 2.3522 }, // Paris center
-        zoom: 12,
-        styles: [
-          {
-            featureType: 'all',
-            elementType: 'geometry',
-            stylers: [{ color: '#f5f5f5' }]
-          },
-          {
-            featureType: 'water',
-            elementType: 'geometry',
-            stylers: [{ color: '#e5e5e5' }]
-          },
-          {
-            featureType: 'road',
-            elementType: 'geometry',
-            stylers: [{ color: '#ffffff' }]
-          },
-        ],
-        disableDefaultUI: true,
-        zoomControl: true,
-      });
-
-      setMapLoaded(true);
-    };
-
-    // Load Google Maps script - safe environment variable access
-    let apiKey: string | undefined;
-    try {
-      apiKey = import.meta?.env?.VITE_GOOGLE_MAPS_API_KEY;
-    } catch (e) {
-      // Silent fallback when environment variables are not available
-    }
-    
-    if (!apiKey) {
-      // Silent fallback - show map placeholder UI without console warnings
-      setMapLoaded(true);
+  const analyzeAndRecommend = async () => {
+    if (!problem || problem.trim().length < 50) {
+      showToast('Veuillez décrire votre situation en détail (min 50 caractères)', 'error');
       return;
     }
-    
-    if (!(window as any).google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.onload = initMap;
-      script.onerror = () => {
-        // Silent fallback on load error
-        setMapLoaded(true);
-      };
-      document.head.appendChild(script);
-    } else {
-      initMap();
-    }
-  }, []);
-
-  const handleAskQuestion = async () => {
-    if (!question.trim()) {
-      showToast('Veuillez entrer une question', 'error');
-      return;
-    }
-
-    setAsking(true);
+    setLoading(true);
+    setResult(null);
     try {
-      // Call backend advisor API
-      const response = await fetch('/api/advisor', {
+      const r = await fetch('/api/conseiller/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: question,
-          context: {}
-        }),
+        body: JSON.stringify({ problem, city }),
       });
-
-      if (!response.ok) throw new Error('Erreur API');
-      
-      const data = await response.json();
-      showToast('Réponse reçue. Recherche d\'avocats en cours...', 'success');
-      
-      // Auto-trigger lawyer search if practice area detected
-      if (data.practice_area) {
-        setSearchQuery('Paris'); // Default or use geolocation
-        await handleSearchLawyers();
-      }
-      
-      setQuestion('');
+      if (!r.ok) throw new Error('Erreur lors de l\'analyse');
+      const data = await r.json();
+      setResult(data);
     } catch (err: any) {
-      showToast(err.message || 'Erreur lors de l\'envoi', 'error');
+      showToast(err.message || 'Erreur lors de l\'analyse', 'error');
     } finally {
-      setAsking(false);
+      setLoading(false);
     }
   };
 
@@ -210,217 +145,135 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
 
         {/* Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left column: Question & Lawyer Search */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Ask Question Module */}
+        {/* Left column: Input */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* System greeting */}
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 p-4" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+            {SYSTEM_GREETING}
+          </div>
+
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1, ease: 'linear' }}
               className="bg-card border border-border p-6 lg:p-8"
             >
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
-                <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Poser une question
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-accent" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                    RÉPONSE EN {'<5'} MIN
-                  </span>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  Décrivez votre situation
+                </label>
+                <textarea
+                  value={problem}
+                  onChange={(e) => setProblem(e.target.value)}
+                  rows={8}
+                  placeholder={"Contexte, enjeux, dates clés, actions déjà réalisées"}
+                  className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem] resize-none placeholder:text-muted-foreground/50"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
+                />
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                    Votre question juridique
-                  </label>
-                  <textarea
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    rows={6}
-                    placeholder="Décrivez votre situation juridique..."
-                    className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem] resize-none placeholder:text-muted-foreground/50"
-                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
-                  />
-                </div>
-
-                <button
-                  onClick={handleAskQuestion}
-                  disabled={asking || !question.trim()}
-                  className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-                >
-                  {asking ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} />
-                      Envoi en cours
-                    </>
-                  ) : (
-                    'Demander'
-                  )}
-                </button>
-
-                <p className="text-[0.625rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
-                  Réponse sous 24h • Service confidentiel
-                </p>
+              <div>
+                <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  Ville (pour recommandation avocat)
+                </label>
+                <input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Paris"
+                  className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem] placeholder:text-muted-foreground/50"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
+                />
               </div>
-            </motion.div>
 
-            {/* Lawyer Search Results */}
-            {lawyers.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'linear' }}
-                className="space-y-2"
+              <button
+                onClick={analyzeAndRecommend}
+                disabled={loading || !problem.trim()}
+                className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
               >
-                <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-4" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Résultats ({lawyers.length})
-                </p>
-                
-                {lawyers.map((lawyer, index) => (
-                  <motion.div
-                    key={lawyer.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.05, ease: 'linear' }}
-                    className="bg-card border border-border p-5 hover:border-accent transition-colors duration-200"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-[1rem] tracking-[-0.01em]" style={{ fontWeight: 600 }}>
-                        {lawyer.name}
-                      </h3>
-                      {lawyer.distance && (
-                        <span className="text-[0.625rem] text-accent" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                          {lawyer.distance}
-                        </span>
-                      )}
-                    </div>
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} />
+                    Analyse en cours...
+                  </>
+                ) : (
+                  'Analyser ma situation'
+                )}
+              </button>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {lawyer.specialties.map((specialty, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[0.625rem] uppercase tracking-[0.1em] px-2 py-1 bg-secondary text-secondary-foreground"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
-                          >
-                            {specialty}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="flex items-start gap-2 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                        <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                        {lawyer.address}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                        <Phone className="w-3 h-3 flex-shrink-0" strokeWidth={1.5} />
-                        {lawyer.phone}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                        <Mail className="w-3 h-3 flex-shrink-0" strokeWidth={1.5} />
-                        {lawyer.email}
-                      </div>
-                    </div>
-
-                    <button className="w-full px-4 py-2 border border-border hover:border-foreground transition-colors duration-200 text-[0.625rem] uppercase tracking-[0.12em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                      Contacter
-                    </button>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Right column: Map */}
-          <div className="lg:col-span-7">
+              <p className="text-[0.625rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
+                Réponse en moins de 30 secondes • Service confidentiel
+              </p>
+            </div>
+            </motion.div>
+          {/* Results */}
+          {result && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15, ease: 'linear' }}
-              className="bg-card border border-border sticky top-20"
+              transition={{ duration: 0.3, ease: 'linear' }}
+              className="space-y-6"
             >
-              <div className="p-6 lg:p-8 border-b border-border">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                    Trouver un avocat
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${mapLoaded ? 'bg-accent' : 'bg-system-standby animate-pulse'}`} />
-                    <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                      {mapLoaded ? 'Carte chargée' : 'Chargement'}
-                    </span>
+              {/* Audit */}
+              <div className="bg-card border border-border p-6 lg:p-8">
+                <h2 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Analyse de votre situation</h2>
+                <p className="text-[0.875rem] mb-4" style={{ lineHeight: 1.6 }}>{result.audit.summary}</p>
+                {Array.isArray(result.audit.risks) && result.audit.risks.length > 0 && (
+                  <div className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>
+                    <div className="mb-1" style={{ fontWeight: 600 }}>Points d'attention:</div>
+                    <ul className="list-disc pl-5">
+                      {result.audit.risks.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-                    <input
-                      type="text"
-                      placeholder="Ville, code postal..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearchLawyers()}
-                      className="w-full pl-10 pr-4 py-3 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
-                      style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
-                    />
-                  </div>
-                  <button
-                    onClick={handleSearchLawyers}
-                    disabled={searching || !searchQuery.trim()}
-                    className="px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em] disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-                  >
-                    {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} /> : 'Chercher'}
-                  </button>
+                )}
+                <div className="text-[0.75rem] text-muted-foreground mt-3" style={{ fontFamily: 'var(--font-mono)' }}>
+                  <span>Urgence: {result.audit.urgency}</span> • <span>Complexité: {result.audit.complexity}</span>
                 </div>
               </div>
 
-              {/* Google Maps Container */}
-              <div 
-                className="w-full bg-secondary relative overflow-hidden"
-                style={{ height: '520px', minHeight: '420px' }}
-              >
-                <div 
-                  ref={mapRef}
-                  className="w-full h-full"
-                />
-                {mapLoaded && !(window as any).google && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-secondary/95 backdrop-blur-sm p-8">
-                    <div className="text-center max-w-md">
-                      <div className="w-12 h-12 mx-auto mb-4 border border-border flex items-center justify-center">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="stroke-current text-muted-foreground">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <circle cx="12" cy="10" r="3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+              {/* Template */}
+              {result.recommendedTemplate && (
+                <div className="bg-card border border-border p-6 lg:p-8">
+                  <h2 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Modèle recommandé</h2>
+                  <div className="text-[1rem]" style={{ fontWeight: 600 }}>{result.recommendedTemplate.name}</div>
+                  {result.recommendedTemplate.reason && (
+                    <p className="text-[0.875rem] mt-1 text-muted-foreground">{result.recommendedTemplate.reason}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Lawyers */}
+              {Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
+                <div className="bg-card border border-border p-6 lg:p-8">
+                  <h2 className="text-[1.25rem] mb-4" style={{ fontWeight: 600 }}>Avocats recommandés</h2>
+                  <div className="space-y-3">
+                    {result.recommendedLawyers.map((l, i) => (
+                      <div key={i} className="border border-border p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="text-[1rem]" style={{ fontWeight: 600 }}>{l.name}</div>
+                          {typeof l.rating === 'number' && (
+                            <div className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>{l.rating}/5</div>
+                          )}
+                        </div>
+                        <div className="text-[0.875rem] text-muted-foreground mt-1">
+                          {[l.specialty, l.city, l.firm].filter(Boolean).join(' • ')}
+                        </div>
+                        {l.phone && (
+                          <a href={`tel:${l.phone}`} className="text-[0.75rem] mt-2 inline-block underline">Contacter</a>
+                        )}
                       </div>
-                      <p className="text-[0.75rem] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                        Carte non disponible
-                      </p>
-                      <p className="text-[0.625rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                        La clé API Google Maps n'est pas configurée.
-                        <br />
-                        Utilisez la recherche ci-dessus pour trouver des avocats.
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                )}
-                {!mapLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-secondary">
-                    <p className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                      Chargement de la carte...
-                    </p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </motion.div>
+          )}
           </div>
+        {/* Right column left empty to preserve layout spacing */}
+        <div className="lg:col-span-7" />
         </div>
       </div>
     </div>

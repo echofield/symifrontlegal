@@ -14,6 +14,8 @@ import { ContactView } from './components/ContactView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
+import { supabase } from './lib/supabaseClient';
+import { supabase } from './lib/supabaseClient';
 
 type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login';
 
@@ -22,6 +24,9 @@ export default function App() {
   const [navigationHistory, setNavigationHistory] = useState<View[]>(['home']);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string>('free');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const handleNavigate = (view: View, templateId?: string, jurisdiction?: string) => {
     setNavigationHistory(prev => [...prev, view]);
@@ -43,6 +48,34 @@ export default function App() {
   };
 
   const canGoBack = navigationHistory.length > 1;
+
+  // Session and plan fetching
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    const uid = session?.user?.id || null;
+    setUserEmail(session?.user?.email || null);
+    if (uid) {
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', uid)
+          .maybeSingle();
+        setUserPlan((data?.plan as string) || 'free');
+      } catch {
+        setUserPlan('free');
+      }
+    } else {
+      setUserPlan('free');
+    }
+  });
+
+  // Minimal session watcher
+  supabase.auth.onAuthStateChange((event, session) => {
+    setUserEmail(session?.user?.email || null);
+    if (event === 'SIGNED_OUT') {
+      setUserEmail(null);
+    }
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -222,6 +255,7 @@ export default function App() {
               <ContractsListView 
                 onBack={handleBack}
                 onSelectTemplate={(templateId, jurisdiction) => handleNavigate('editor', templateId, jurisdiction)}
+                plan={userPlan as any}
               />
             </motion.div>
           )}

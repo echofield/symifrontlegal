@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ArrowLeft, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LexClient } from "../lib/lexClient";
 import { showToast } from "./SystemToast";
@@ -8,6 +8,7 @@ import type { ContractIndexEntry } from "../types/contracts";
 interface ContractsListViewProps {
   onBack: () => void;
   onSelectTemplate: (templateId: string, jurisdiction: string) => void;
+  plan?: 'free' | 'pro' | 'cabinet' | 'entreprise';
 }
 
 const categoryLabels: Record<string, string> = {
@@ -20,7 +21,7 @@ const categoryLabels: Record<string, string> = {
   custom: 'Personnalisé',
 };
 
-export function ContractsListView({ onBack, onSelectTemplate }: ContractsListViewProps) {
+export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: ContractsListViewProps) {
   const [contracts, setContracts] = useState<ContractIndexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +56,21 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
       contract.id.toLowerCase().includes(query)
     );
   });
+
+  const FREE_TEMPLATE_IDS = new Set<string>([
+    'contrat-de-travail-dur-e-ind-termin-e-cdi',
+    'freelance-services-agreement',
+    'one-way-non-disclosure-agreement',
+    'bail-d-habitation-non-meubl',
+    'convention-de-rupture-conventionnelle',
+    'terms-of-service',
+    'promesse-synallagmatique-de-vente-immobili-re',
+    'partnership-agreement',
+    'contrat-de-prestation-de-services',
+    'reconnaissance-de-dette',
+  ]);
+
+  const isLocked = (id: string) => plan === 'free' && !FREE_TEMPLATE_IDS.has(id);
   return (
     <div className="min-h-screen pt-16">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-12">
@@ -132,14 +148,16 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
           </div>
         ) : (
           <div className="space-y-px bg-border">
-            {filteredContracts.map((contract, index) => (
+            {filteredContracts.map((contract, index) => {
+              const locked = isLocked(contract.id);
+              return (
               <motion.button
                 key={contract.id}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.04, ease: 'linear' }}
-                onClick={() => onSelectTemplate(contract.id, jurisdiction)}
-                className="group bg-card p-6 lg:p-8 text-left hover:bg-accent/5 transition-all duration-200 relative w-full border-l-2 border-transparent hover:border-l-accent"
+                onClick={() => { if (!locked) onSelectTemplate(contract.id, jurisdiction); }}
+                className={`group bg-card p-6 lg:p-8 text-left transition-all duration-200 relative w-full border-l-2 ${locked ? 'opacity-70 cursor-not-allowed' : 'hover:bg-accent/5 hover:border-l-accent border-transparent'}`}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
                   {/* ID */}
@@ -188,15 +206,21 @@ export function ContractsListView({ onBack, onSelectTemplate }: ContractsListVie
                     </div>
                   </div>
                 </div>
-
-                {/* Selection indicator */}
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="stroke-accent">
-                    <path d="M2 6H10M10 6L7 3M10 6L7 9" strokeWidth="1" strokeLinecap="square" />
-                  </svg>
-                </div>
+                {/* Indicator */}
+                {locked ? (
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[0.6875rem]">
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+                    <span className="text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Plan Pro requis</span>
+                  </div>
+                ) : (
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="stroke-accent">
+                      <path d="M2 6H10M10 6L7 3M10 6L7 9" strokeWidth="1" strokeLinecap="square" />
+                    </svg>
+                  </div>
+                )}
               </motion.button>
-            ))}
+            );})}
           </div>
         )}
       </div>
