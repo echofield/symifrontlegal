@@ -36,6 +36,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
   const [city, setCity] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
+  const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([]);
+  const [followUpQuestion, setFollowUpQuestion] = useState('');
 
   const analyzeAndRecommend = async () => {
     if (!problem || problem.trim().length < 50) {
@@ -53,11 +55,22 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       if (!r.ok) throw new Error('Erreur lors de l\'analyse');
       const data = await r.json();
       setResult(data);
+      setMessages((prev) => [
+        ...prev,
+        { id: `u-${Date.now()}`, role: 'user', content: problem },
+        { id: `a-${Date.now()}`, role: 'assistant', content: `Analyse complétée pour ${city || 'votre zone'}.` },
+      ]);
     } catch (err: any) {
       showToast(err.message || 'Erreur lors de l\'analyse', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFollowUp = () => {
+    if (!followUpQuestion.trim()) return;
+    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', content: followUpQuestion }, { id: `a-${Date.now()}`, role: 'assistant', content: 'Réponse contextuelle (bientôt disponible).' }]);
+    setFollowUpQuestion('');
   };
 
   const handleSearchLawyers = async () => {
@@ -298,8 +311,111 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
             </motion.div>
           )}
           </div>
-        {/* Right column left empty to preserve layout spacing */}
-        <div className="lg:col-span-7" />
+        {/* Right column: Chat-style results */}
+        <div className="lg:col-span-7">
+          <div className="bg-card border border-border p-4 lg:p-6 min-h-[520px] flex flex-col gap-4">
+            {!result && !loading && (
+              <div className="text-center text-[0.875rem] text-muted-foreground py-16">
+                Décrivez votre situation à gauche pour recevoir une analyse juridique détaillée
+              </div>
+            )}
+
+            {/* Typing indicator */}
+            {loading && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '120ms' }} />
+                <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '240ms' }} />
+              </div>
+            )}
+
+            {result && (
+              <>
+                {/* Message 1: Audit */}
+                <div className="border border-border p-4">
+                  <h4 className="text-[0.95rem] mb-2">📋 Analyse de votre situation</h4>
+                  <p className="text-[0.875rem] mb-2"><strong>Résumé:</strong> {result.audit.summary}</p>
+                  {Array.isArray(result.audit.risks) && result.audit.risks.length > 0 && (
+                    <div className="text-[0.875rem] mb-2">
+                      <strong>Points d'attention:</strong>
+                      <ul className="list-disc pl-5">
+                        {result.audit.risks.map((p, i) => (<li key={i}>{p}</li>))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 text-[0.75rem] text-muted-foreground">
+                    <span>Urgence: {result.audit.urgency}</span>
+                    <span>•</span>
+                    <span>Complexité: {result.audit.complexity}</span>
+                  </div>
+                </div>
+
+                {/* Message 2: Template */}
+                {result.recommendedTemplate && (
+                  <div className="border border-border p-4">
+                    <h4 className="text-[0.95rem] mb-2">📄 Template recommandé</h4>
+                    <div className="text-[1rem]" style={{ fontWeight: 600 }}>{result.recommendedTemplate.name}</div>
+                    {result.recommendedTemplate.reason && <p className="text-[0.875rem] text-muted-foreground mt-1">{result.recommendedTemplate.reason}</p>}
+                    <div className="mt-2">
+                      {result.recommendedTemplate.available ? (
+                        <span className="px-2 py-1 text-[0.75rem] bg-green-50 text-green-800 border border-green-200">✓ Disponible gratuitement</span>
+                      ) : (
+                        <span className="px-2 py-1 text-[0.75rem] bg-amber-50 text-amber-800 border border-amber-200">⭐ Plan Pro requis</span>
+                      )}
+                    </div>
+                    {result.recommendedTemplate.slug && (
+                      <button className="mt-3 px-4 py-2 border border-border" onClick={() => (window.location.href = `/contracts/${result.recommendedTemplate!.slug}`)}>Utiliser ce template →</button>
+                    )}
+                    {result.needsLawyer && (
+                      <p className="mt-3 text-[0.875rem] text-amber-800 bg-amber-50 border border-amber-200 p-3">⚠️ Situation complexe: nous recommandons aussi de consulter un avocat</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Message 3: Lawyers if needed */}
+                {result.needsLawyer && Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
+                  <div className="border border-border p-4">
+                    <h4 className="text-[0.95rem] mb-2">⚖️ Avocats recommandés {city ? `à ${city}` : ''}</h4>
+                    {!result.recommendedTemplate && (
+                      <p className="text-[0.875rem] text-muted-foreground mb-2">Ce cas nécessite l'expertise d'un avocat spécialisé. Aucun template standard ne correspond à votre situation.</p>
+                    )}
+                    <div className="space-y-3">
+                      {result.recommendedLawyers.map((l, i) => (
+                        <div key={i} className="border border-border p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-[1rem]" style={{ fontWeight: 600 }}>{l.name}</div>
+                            {typeof l.rating === 'number' && <div className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>{l.rating}/5</div>}
+                          </div>
+                          <div className="text-[0.875rem] text-muted-foreground">{[l.specialty, l.city, l.firm].filter(Boolean).join(' • ')}</div>
+                          {l.phone && <a href={`tel:${l.phone}`} className="underline text-[0.8125rem] mt-1 inline-block">Contacter</a>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Conversation history */}
+                {messages.map((m) => (
+                  <div key={m.id} className={`p-3 border ${m.role === 'assistant' ? 'bg-accent/5 border-accent/20' : 'bg-card border-border'}`}>{m.content}</div>
+                ))}
+
+                {/* Follow-up input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Question complémentaire..."
+                    value={followUpQuestion}
+                    onChange={(e) => setFollowUpQuestion(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleFollowUp()}
+                    className="flex-1 px-3 py-2 bg-input-background border border-border"
+                    style={{ fontFamily: 'var(--font-mono)' }}
+                  />
+                  <button onClick={handleFollowUp} className="px-4 py-2 border border-border">→</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
         </div>
       </div>
     </div>

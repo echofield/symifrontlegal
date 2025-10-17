@@ -26,6 +26,8 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [jurisdiction, setJurisdiction] = useState<string>((import.meta as any).env?.VITE_JURISDICTION || 'FR');
+  const [searchAnalysis, setSearchAnalysis] = useState<{ interpretation: string; matchingTemplates: { id: string; name: string; description?: string; available: boolean; matchScore: number }[] } | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     async function loadContracts() {
@@ -56,6 +58,21 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
       contract.id.toLowerCase().includes(query)
     );
   });
+
+  // Mini-audit search analyze
+  async function analyzeSearch(q: string) {
+    if (!q || q.length < 16) { setSearchAnalysis(null); return; }
+    setAnalyzing(true);
+    try {
+      const res = await fetch('/api/templates/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
+      if (res.ok) {
+        const data = await res.json();
+        setSearchAnalysis(data);
+      }
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   const FREE_TEMPLATE_IDS = new Set<string>([
     'contrat-de-travail-dur-e-ind-termin-e-cdi',
@@ -110,7 +127,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
                 type="text"
                 placeholder="🔍 Rechercher un contrat (ex: bail, CDI, NDA...)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); analyzeSearch(e.target.value); }}
                 className="w-full pl-10 pr-4 py-3 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
               />
@@ -127,13 +144,51 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
             </div>
           </div>
 
-          {/* System status */}
+          {/* System status + Mini-audit */}
           <div className="mt-4 flex items-center gap-3">
             <div className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-system-standby animate-pulse' : 'bg-accent'}`} />
             <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
               {loading ? 'Loading templates...' : `${filteredContracts.length} templates available`}
             </span>
           </div>
+          {searchQuery.length > 15 && (
+            <div className="mt-4 border border-border p-4">
+              {analyzing && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" />
+                  <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '120ms' }} />
+                  <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '240ms' }} />
+                </div>
+              )}
+              {searchAnalysis && (
+                <>
+                  <div className="text-[0.875rem] mb-3">
+                    <h4 className="text-[0.95rem] mb-1" style={{ fontWeight: 600 }}>💡 Analyse de votre besoin</h4>
+                    <p className="text-muted-foreground">{searchAnalysis.interpretation}</p>
+                  </div>
+                  {searchAnalysis.matchingTemplates.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="text-[0.95rem]" style={{ fontWeight: 600 }}>📄 Templates correspondants</h4>
+                      {searchAnalysis.matchingTemplates.map((t) => (
+                        <button key={t.id} onClick={() => onSelectTemplate(t.id, jurisdiction)} className="w-full text-left border border-border p-3 hover:border-foreground">
+                          <div className="flex items-center justify-between">
+                            <div className="text-[1rem]" style={{ fontWeight: 600 }}>{t.name}</div>
+                            <span className={`text-[0.75rem] ${t.available ? 'text-green-700' : 'text-amber-700'}`}>{t.available ? '✓ Disponible' : '🔒 Plan Pro'}</span>
+                          </div>
+                          {t.description && <p className="text-[0.8125rem] text-muted-foreground">{t.description}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[0.875rem] text-muted-foreground">Aucun template exact — ce cas peut nécessiter un avocat.</p>
+                      <button onClick={() => { window.location.href = '#conseiller'; }} className="mt-2 px-4 py-2 border border-border">Consulter le Conseiller Juridique →</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {/* Template data grid */}
