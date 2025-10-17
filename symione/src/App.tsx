@@ -15,7 +15,6 @@ import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
 import { supabase } from './lib/supabaseClient';
-import { supabase } from './lib/supabaseClient';
 
 type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login';
 
@@ -26,7 +25,6 @@ export default function App() {
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<string>('free');
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const handleNavigate = (view: View, templateId?: string, jurisdiction?: string) => {
     setNavigationHistory(prev => [...prev, view]);
@@ -66,14 +64,6 @@ export default function App() {
       }
     } else {
       setUserPlan('free');
-    }
-  });
-
-  // Minimal session watcher
-  supabase.auth.onAuthStateChange((event, session) => {
-    setUserEmail(session?.user?.email || null);
-    if (event === 'SIGNED_OUT') {
-      setUserEmail(null);
     }
   });
 
