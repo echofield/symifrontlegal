@@ -373,7 +373,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 )}
 
                 {/* Message 3: Lawyers if needed */}
-                {result.needsLawyer && Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
+                {Array.isArray(result.recommendedLawyers) && result.recommendedLawyers.length > 0 && (
                   <div className="border border-border p-4">
                     <h4 className="text-[0.95rem] mb-2">⚖️ Avocats recommandés {city ? `à ${city}` : ''}</h4>
                     {!result.recommendedTemplate && (

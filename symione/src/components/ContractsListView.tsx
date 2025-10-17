@@ -122,7 +122,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
     'reconnaissance-de-dette',
   ]);
 
-  const isLocked = (id: string) => plan === 'free' && !FREE_TEMPLATE_IDS.has(id);
+  const isLocked = (id: string) => false; // Temporarily unlock all templates until gating finalized
   const [showLockModal, setShowLockModal] = useState(false);
   return (
     <div className="min-h-screen pt-16">
