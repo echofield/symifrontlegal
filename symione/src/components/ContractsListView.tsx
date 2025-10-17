@@ -33,9 +33,44 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
     async function loadContracts() {
       try {
         const { index } = await LexClient.listContracts(jurisdiction);
-        setContracts(index);
+        if (!Array.isArray(index) || index.length === 0) {
+          // Fallback: seed with minimal free + premium placeholders
+          const fallback: ContractIndexEntry[] = [
+            { id: 'contrat-de-travail-dur-e-ind-termin-e-cdi', title: 'Contrat de travail CDI', category: 'employment', path: '/contracts/employment/contrat-de-travail-dur-e-ind-termin-e-cdi.json' },
+            { id: 'freelance-services-agreement', title: 'Contrat de prestation freelance', category: 'business', path: '/contracts/business/freelance-services-agreement.json' },
+            { id: 'one-way-non-disclosure-agreement', title: 'Accord de confidentialité (NDA)', category: 'business', path: '/contracts/business/one-way-non-disclosure-agreement.json' },
+            { id: 'bail-d-habitation-non-meubl', title: "Bail d'habitation non meublé", category: 'property', path: '/contracts/property/bail-d-habitation-non-meubl.json' },
+            { id: 'convention-de-rupture-conventionnelle', title: 'Rupture conventionnelle', category: 'employment', path: '/contracts/employment/convention-de-rupture-conventionnelle.json' },
+            { id: 'terms-of-service', title: 'Conditions générales (CGU/CGV)', category: 'business', path: '/contracts/business/terms-of-service.json' },
+            { id: 'promesse-synallagmatique-de-vente-immobili-re', title: 'Promesse de vente immobilière', category: 'property', path: '/contracts/property/promesse-synallagmatique-de-vente-immobili-re.json' },
+            { id: 'partnership-agreement', title: "Pacte d'associés (Partnership)", category: 'business', path: '/contracts/business/partnership-agreement.json' },
+            { id: 'contrat-de-prestation-de-services', title: 'Contrat de prestation de services', category: 'business', path: '/contracts/business/contrat-de-prestation-de-services.json' },
+            { id: 'reconnaissance-de-dette', title: 'Reconnaissance de dette', category: 'personal', path: '/contracts/personal/reconnaissance-de-dette.json' },
+            // Premium placeholders
+            { id: 'contrat-de-travail-dur-e-d-termin-e-cdd', title: 'Contrat CDD', category: 'employment', path: '/contracts/employment/contrat-de-travail-dur-e-d-termin-e-cdd.json' },
+            { id: 'convention-de-stage', title: 'Convention de stage', category: 'employment', path: '/contracts/employment/convention-de-stage.json' },
+          ];
+          setContracts(fallback);
+        } else {
+          setContracts(index);
+        }
       } catch (err: any) {
         showToast(err.message || 'Failed to load templates', 'error');
+        const fallback: ContractIndexEntry[] = [
+          { id: 'contrat-de-travail-dur-e-ind-termin-e-cdi', title: 'Contrat de travail CDI', category: 'employment', path: '/contracts/employment/contrat-de-travail-dur-e-ind-termin-e-cdi.json' },
+          { id: 'freelance-services-agreement', title: 'Contrat de prestation freelance', category: 'business', path: '/contracts/business/freelance-services-agreement.json' },
+          { id: 'one-way-non-disclosure-agreement', title: 'Accord de confidentialité (NDA)', category: 'business', path: '/contracts/business/one-way-non-disclosure-agreement.json' },
+          { id: 'bail-d-habitation-non-meubl', title: "Bail d'habitation non meublé", category: 'property', path: '/contracts/property/bail-d-habitation-non-meubl.json' },
+          { id: 'convention-de-rupture-conventionnelle', title: 'Rupture conventionnelle', category: 'employment', path: '/contracts/employment/convention-de-rupture-conventionnelle.json' },
+          { id: 'terms-of-service', title: 'Conditions générales (CGU/CGV)', category: 'business', path: '/contracts/business/terms-of-service.json' },
+          { id: 'promesse-synallagmatique-de-vente-immobili-re', title: 'Promesse de vente immobilière', category: 'property', path: '/contracts/property/promesse-synallagmatique-de-vente-immobili-re.json' },
+          { id: 'partnership-agreement', title: "Pacte d'associés (Partnership)", category: 'business', path: '/contracts/business/partnership-agreement.json' },
+          { id: 'contrat-de-prestation-de-services', title: 'Contrat de prestation de services', category: 'business', path: '/contracts/business/contrat-de-prestation-de-services.json' },
+          { id: 'reconnaissance-de-dette', title: 'Reconnaissance de dette', category: 'personal', path: '/contracts/personal/reconnaissance-de-dette.json' },
+          { id: 'contrat-de-travail-dur-e-d-termin-e-cdd', title: 'Contrat CDD', category: 'employment', path: '/contracts/employment/contrat-de-travail-dur-e-d-termin-e-cdd.json' },
+          { id: 'convention-de-stage', title: 'Convention de stage', category: 'employment', path: '/contracts/employment/convention-de-stage.json' },
+        ];
+        setContracts(fallback);
       } finally {
         setLoading(false);
       }

@@ -56,7 +56,7 @@ async function callOpenAIAudit(problem: string) {
 async function callPerplexityLawyers(city: string, specialty: string) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) return [] as any[];
-  const prompt = `Trouve les 5 meilleurs avocats spécialisés en "${specialty}" à ${city}, France.\n\nRetourne UNIQUEMENT un JSON valide:\n{\n  "lawyers": [\n    {\n      "name": "Maître Prénom Nom",\n      "firm": "Nom du cabinet",\n      "specialty": "Spécialité exacte",\n      "city": "Ville",\n      "phone": "Téléphone si disponible",\n      "rating": 4.5\n    }\n  ]\n}\n\nNE retourne RIEN d'autre.`;
+  const prompt = `Trouve 5 avocats spécialisés en "${specialty}" à ${city}, France. Retourne UNIQUEMENT ce JSON:\n{\n  "lawyers": [\n    { "name": "", "firm": "", "specialty": "", "city": "", "phone": "", "email": "", "address": "", "rating": 0 }\n  ]\n}`;
   const r = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
     headers: {
