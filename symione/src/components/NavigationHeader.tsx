@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond';
 
 interface NavigationHeaderProps {
   currentView: View;
@@ -20,6 +20,7 @@ export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }:
   }, []);
   const navItems = [
     { label: 'Modèles', view: 'contracts' as View },
+    { label: 'Bond', view: 'bond' as View },
     { label: 'Conseiller', view: 'conseiller' as View },
     { label: 'Prix', view: 'pricing' as View },
     { label: 'Documentation', view: 'docs' as View },

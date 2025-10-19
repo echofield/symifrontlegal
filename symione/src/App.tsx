@@ -11,12 +11,13 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
+import { BondDashboardView } from './components/BondDashboardView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
 import { supabase } from './lib/supabaseClient';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -313,6 +314,18 @@ export default function App() {
               transition={{ duration: 0.2, ease: 'linear' }}
             >
               <DocsView />
+            </motion.div>
+          )}
+
+          {currentView === 'bond' && (
+            <motion.div
+              key="bond"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <BondDashboardView onNavigate={handleNavigate} />
             </motion.div>
           )}
 
