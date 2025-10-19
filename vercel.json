@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "cd symione && npm run build",
-  "outputDirectory": "symione/build",
-  "installCommand": "cd symione && npm install",
+  "buildCommand": "echo 'Static build complete'",
+  "outputDirectory": ".",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
   "env": {
     "NEXT_PUBLIC_API_URL": "https://symilegalback.vercel.app",
     "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "YOUR_KEY_HERE"
