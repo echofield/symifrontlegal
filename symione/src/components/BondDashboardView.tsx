@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { Plus, ChevronRight } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useEffect, useState } from "react";
-import { bondFetch } from "../lib/useBondApi";
+import { bondFetch } from "./lib/useBondApi";
 
 interface BondContract {
   id: string;
@@ -48,19 +48,16 @@ export function BondDashboardView({ onNavigate }: BondDashboardViewProps) {
     (async () => {
       try {
         setLoading(true);
-        const data = await bondFetch<{ success: boolean; contracts: any[] }>(`/api/bond/contracts`);
+        const data = await bondFetch<{ ok: boolean; contracts: any[] }>(`/api/escrow/contracts`);
         if (!mounted) return;
         const mapped = (data?.contracts || []).map((c) => ({
           id: c.id,
           title: c.title,
-          totalAmount: c.amount || c.totalAmount || 0,
+          totalAmount: c.totalAmount / 100 ?? c.totalAmount,
           status: String(c.status || 'active').toLowerCase() as BondContract['status'],
-          parties: { 
-            client: c.clientName || 'Client', 
-            provider: c.freelancerName || 'Prestataire' 
-          },
+          parties: { client: '', provider: '' },
           createdAt: new Date(c.createdAt).toLocaleDateString('fr-FR'),
-          progress: c.milestones ? Math.round((c.milestones.filter((m: any) => m.status === 'completed').length / c.milestones.length) * 100) : 0,
+          progress: c.milestonesCount ? Math.round((c.paidCount / c.milestonesCount) * 100) : 0,
         })) as BondContract[];
         setContracts(mapped);
         setError(null);

@@ -1,9 +1,5 @@
 export async function bondFetch<T = any>(url: string, options?: RequestInit): Promise<T> {
-  // Ensure URL points to the correct backend
-  const baseUrl = 'https://symilegalback.vercel.app';
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
-  
-  const res = await fetch(fullUrl, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
