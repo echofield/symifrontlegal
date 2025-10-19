@@ -11,7 +11,7 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
-import { BondSimpleView } from './components/BondSimpleView';
+import { BondCreateView } from './components/BondCreateView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
@@ -314,6 +314,18 @@ export default function App() {
               transition={{ duration: 0.2, ease: 'linear' }}
             >
               <DocsView />
+            </motion.div>
+          )}
+
+          {currentView === 'bond-create' && (
+            <motion.div
+              key="bond-create"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <BondCreateView onNavigate={handleNavigate} />
             </motion.div>
           )}
 
