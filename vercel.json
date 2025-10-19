@@ -1,19 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "echo 'Static deployment - no build needed'",
-  "outputDirectory": ".",
-  "installCommand": "echo 'No dependencies needed for static HTML'",
+  "buildCommand": "cd symione && npm install && npm run build",
+  "outputDirectory": "symione/dist",
+  "installCommand": "cd symione && npm install",
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://symilegalback.vercel.app;"
         }
       ]
     }

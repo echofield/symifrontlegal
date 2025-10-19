@@ -48,16 +48,19 @@ export function BondDashboardView({ onNavigate }: BondDashboardViewProps) {
     (async () => {
       try {
         setLoading(true);
-        const data = await bondFetch<{ ok: boolean; contracts: any[] }>(`/api/escrow/contracts`);
+        const data = await bondFetch<{ success: boolean; contracts: any[] }>(`/api/bond/contracts`);
         if (!mounted) return;
         const mapped = (data?.contracts || []).map((c) => ({
           id: c.id,
           title: c.title,
-          totalAmount: c.totalAmount / 100 ?? c.totalAmount,
+          totalAmount: c.amount || c.totalAmount || 0,
           status: String(c.status || 'active').toLowerCase() as BondContract['status'],
-          parties: { client: '', provider: '' },
+          parties: { 
+            client: c.clientName || 'Client', 
+            provider: c.freelancerName || 'Prestataire' 
+          },
           createdAt: new Date(c.createdAt).toLocaleDateString('fr-FR'),
-          progress: c.milestonesCount ? Math.round((c.paidCount / c.milestonesCount) * 100) : 0,
+          progress: c.milestones ? Math.round((c.milestones.filter((m: any) => m.status === 'completed').length / c.milestones.length) * 100) : 0,
         })) as BondContract[];
         setContracts(mapped);
         setError(null);
