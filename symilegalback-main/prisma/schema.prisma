@@ -1,14 +1,33 @@
 // Prisma schema for Bond (Escrow) module
-generator client { provider = "prisma-client-js" }
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum ContractStatus { DRAFT ACTIVE COMPLETED CANCELLED }
-enum MilestoneStatus { PENDING SUBMITTED APPROVED PAID DISPUTED }
-enum EscrowStatus { HELD RELEASED REFUNDED }
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  PAID
+  DISPUTED
+}
+
+enum EscrowStatus {
+  HELD
+  RELEASED
+  REFUNDED
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -46,6 +65,7 @@ model Milestone {
   status      MilestoneStatus @default(PENDING)
   submittedAt DateTime?
   approvedAt  DateTime?
+  contract    Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
   proofs      Proof[]
 }
 
@@ -55,6 +75,7 @@ model Proof {
   url         String
   kind        String
   createdAt   DateTime @default(now())
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
 }
 
 model EscrowBatch {
@@ -67,6 +88,7 @@ model EscrowBatch {
   chargeId        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
 }
 
 model PayoutLog {

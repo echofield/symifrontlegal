@@ -176,6 +176,15 @@ export default function ContractsListPage() {
     <main className="container">
       <h1>Modèles de contrats</h1>
       <p className="muted">Décrivez votre besoin juridique — SYMIONE vous oriente.</p>
+      
+      <div className="row" style={{ marginBottom: '16px' }}>
+        <Link href="/bond" className="btn btn-primary">
+          🔒 Module Bond/Escrow
+        </Link>
+        <Link href="/conseiller" className="btn btn-secondary">
+          🤖 Conseiller Juridique
+        </Link>
+      </div>
 
       {/* Search bar */}
       <div className="row" style={{ marginBottom: 12 }}>

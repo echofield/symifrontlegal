@@ -220,6 +220,7 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
 
             <div className="flex gap-2">
               <button 
+                type="button"
                 onClick={handleGenerate}
                 disabled={generating || countdown > 0}
                 className="flex items-center gap-2 px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] uppercase tracking-[0.12em] disabled:opacity-50 disabled:cursor-not-allowed"
