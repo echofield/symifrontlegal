@@ -11,7 +11,7 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
-import { BondDashboardView } from './components/BondDashboardView';
+import { BondSimpleView } from './components/BondSimpleView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
@@ -325,7 +325,7 @@ export default function App() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondDashboardView onNavigate={handleNavigate} />
+              <BondSimpleView onNavigate={handleNavigate} />
             </motion.div>
           )}
 
