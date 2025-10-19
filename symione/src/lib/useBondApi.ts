@@ -1,5 +1,9 @@
 export async function bondFetch<T = any>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  // Ensure URL points to the correct backend
+  const baseUrl = 'https://symilegalback.vercel.app';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  
+  const res = await fetch(fullUrl, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -18,15 +22,12 @@ export async function bondFetch<T = any>(url: string, options?: RequestInit): Pr
 }
 
 export const BondAPI = {
-  getTemplates: () => bondFetch<{ ok: boolean; templates: any[] }>(`/api/contracts/templates`),
-  getQuestions: (id?: string) => bondFetch<{ ok: boolean; questions: any }>(
-    id ? `/api/contracts/questions?id=${encodeURIComponent(id)}` : `/api/contracts/questions`
-  ),
-  suggest: (payload: any) => bondFetch(`/api/contracts/suggest`, { method: 'POST', body: JSON.stringify(payload) }),
-  create: (payload: any) => bondFetch(`/api/contracts/create`, { method: 'POST', body: JSON.stringify(payload) }),
-  intentCreate: (payload: any) => bondFetch(`/api/escrow/intent/create`, { method: 'POST', body: JSON.stringify(payload) }),
-  submitMilestone: (payload: any) => bondFetch(`/api/escrow/milestone/submit`, { method: 'POST', body: JSON.stringify(payload) }),
-  validateMilestone: (payload: any) => bondFetch(`/api/escrow/milestone/validate`, { method: 'POST', body: JSON.stringify(payload) }),
+  getContracts: () => bondFetch<{ success: boolean; contracts: any[] }>(`/api/bond/contracts`),
+  getMilestones: () => bondFetch<{ success: boolean; milestones: any[] }>(`/api/bond/milestones`),
+  getPayments: () => bondFetch<{ success: boolean; payments: any[] }>(`/api/bond/payments`),
+  createContract: (payload: any) => bondFetch(`/api/bond/contracts`, { method: 'POST', body: JSON.stringify(payload) }),
+  createMilestone: (payload: any) => bondFetch(`/api/bond/milestones`, { method: 'POST', body: JSON.stringify(payload) }),
+  createPayment: (payload: any) => bondFetch(`/api/bond/payments`, { method: 'POST', body: JSON.stringify(payload) }),
 };
 
 

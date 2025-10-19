@@ -4,10 +4,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://symilegalback-virid.vercel.app",
+    "NEXT_PUBLIC_API_URL": "https://symilegalback.vercel.app",
     "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "YOUR_KEY_HERE"
   },
   "crons": [
-    { "path": "/api/escrow/cron/auto-approve", "schedule": "0 * * * *" }
+    { "path": "/api/escrow/cron/auto-approve", "schedule": "0 * * * *" }        
   ]
 }
