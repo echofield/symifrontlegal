@@ -1,13 +1,10 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "buildCommand": "cd symione && npm run build",
+  "outputDirectory": "symione/build",
+  "installCommand": "cd symione && npm install",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://symilegalback.vercel.app",
     "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "YOUR_KEY_HERE"
-  },
-  "crons": [
-    { "path": "/api/escrow/cron/auto-approve", "schedule": "0 * * * *" }        
-  ]
+  }
 }
