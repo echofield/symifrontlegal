@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
-import { ArrowLeft, MapPin, Phone, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { showToast } from "./SystemToast";
+import { ConseillerAPI, useAPI, APIError, RateLimitError } from "../lib/api-client";
+import { LoadingSpinner, LoadingButton, useLoadingState } from "./LoadingComponents";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const SYSTEM_GREETING = `Bonjour, je suis votre assistant juridique intelligent.
 
@@ -34,36 +37,46 @@ interface AnalyzeResult {
 export function ConseillerView({ onBack }: ConseillerViewProps) {
   const [problem, setProblem] = useState('');
   const [city, setCity] = useState('');
-  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([]);
   const [followUpQuestion, setFollowUpQuestion] = useState('');
+  
+  const { loading, error, startLoading, stopLoading, setErrorState } = useLoadingState();
 
   const analyzeAndRecommend = async () => {
     if (!problem || problem.trim().length < 50) {
       showToast('Veuillez décrire votre situation en détail (min 50 caractères)', 'error');
       return;
     }
-    setLoading(true);
-    setResult(null);
+    
     try {
-      const r = await fetch('/api/conseiller/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problem, city }),
-      });
-      if (!r.ok) throw new Error('Erreur lors de l\'analyse');
-      const data = await r.json();
-      setResult(data);
+      startLoading();
+      setResult(null);
+      
+      const response = await ConseillerAPI.analyze({ problem, city });
+      setResult(response);
+      
       setMessages((prev) => [
         ...prev,
         { id: `u-${Date.now()}`, role: 'user', content: problem },
         { id: `a-${Date.now()}`, role: 'assistant', content: `Analyse complétée pour ${city || 'votre zone'}.` },
       ]);
-    } catch (err: any) {
-      showToast(err.message || 'Erreur lors de l\'analyse', 'error');
+      
+      showToast('Analyse terminée avec succès', 'success');
+    } catch (err) {
+      console.error('Analysis error:', err);
+      
+      if (err instanceof RateLimitError) {
+        showToast(`Limite de taux atteinte. Réessayez dans ${err.retryAfter} secondes.`, 'error');
+      } else if (err instanceof APIError) {
+        showToast(err.message, 'error');
+      } else {
+        showToast('Erreur lors de l\'analyse. Veuillez réessayer.', 'error');
+      }
+      
+      setErrorState(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -128,7 +141,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
   };
 
   return (
-    <div className="min-h-screen pt-16">
+    <ErrorBoundary>
+      <div className="min-h-screen pt-16">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-12">
         {/* Header */}
         <motion.div
@@ -200,25 +214,29 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 />
               </div>
 
-              <button
+              <LoadingButton
+                loading={loading}
                 onClick={analyzeAndRecommend}
-                disabled={loading || !problem.trim()}
-                className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={!problem.trim()}
+                className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em]"
                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={1.5} />
-                    Analyse en cours...
-                  </>
-                ) : (
-                  'Analyser ma situation'
-                )}
-              </button>
+                {loading ? 'Analyse en cours...' : 'Analyser ma situation'}
+              </LoadingButton>
 
               <p className="text-[0.625rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
                 Réponse en moins de 30 secondes • Service confidentiel
               </p>
+              
+              {/* Error display */}
+              {error && (
+                <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-destructive" />
+                    <p className="text-sm text-destructive">{error}</p>
+                  </div>
+                </div>
+              )}
             </div>
             </motion.div>
           {/* Results */}
@@ -418,6 +436,6 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
         </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

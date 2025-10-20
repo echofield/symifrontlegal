@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationHeader } from './components/NavigationHeader';
 import { Footer } from './components/Footer';
@@ -11,16 +11,30 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
-import { BondCreateView } from './components/BondCreateView';
+import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
+import { AppProvider } from './lib/state-management';
+import { ThemeProvider } from './components/ThemeSystem';
+import { NotificationContainer } from './components/NotificationSystem';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { initializePerformanceMonitoring, useRenderPerformance } from './lib/performance-monitoring';
 import { supabase } from './lib/supabaseClient';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
 
-export default function App() {
+function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
+  
+  // Performance monitoring
+  useRenderPerformance('App');
+  
+  // Initialize performance monitoring
+  useEffect(() => {
+    initializePerformanceMonitoring();
+  }, []);
+
   const [navigationHistory, setNavigationHistory] = useState<View[]>(['home']);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
@@ -325,7 +339,7 @@ export default function App() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondCreateView onNavigate={handleNavigate} />
+              <BondCreateViewEnhanced onNavigate={handleNavigate} />
             </motion.div>
           )}
 
@@ -359,6 +373,20 @@ export default function App() {
       <SystemToast />
       <SystemStatus />
       <SupportAgent />
+      <NotificationContainer />
     </div>
+  );
+}
+
+// Main App component with providers
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
