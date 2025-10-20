@@ -463,6 +463,5 @@ export {
   RateLimitError, 
   ServerError, 
   TimeoutError, 
-  NetworkError,
-  apiClient 
+  NetworkError
 };

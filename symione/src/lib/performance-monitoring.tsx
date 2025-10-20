@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 // Performance monitoring utilities
 export class PerformanceMonitor {
@@ -118,11 +118,11 @@ export function usePerformanceMonitor() {
     };
   }, [monitor]);
 
-  const measureAsync = useCallback(<T>(name: string, fn: () => Promise<T>) => {
+  const measureAsync = useCallback(<T,>(name: string, fn: () => Promise<T>) => {
     return monitor.measureAsync(name, fn);
   }, [monitor]);
 
-  const measureSync = useCallback(<T>(name: string, fn: () => T) => {
+  const measureSync = useCallback(<T,>(name: string, fn: () => T) => {
     return monitor.measureSync(name, fn);
   }, [monitor]);
 
@@ -150,7 +150,7 @@ export function useRenderPerformance(componentName: string) {
 export function useAPIPerformance() {
   const { measureAsync } = usePerformanceMonitor();
 
-  const measureAPICall = useCallback(async <T>(
+  const measureAPICall = useCallback(async <T,>(
     endpoint: string,
     apiCall: () => Promise<T>
   ): Promise<T> => {
@@ -164,7 +164,7 @@ export function useAPIPerformance() {
 export function useInteractionPerformance() {
   const { measureSync } = usePerformanceMonitor();
 
-  const measureInteraction = useCallback(<T>(
+  const measureInteraction = useCallback(<T,>(
     action: string,
     callback: () => T
   ): T => {

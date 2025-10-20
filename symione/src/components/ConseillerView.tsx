@@ -86,6 +86,11 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
     setFollowUpQuestion('');
   };
 
+  // Placeholder for lawyer search, will be integrated with backend later
+  const [searchQuery, setSearchQuery] = useState('');
+  const [lawyers, setLawyers] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
   const handleSearchLawyers = async () => {
     if (!searchQuery.trim()) {
       showToast('Veuillez entrer une localisation', 'error');
@@ -95,6 +100,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
     setSearching(true);
     try {
       // Call backend lawyers search API
+      // This part needs to be updated to use the new API client and actual backend endpoint
       const response = await fetch(`/api/lawyers/search?near=${encodeURIComponent(searchQuery)}`);
       
       if (!response.ok) throw new Error('Erreur API');
@@ -435,6 +441,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
           </div>
         </div>
         </div>
+      </div>
       </div>
     </ErrorBoundary>
   );

@@ -39,7 +39,7 @@ interface Question {
   legalImplication?: string;
 }
 
-export function BondCreateView({ onNavigate }: BondCreateViewProps) {
+export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
