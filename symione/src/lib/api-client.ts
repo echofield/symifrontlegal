@@ -391,7 +391,7 @@ export const BondAPI = {
   // Template management
   getTemplates: async () => {
     const response = await apiClient.get<{ success: boolean; data: { templates: any[] }; message: string; timestamp: string }>('/contracts/templates');
-    return { ok: true, templates: response.data.templates };
+    return { ok: true, templates: response.data?.templates || [] };
   },
 
   // Question management
