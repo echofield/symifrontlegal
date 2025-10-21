@@ -26,6 +26,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [navigationHistory, setNavigationHistory] = useState<View[]>(['home']);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedBondTemplateId, setSelectedBondTemplateId] = useState<string | null>(null);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
 
@@ -36,6 +37,8 @@ export default function App() {
     // Handle different ID types based on view
     if (view === 'editor' && id) {
       setSelectedTemplateId(id);
+    } else if (view === 'bond-create' && id) {
+      setSelectedBondTemplateId(id);
     } else if (view === 'bond-contract' && id) {
       setSelectedContractId(id);
     } else if (view === 'bond-payment' && id) {
@@ -338,7 +341,7 @@ export default function App() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondCreateView onBack={handleBack} onNavigate={handleNavigate} />
+              <BondCreateViewEnhanced onNavigate={handleNavigate} templateId={selectedBondTemplateId || undefined} />
             </motion.div>
           )}
 

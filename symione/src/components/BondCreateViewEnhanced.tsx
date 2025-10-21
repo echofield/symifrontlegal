@@ -9,6 +9,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 
 interface BondCreateViewProps {
   onNavigate: (view: string, contractId?: string) => void;
+  templateId?: string;
 }
 
 interface Template {
@@ -30,8 +31,8 @@ interface Question {
   legalContext?: string;
 }
 
-export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+export function BondCreateViewEnhanced({ onNavigate, templateId }: BondCreateViewProps) {
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(templateId || 'service'); // Use passed templateId or default to service
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -190,8 +191,8 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
     );
   }
 
-  // Template selection view
-  if (!selectedTemplate) {
+  // Template selection view - only show if no templateId provided
+  if (!selectedTemplate && !templateId) {
     return (
       <div className="min-h-screen pt-16">
         <div className="max-w-6xl mx-auto px-6 py-12">

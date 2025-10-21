@@ -267,7 +267,7 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.05, ease: 'linear' }}
-                onClick={() => onNavigate('bond-create')}
+                onClick={() => onNavigate('bond-create', template.id)}
                 className="w-full border border-border p-8 lg:p-10 text-left hover:border-accent/50 transition-all duration-200 cursor-pointer group"
               >
                 <div className="flex items-start gap-6">
