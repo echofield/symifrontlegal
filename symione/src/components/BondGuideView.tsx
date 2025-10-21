@@ -19,11 +19,11 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
     },
     {
       id: 2,
-      title: "Paiement sécurisé escrow",
-      description: "Le client paie le montant total. Les fonds sont bloqués sur un compte escrow Stripe — personne n'y a accès direct.",
+      title: "Paiement sécurisé coffre-fort",
+      description: "Le client paie le montant total. Les fonds sont bloqués sur un compte coffre-fort Stripe — personne n'y a accès direct.",
       details: [
         "Paiement total via Stripe Connect",
-        "Fonds bloqués sur compte escrow",
+        "Fonds bloqués sur compte coffre-fort",
         "Aucun accès direct possible"
       ]
     },
@@ -82,15 +82,26 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
       {/* Header - Style suisse strict */}
       <header className="py-12 border-b border-border">
         <div className="max-w-4xl mx-auto px-6">
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={onBack}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Retour
-          </motion.button>
+          <div className="flex items-center justify-between mb-6">
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={onBack}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour
+            </motion.button>
+            <button
+              onClick={onBack}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Fermer"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -103,7 +114,7 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
               Comment fonctionnent les Contrats Bond
             </h1>
             <p className="text-[0.875rem] text-muted-foreground mt-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-              Paiements sécurisés par jalons
+              Contrats de Confiance avec Coffre-Fort intégré
             </p>
           </motion.div>
         </div>
