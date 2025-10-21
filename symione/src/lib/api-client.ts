@@ -442,6 +442,26 @@ export const ConseillerAPI = {
     }>('/conseiller/analyze', payload),
 };
 
+// Enhanced Advisor API - LEX-ADVISOR Chatbot
+export const AdvisorAPI = {
+  chat: (payload: { 
+    question: string; 
+    context?: Record<string, any> 
+  }) => 
+    apiClient.post<{
+      output: {
+        thought: string;
+        followup_question: string | null;
+        action: { 
+          type: 'triage' | 'generate_contract' | 'review' | 'explain' | 'search_lawyers' | 'none';
+          args?: Record<string, any>;
+        };
+        reply_text: string;
+      };
+      timestamp: string;
+    }>('/advisor', payload),
+};
+
 // Enhanced Contract API
 export const ContractAPI = {
   getTemplates: () => apiClient.get<{ success: boolean; templates: any[] }>('/contracts'),
