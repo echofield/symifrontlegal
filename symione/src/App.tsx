@@ -15,7 +15,7 @@ import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
-import { AppProvider } from './lib/state-management';
+import { UIProvider } from './components/state-management';
 import { ThemeProvider } from './components/ThemeSystem';
 import { NotificationContainer } from './components/NotificationSystem';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -383,9 +383,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <AppProvider>
+        <UIProvider>
           <AppContent />
-        </AppProvider>
+        </UIProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
