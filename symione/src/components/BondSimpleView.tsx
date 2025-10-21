@@ -17,6 +17,12 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
   const [contracts, setContracts] = useState<BondContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectAmount, setProjectAmount] = useState<string>('');
+  const [showExplainerModal, setShowExplainerModal] = useState(false);
+
+  const formatNumber = (num: string | number) => {
+    const value = typeof num === 'string' ? parseFloat(num) : num;
+    return new Intl.NumberFormat('fr-FR').format(value);
+  };
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -74,6 +80,16 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
               <p className="text-[0.875rem] text-muted-foreground mt-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
                 Système de jalons collaboratifs et paiements sécurisés
               </p>
+              
+              <button 
+                onClick={() => setShowExplainerModal(true)}
+                className="text-accent underline mt-2 flex items-center hover:text-accent/80 transition-colors"
+              >
+                <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+                </svg>
+                Comment ça marche?
+              </button>
             </div>
 
             <button
@@ -94,55 +110,114 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
           transition={{ duration: 0.3, delay: 0.1, ease: 'linear' }}
           className="mb-12"
         >
-          <div className="bg-card border border-border rounded-xl p-8">
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Tarification Transparente</h2>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Price Breakdown */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-3 border-b border-border">
-                  <span className="text-foreground">Création du contrat sur-mesure:</span>
-                  <span className="text-2xl font-bold text-accent">119€</span>
+          <div className="pricing-container max-w-4xl mx-auto">
+            {/* PRICING CARD - Same style as pricing tiers */}
+            <div className="pricing-card border border-border rounded-lg p-8 bg-card">
+              <h2 className="text-2xl font-bold mb-6 text-foreground">Tarification Transparente</h2>
+              
+              {/* Price breakdown - clean table style */}
+              <div className="price-breakdown space-y-4 mb-8">
+                <div className="flex justify-between items-center pb-4 border-b border-border">
+                  <span className="text-lg text-foreground">Création du contrat sur-mesure:</span>
+                  <span className="text-3xl font-bold text-accent">119€</span>
                 </div>
-                <div className="flex justify-between items-center py-3 border-b border-border">
-                  <span className="text-foreground">+ Commission escrow sécurisé:</span>
-                  <span className="text-2xl font-bold text-accent">2%</span>
-                </div>
-                
-                <div className="mt-6 p-4 bg-accent/5 border border-accent/20 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    💡 <strong>Pourquoi ces frais?</strong>
-                  </p>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• 119€ = Contrat professionnel sur-mesure (30+ articles, validé par avocat)</li>
-                    <li>• 2% = Gestion escrow sécurisé + validation milestones + arbitrage si nécessaire</li>
-                  </ul>
+                <div className="flex justify-between items-center pb-4 border-b border-border">
+                  <span className="text-lg text-foreground">+ Commission escrow sécurisé:</span>
+                  <span className="text-3xl font-bold text-accent">3%</span>
                 </div>
               </div>
-
+              
               {/* Calculator */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground">Simulez vos frais:</h3>
+              <div className="calculator bg-muted/30 p-6 rounded-lg mb-8">
+                <h3 className="font-semibold mb-3 text-foreground">Simulez vos frais:</h3>
                 <input
                   type="number"
                   placeholder="Montant du projet (€)"
                   value={projectAmount}
                   onChange={(e) => setProjectAmount(e.target.value)}
-                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors mb-4"
                 />
                 {projectAmount && (
-                  <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                    <p className="text-sm text-foreground mb-2">
-                      Pour un projet de <strong>{projectAmount}€</strong>:
-                    </p>
-                    <p className="text-2xl font-bold text-accent">
-                      Total: {119 + (projectAmount * 0.02)}€
+                  <div className="result p-4 bg-card rounded border border-border">
+                    <p className="text-muted-foreground">Pour un projet de <strong className="text-foreground">{formatNumber(projectAmount)}€</strong></p>
+                    <p className="text-3xl font-bold text-accent mt-2">
+                      {formatNumber(119 + (parseFloat(projectAmount) * 0.03))}€
                     </p>
                     <p className="text-sm text-muted-foreground mt-2">
-                      (119€ contrat + {(projectAmount * 0.02).toFixed(2)}€ commission escrow)
+                      119€ + {formatNumber(parseFloat(projectAmount) * 0.03)}€ commission
                     </p>
                   </div>
                 )}
+              </div>
+              
+              {/* Features included - SAME STYLE AS PRICING TIERS */}
+              <div className="features-included">
+                <h3 className="font-bold text-xl mb-4 text-foreground">Ce forfait inclut:</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Contrat professionnel sur-mesure (30+ articles, validé par avocat)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Système escrow Stripe Connect sécurisé</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Gestion automatisée des jalons (milestones)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Validation et libération automatique des fonds (72h)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Service d'arbitrage en cas de litige</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Suivi en temps réel de l'avancement du projet</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Notifications automatiques par email</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-foreground">Export PDF & DOCX du contrat</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <button 
+                onClick={() => onNavigate('bond-create')}
+                className="w-full mt-8 py-4 text-lg font-semibold bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg transition-colors"
+              >
+                Créer un contrat sécurisé →
+              </button>
+              
+              {/* Stripe Fees Disclaimer */}
+              <div className="mt-6 p-3 bg-muted/30 border border-border rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">Frais bancaires inclus:</strong> Les frais bancaires Stripe (≈3%) sont inclus dans notre commission escrow de 3%. 
+                  Vous ne payez que ce qui est affiché, sans frais cachés.
+                </p>
               </div>
             </div>
           </div>
@@ -233,6 +308,120 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
           </motion.div>
         )}
       </div>
+      
+      {/* Explainer Modal */}
+      {showExplainerModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-card border border-border rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Comment fonctionnent les Contrats Bond?
+                </h2>
+                <button
+                  onClick={() => setShowExplainerModal(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="steps space-y-6">
+                {/* Step 1 */}
+                <div className="step flex">
+                  <div className="step-number bg-accent text-accent-foreground w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1 text-foreground">Création du contrat à jalons</h3>
+                    <p className="text-muted-foreground">
+                      Définissez votre projet en plusieurs étapes (milestones) avec livrables précis et montants associés.
+                      <br/>
+                      <span className="text-sm text-muted-foreground italic">
+                        Ex: M1 Maquettes (10k€), M2 Frontend (15k€), M3 Backend (15k€), M4 Deploy (10k€)
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Step 2 */}
+                <div className="step flex">
+                  <div className="step-number bg-accent text-accent-foreground w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1 text-foreground">Paiement sécurisé escrow</h3>
+                    <p className="text-muted-foreground">
+                      Le client paie le montant total (50k€) via Stripe. Les fonds sont <strong>bloqués sur un compte escrow sécurisé</strong>, ni le prestataire ni le client n'y ont accès direct.
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Step 3 */}
+                <div className="step flex">
+                  <div className="step-number bg-accent text-accent-foreground w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1 text-foreground">Livraison & validation jalons</h3>
+                    <p className="text-muted-foreground">
+                      Le prestataire livre chaque jalon avec preuves (code, maquettes, démo). Le client a <strong>72h pour valider ou contester</strong>. Si validé (ou timeout), l'argent du jalon est <strong>libéré automatiquement</strong> au prestataire.
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Step 4 */}
+                <div className="step flex">
+                  <div className="step-number bg-accent text-accent-foreground w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">
+                    4
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-1 text-foreground">Arbitrage en cas de litige</h3>
+                    <p className="text-muted-foreground">
+                      Si le client conteste, les fonds restent bloqués. SYMIONE examine les preuves (livrables, échanges) et décide qui a raison dans un <strong>délai de 7 jours</strong>. Décision finale et sans appel.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Benefits */}
+              <div className="benefits mt-8 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <h3 className="font-bold mb-2 text-foreground">Avantages pour tous:</h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-muted-foreground"><strong className="text-foreground">Client protégé:</strong> Argent bloqué tant que livraison non conforme</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-muted-foreground"><strong className="text-foreground">Prestataire protégé:</strong> Paiement garanti si livre correctement</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-muted-foreground"><strong className="text-foreground">0 conflit:</strong> Validation objective via preuves tangibles</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-muted-foreground"><strong className="text-foreground">Automatisé:</strong> Libération auto après validation, pas d'action manuelle</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <button 
+                onClick={() => {
+                  setShowExplainerModal(false);
+                  onNavigate('bond-create');
+                }}
+                className="w-full mt-6 py-3 bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg transition-colors font-semibold"
+              >
+                J'ai compris, créer mon contrat →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

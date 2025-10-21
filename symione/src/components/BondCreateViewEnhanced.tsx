@@ -138,7 +138,7 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
       
       if (response.success) {
         // Calculate total amount
-        const totalAmount = 119 + (projectAmount * 0.02);
+        const totalAmount = 119 + (projectAmount * 0.03);
         
         // Create Stripe payment intent
         const paymentResponse = await BondAPI.createPaymentIntent({
@@ -429,12 +429,12 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                     <span className="font-bold text-accent">119€</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-foreground">Commission escrow (2% sur {projectAmount || 0}€):</span>
-                    <span className="font-bold text-accent">{((projectAmount || 0) * 0.02).toFixed(2)}€</span>
+                    <span className="text-foreground">Commission escrow (3% sur {projectAmount || 0}€):</span>
+                    <span className="font-bold text-accent">{((projectAmount || 0) * 0.03).toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between text-xl font-bold mt-4 pt-4 border-t border-border">
                     <span className="text-foreground">Total:</span>
-                    <span className="text-accent">{119 + ((projectAmount || 0) * 0.02)}€</span>
+                    <span className="text-accent">{119 + ((projectAmount || 0) * 0.03)}€</span>
                   </div>
                 </div>
                 
