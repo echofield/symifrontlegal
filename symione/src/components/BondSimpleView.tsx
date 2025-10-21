@@ -16,6 +16,7 @@ interface BondSimpleViewProps {
 export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
   const [contracts, setContracts] = useState<BondContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [projectAmount, setProjectAmount] = useState<string>('');
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -83,6 +84,67 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
               <Plus className="w-4 h-4" strokeWidth={2} />
               <span className="text-[0.75rem] uppercase tracking-[0.12em]">Créer un contrat</span>
             </button>
+          </div>
+        </motion.div>
+
+        {/* Pricing Calculator */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1, ease: 'linear' }}
+          className="mb-12"
+        >
+          <div className="bg-card border border-border rounded-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Tarification Transparente</h2>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Price Breakdown */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-3 border-b border-border">
+                  <span className="text-foreground">Création du contrat sur-mesure:</span>
+                  <span className="text-2xl font-bold text-accent">119€</span>
+                </div>
+                <div className="flex justify-between items-center py-3 border-b border-border">
+                  <span className="text-foreground">+ Commission escrow sécurisé:</span>
+                  <span className="text-2xl font-bold text-accent">2%</span>
+                </div>
+                
+                <div className="mt-6 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    💡 <strong>Pourquoi ces frais?</strong>
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• 119€ = Contrat professionnel sur-mesure (30+ articles, validé par avocat)</li>
+                    <li>• 2% = Gestion escrow sécurisé + validation milestones + arbitrage si nécessaire</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Calculator */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Simulez vos frais:</h3>
+                <input
+                  type="number"
+                  placeholder="Montant du projet (€)"
+                  value={projectAmount}
+                  onChange={(e) => setProjectAmount(e.target.value)}
+                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                />
+                {projectAmount && (
+                  <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                    <p className="text-sm text-foreground mb-2">
+                      Pour un projet de <strong>{projectAmount}€</strong>:
+                    </p>
+                    <p className="text-2xl font-bold text-accent">
+                      Total: {119 + (projectAmount * 0.02)}€
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      (119€ contrat + {(projectAmount * 0.02).toFixed(2)}€ commission escrow)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </motion.div>
 

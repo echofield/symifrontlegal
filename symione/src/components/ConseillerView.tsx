@@ -37,6 +37,9 @@ interface AnalyzeResult {
 export function ConseillerView({ onBack }: ConseillerViewProps) {
   const [problem, setProblem] = useState('');
   const [city, setCity] = useState('');
+  const [situationType, setSituationType] = useState('');
+  const [urgence, setUrgence] = useState('');
+  const [hasProofs, setHasProofs] = useState('');
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([]);
   const [followUpQuestion, setFollowUpQuestion] = useState('');
@@ -53,7 +56,13 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       startLoading();
       setResult(null);
       
-      const response = await ConseillerAPI.analyze({ problem, city });
+      const response = await ConseillerAPI.analyze({ 
+        problem, 
+        city, 
+        situationType, 
+        urgence, 
+        hasProofs 
+      });
       setResult(response);
       
       setMessages((prev) => [
@@ -193,9 +202,78 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
               className="bg-card border border-border p-6 lg:p-8"
             >
             <div className="space-y-4">
+              {/* Essential Questions */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold mb-4 text-foreground">Pour une recommandation précise:</h3>
+                
+                {/* Question 1: Type de situation */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-foreground mb-2">Type de situation juridique:</label>
+                  <select 
+                    value={situationType} 
+                    onChange={(e) => setSituationType(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
+                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
+                  >
+                    <option value="">Sélectionnez...</option>
+                    <option value="voisinage">Litige avec voisin (bruit, empiètement, etc.)</option>
+                    <option value="travail">Problème employeur/salarié (licenciement, harcèlement, etc.)</option>
+                    <option value="commercial">Contrat commercial (prestation, vente, etc.)</option>
+                    <option value="immobilier">Immobilier (achat, location, travaux)</option>
+                    <option value="famille">Famille (divorce, garde d'enfants, succession)</option>
+                    <option value="consommation">Litige consommation (achat défectueux, SAV)</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+                
+                {/* Question 2: Urgence */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-foreground mb-2">Niveau d'urgence:</label>
+                  <select 
+                    value={urgence} 
+                    onChange={(e) => setUrgence(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
+                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
+                  >
+                    <option value="">Sélectionnez...</option>
+                    <option value="tres_urgent">Très urgent (action dans les 48h)</option>
+                    <option value="urgent">Urgent (action cette semaine)</option>
+                    <option value="moyen">Moyen (action ce mois-ci)</option>
+                    <option value="pas_urgent">Pas urgent (information préventive)</option>
+                  </select>
+                </div>
+                
+                {/* Question 3: Preuves */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-foreground mb-2">Avez-vous des preuves/documents?</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        value="oui" 
+                        checked={hasProofs === 'oui'}
+                        onChange={(e) => setHasProofs(e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-foreground">Oui, j'ai des preuves</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        value="non" 
+                        checked={hasProofs === 'non'}
+                        onChange={(e) => setHasProofs(e.target.value)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-foreground">Non, pas de preuves</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Décrivez votre situation
+                  Décrivez votre situation en détail
                 </label>
                 <textarea
                   value={problem}

@@ -395,6 +395,9 @@ export const BondAPI = {
   getContract: (id: string) => apiClient.get<{ ok: boolean; contract: BondContract }>(`/escrow/contracts/${id}`),
   
   // Payment management
+  createPaymentIntent: (payload: { contractId: string; amount: number; currency: string }) => 
+    apiClient.post<{ success: boolean; clientSecret: string; paymentIntentId: string }>('/escrow/intent/create', payload),
+  
   intentCreate: (payload: { contractId: string; milestoneId: string; amount: number }) => 
     apiClient.post<{ success: boolean; clientSecret: string; paymentIntentId: string }>('/escrow/intent/create', payload),
   
@@ -408,7 +411,13 @@ export const BondAPI = {
 
 // Enhanced Conseiller API
 export const ConseillerAPI = {
-  analyze: (payload: { problem: string; city?: string }) => 
+  analyze: (payload: { 
+    problem: string; 
+    city?: string; 
+    situationType?: string; 
+    urgence?: string; 
+    hasProofs?: string; 
+  }) => 
     apiClient.post<{
       audit: {
         summary: string;

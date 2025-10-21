@@ -45,6 +45,7 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [suggestedContract, setSuggestedContract] = useState<string | null>(null);
+  const [projectAmount, setProjectAmount] = useState<number>(0);
   
   const { loading: templatesLoading, error: templatesError, data: templatesData } = useAPI(
     () => BondAPI.getTemplates(),
@@ -74,10 +75,19 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
   }, [questionsData, selectedTemplate]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
+    setAnswers(prev => {
+      const newAnswers = {
+        ...prev,
+        [questionId]: value
+      };
+      
+      // Extract project amount from number fields
+      if (typeof value === 'number' && value > 0) {
+        setProjectAmount(value);
+      }
+      
+      return newAnswers;
+    });
   };
 
   const handleNext = () => {
@@ -119,16 +129,34 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
     
     try {
       startCreate();
+      
+      // First create the contract
       const response = await BondAPI.create({
         templateId: selectedTemplate,
         answers: answers
       });
       
       if (response.success) {
-        onNavigate('bond-contract', response.contractId);
+        // Calculate total amount
+        const totalAmount = 119 + (projectAmount * 0.02);
+        
+        // Create Stripe payment intent
+        const paymentResponse = await BondAPI.createPaymentIntent({
+          contractId: response.contractId,
+          amount: Math.round(totalAmount * 100), // Convert to cents
+          currency: 'eur'
+        });
+        
+        if (paymentResponse.success && paymentResponse.clientSecret) {
+          // Redirect to Stripe Checkout or handle payment
+          // For now, navigate to contract view
+          onNavigate('bond-contract', response.contractId);
+        } else {
+          throw new Error('Failed to create payment intent');
+        }
       }
     } catch (err) {
-      console.error('Error creating contract:', err);
+      console.error('Error creating contract or processing payment:', err);
     } finally {
       stopCreate();
     }
@@ -200,8 +228,7 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                 onClick={() => setSelectedTemplate(template.id)}
                 className="bg-card border border-border rounded-xl p-6 cursor-pointer hover:border-accent hover:shadow-lg transition-all group"
               >
-                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform">📋</div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">{template.title}</h3>
+                <h3 className="text-xl font-bold mb-3 text-foreground">{template.title}</h3>
                 <p className="text-muted-foreground mb-4">{template.description}</p>
                 
                 <div className="space-y-2">
@@ -392,13 +419,56 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                   {suggestedContract}
                 </pre>
               </div>
+              
+              {/* Pricing Summary */}
+              <div className="mt-6 p-4 border border-border rounded-lg bg-card">
+                <h3 className="font-bold text-lg mb-4 text-foreground">Récapitulatif des frais:</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-foreground">Création contrat sur-mesure:</span>
+                    <span className="font-bold text-accent">119€</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground">Commission escrow (2% sur {projectAmount || 0}€):</span>
+                    <span className="font-bold text-accent">{((projectAmount || 0) * 0.02).toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-bold mt-4 pt-4 border-t border-border">
+                    <span className="text-foreground">Total:</span>
+                    <span className="text-accent">{119 + ((projectAmount || 0) * 0.02)}€</span>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-accent/5 border border-accent/20 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    💡 <strong>Paiement sécurisé via Stripe.</strong> Fonds bloqués sur compte escrow jusqu'à validation des milestones.
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    // Create a blob with the contract content and download it
+                    const blob = new Blob([suggestedContract || ''], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `contrat-${selectedTemplate}-${new Date().toISOString().split('T')[0]}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-6 py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-lg transition-colors"
+                >
+                  📄 Télécharger le contrat (TXT)
+                </button>
                 <LoadingButton
                   loading={createLoading}
                   onClick={handleSubmit}
                   className="px-6 py-3 bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Créer le contrat
+                  Payer et activer l'escrow →
                 </LoadingButton>
                 <button
                   onClick={() => setSuggestedContract(null)}
@@ -406,6 +476,55 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                 >
                   Modifier
                 </button>
+              </div>
+              
+              {/* Legal Disclaimers */}
+              <div className="mt-6 space-y-4">
+                {/* Yousign Disclaimer */}
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h3 className="font-bold flex items-center text-yellow-800 mb-2">
+                    ⚠️ Étape importante: Signature électronique
+                  </h3>
+                  <p className="text-sm text-yellow-700 mb-3">
+                    Pour que ce contrat soit <strong>juridiquement valide</strong>, 
+                    il doit être signé électroniquement par toutes les parties.
+                  </p>
+                  <button 
+                    onClick={() => window.open('https://yousign.com', '_blank')}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                  >
+                    Envoyer pour signature via Yousign →
+                  </button>
+                  <p className="text-xs text-yellow-600 mt-2">
+                    Yousign permet la signature électronique légale conforme au règlement eIDAS.
+                  </p>
+                </div>
+                
+                {/* Lawyer Consultation Disclaimer */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="font-bold flex items-center text-blue-800 mb-2">
+                    ⚖️ Conseil recommandé
+                  </h3>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Ce contrat est généré automatiquement. Pour les situations complexes 
+                    ou à fort enjeu financier, <strong>nous vous recommandons vivement de consulter 
+                    un avocat</strong> avant signature.
+                  </p>
+                  <button 
+                    onClick={() => onNavigate('conseiller')}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    Trouver un avocat spécialisé →
+                  </button>
+                </div>
+                
+                {/* Legal Disclaimer */}
+                <div className="p-3 bg-muted/30 border border-border rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ <strong>SYMIONE</strong> fournit des outils de génération de contrats mais ne constitue pas 
+                    un conseil juridique personnalisé. En cas de doute, consultez un professionnel du droit.
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}
