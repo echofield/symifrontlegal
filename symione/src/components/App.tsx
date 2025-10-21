@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationHeader } from './components/NavigationHeader';
 import { Footer } from './components/Footer';
@@ -11,14 +11,18 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
-import { BondDashboardView } from './components/BondDashboardView';
-import { BondCreateView } from './components/BondCreateView';
-import { BondContractView } from './components/BondContractView';
-import { BondPaymentView } from './components/BondPaymentView';
-import { BondSettingsView } from './components/BondSettingsView';
+import { BondErrorFallback } from './components/BondErrorFallback';
+import { BondLoadingFallback } from './components/BondLoadingFallback';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
+
+// Lazy load Bond components for better performance
+const BondDashboardView = lazy(() => import('./components/BondDashboardView').then(m => ({ default: m.BondDashboardView })));
+const BondCreateViewEnhanced = lazy(() => import('./components/BondCreateViewEnhanced').then(m => ({ default: m.BondCreateViewEnhanced })));
+const BondContractView = lazy(() => import('./components/BondContractView').then(m => ({ default: m.BondContractView })));
+const BondPaymentView = lazy(() => import('./components/BondPaymentView').then(m => ({ default: m.BondPaymentView })));
+const BondSettingsView = lazy(() => import('./components/BondSettingsView').then(m => ({ default: m.BondSettingsView })));
 
 type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
 
@@ -329,7 +333,9 @@ export default function App() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondDashboardView onNavigate={handleNavigate} />
+              <Suspense fallback={<BondLoadingFallback />}>
+                <BondDashboardView onNavigate={handleNavigate} />
+              </Suspense>
             </motion.div>
           )}
 
@@ -341,7 +347,11 @@ export default function App() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondCreateViewEnhanced onNavigate={handleNavigate} templateId={selectedBondTemplateId || undefined} />
+              <Suspense fallback={<BondLoadingFallback />}>
+                <ErrorBoundary fallback={<BondErrorFallback onBack={handleBack} />}>
+                  <BondCreateViewEnhanced onNavigate={handleNavigate} templateId={selectedBondTemplateId || undefined} />
+                </ErrorBoundary>
+              </Suspense>
             </motion.div>
           )}
 

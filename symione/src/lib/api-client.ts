@@ -389,12 +389,18 @@ interface BondQuestion {
 // Enhanced Bond API with better error handling and type safety
 export const BondAPI = {
   // Template management
-  getTemplates: () => apiClient.get<TemplateListResponse>('/contracts/templates'),
-  
+  getTemplates: async () => {
+    const response = await apiClient.get<{ success: boolean; data: { templates: any[] }; message: string; timestamp: string }>('/contracts/templates');
+    return { ok: true, templates: response.data.templates };
+  },
+
   // Question management
-  getQuestions: (id?: string) => apiClient.get<QuestionListResponse>(
-    id ? `/contracts/questions?id=${encodeURIComponent(id)}` : '/contracts/questions'
-  ),
+  getQuestions: async (id?: string) => {
+    const response = await apiClient.get<{ success: boolean; data: { questions: any }; message: string; timestamp: string }>(
+      id ? `/contracts/questions?id=${encodeURIComponent(id)}` : '/contracts/questions'
+    );
+    return { ok: true, questions: response.data.questions };
+  },
   
   // Contract generation
   suggest: (payload: { templateId: string; answers: Record<string, any> }) => 
