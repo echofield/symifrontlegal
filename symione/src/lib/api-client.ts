@@ -39,7 +39,7 @@ class APIClient {
           ...options.headers,
         },
         mode: 'cors',
-        credentials: 'include',
+        credentials: 'omit',
       });
 
       clearTimeout(timeoutId);
