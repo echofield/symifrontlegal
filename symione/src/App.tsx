@@ -12,6 +12,7 @@ import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
 import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
+import { BondSimpleView } from './components/BondSimpleView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
