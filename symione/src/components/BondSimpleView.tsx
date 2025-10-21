@@ -245,78 +245,79 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
           transition={{ duration: 0.3, delay: 0.1, ease: 'linear' }}
           className="mb-16"
         >
-          <h2 className="text-[1.25rem] mb-6" style={{ fontWeight: 600 }}>
-            Choisissez votre type de contrat
-          </h2>
+          <div className="mb-8">
+            <h2 className="text-[1.25rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>
+              Choisissez le type de contrat qui correspond à votre projet
+            </h2>
+            <p className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+              Sélectionnez un modèle pour commencer la création de votre contrat sécurisé
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {[
-              { id: 'service', title: 'Contrat de Prestation', description: 'Services professionnels avec jalons', category: 'ENTREPRISE', popular: true, type: 'service' },
-              { id: 'freelance', title: 'Freelance', description: 'Travail indépendant sécurisé', category: 'EMPLOI', popular: false, type: 'freelance' },
-              { id: 'partnership', title: 'Partenariat', description: 'Collaboration entre entreprises', category: 'ENTREPRISE', popular: false, type: 'partnership' },
-              { id: 'nda', title: 'Accord de Confidentialité', description: 'Protection des informations', category: 'ENTREPRISE', popular: false, type: 'nda' },
-              { id: 'work', title: 'Contrat de Travail', description: 'Emploi avec jalons de performance', category: 'EMPLOI', popular: false, type: 'work' },
-              { id: 'custom', title: 'Contrat Personnalisé', description: 'Sur-mesure selon vos besoins', category: 'CUSTOM', popular: false, type: 'custom' },
+              { id: 'service', title: 'Prestation de service', description: 'Pour missions de conseil, développement, design, marketing...', category: 'ENTREPRISE', popular: true, type: 'service' },
+              { id: 'travaux', title: 'Travaux', description: 'Construction, rénovation, aménagements...', category: 'CONSTRUCTION', popular: false, type: 'work' },
+              { id: 'creation', title: 'Création artistique', description: 'Design, illustration, musique, vidéo...', category: 'CRÉATIF', popular: false, type: 'custom' },
+              { id: 'challenge', title: 'Pacte entre amis', description: 'Défis, paris, engagements personnels...', category: 'PERSONNEL', popular: false, type: 'partnership' },
+              { id: 'custom', title: 'IA libre', description: 'Décrivez entièrement votre besoin, l\'IA s\'adapte', category: 'CUSTOM', popular: false, type: 'custom' },
             ].map((template, index) => (
               <motion.div
                 key={template.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.2, delay: index * 0.05, ease: 'linear' }}
                 onClick={() => onNavigate('bond-create')}
-                className="template-card group relative bg-card border-2 border-border rounded-xl p-6 text-left hover:border-accent hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="w-full border border-border p-8 lg:p-10 text-left hover:border-accent/50 transition-all duration-200 cursor-pointer group"
               >
-                
-                {/* Icon container with gradient background */}
-                <div className="icon-container mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl flex items-center justify-center group-hover:from-accent group-hover:to-accent/80 transition-all duration-300">
-                    <svg className="w-8 h-8 text-accent group-hover:text-accent-foreground transition-colors duration-300">
-                      {getTemplateIcon(template.type)}
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Title with hover color */}
-                <h3 className="text-xl font-bold mb-2 text-foreground group-hover:text-accent transition-colors">
-                  {template.title}
-                </h3>
-                
-                {/* Description with better line height */}
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed min-h-[60px]">
-                  {template.description}
-                </p>
-                
-                {/* Metadata with icons */}
-                <div className="metadata space-y-2 pt-4 border-t border-border">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <svg className="w-4 h-4 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    <span><strong className="font-semibold">Rôles:</strong> Client, Prestataire</span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <svg className="w-4 h-4 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <span><strong className="font-semibold">Jalons:</strong> 3-5 étapes</span>
-                  </div>
-                  {template.popular && (
-                    <div className="inline-flex items-center px-2 py-1 bg-accent/10 text-accent text-xs rounded-full">
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                <div className="flex items-start gap-6">
+                  {/* Icon */}
+                  <div className="text-[2rem] flex-shrink-0">
+                    <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center group-hover:bg-accent/20 transition-colors duration-200">
+                      <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {getTemplateIcon(template.type)}
                       </svg>
-                      Populaire
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Content avec metadata */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="text-[1.125rem] mb-2 tracking-[-0.005em]" style={{ fontWeight: 600 }}>
+                          {template.title}
+                        </h3>
+                        <p className="text-[0.875rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                          {template.description}
+                        </p>
+                      </div>
+                      {template.popular && (
+                        <span className="bg-accent/10 text-accent border border-accent/20 px-3 py-1 text-[0.625rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          POPULAIRE
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Métadonnées 👥 📋 */}
+                    <div className="flex items-center gap-6 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <span>Rôles: Client, Prestataire</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span>Jalons: 3-5 étapes</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Checkbox de sélection à droite */}
+                  <div className="w-6 h-6 border-2 border-border group-hover:border-accent transition-colors duration-200 flex-shrink-0" />
                 </div>
-                
-                {/* Arrow indicator on hover */}
-                <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                  <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                  </svg>
-                </div>
-                
               </motion.div>
             ))}
           </div>

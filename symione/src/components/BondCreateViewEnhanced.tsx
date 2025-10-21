@@ -368,6 +368,13 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                 Votre réponse
               </label>
 
+              {/* Debug info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-2 bg-yellow-100 text-xs">
+                  Debug: Question type: {currentQuestion.type}, Options: {currentQuestion.options?.length || 0}
+                </div>
+              )}
+
               {/* Form field rendering based on type */}
               {currentQuestion.type === 'choice' && currentQuestion.options && (
                 <div className="space-y-2">
