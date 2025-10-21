@@ -162,14 +162,13 @@ export function BondCreateViewEnhanced({ onNavigate, templateId }: BondCreateVie
     const icons = {
       service: '💼',
       travaux: '🏗️',
-      creation: '🎨',
-      custom: '⚙️'
+      creation: '🎨'
     };
     return icons[templateId] || '📄';
   };
 
   const templates = (templatesData?.templates || [])
-    .filter(template => ['service', 'travaux', 'creation', 'custom'].includes(template.id))
+    .filter(template => ['service', 'travaux', 'creation'].includes(template.id))
     .map(template => ({
       ...template,
       icon: getTemplateIcon(template.id)
