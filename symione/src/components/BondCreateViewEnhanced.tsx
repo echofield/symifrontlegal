@@ -369,9 +369,29 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
               </label>
 
               {/* Debug info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mb-4 p-2 bg-yellow-100 text-xs">
-                  Debug: Question type: {currentQuestion.type}, Options: {currentQuestion.options?.length || 0}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-xs">
+                <div><strong>Debug Info:</strong></div>
+                <div>Question ID: {currentQuestion.id}</div>
+                <div>Question Type: {currentQuestion.type}</div>
+                <div>Options Count: {currentQuestion.options?.length || 0}</div>
+                <div>Options: {JSON.stringify(currentQuestion.options)}</div>
+                <div>Selected Template: {selectedTemplate}</div>
+                <div>Questions Loading: {questionsLoading ? 'Yes' : 'No'}</div>
+                <div>Questions Error: {questionsError ? 'Yes' : 'No'}</div>
+              </div>
+
+              {/* Fallback input if Select fails */}
+              {(!currentQuestion.options || currentQuestion.options.length === 0) && (
+                <div className="space-y-2">
+                  <p className="text-sm text-red-600">⚠️ No options available for this question</p>
+                  <input
+                    type="text"
+                    value={answers[currentQuestion.id] || ''}
+                    onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                    placeholder="Votre réponse..."
+                    className="w-full px-4 py-3 border border-border bg-background focus:border-accent focus:outline-none transition-colors duration-200 h-12"
+                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
+                  />
                 </div>
               )}
 
