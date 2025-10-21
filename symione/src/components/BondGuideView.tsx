@@ -158,7 +158,7 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
         
       </div>
 
-      {/* Benefits section - Style suisse strict */}
+      {/* Benefits section - Style sobre avec trait bleu */}
       <div className="benefits-section bg-muted/30 py-16 border-t border-border">
         <div className="max-w-4xl mx-auto px-6">
           <motion.h2 
@@ -171,7 +171,7 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
             Avantages pour tous
           </motion.h2>
           
-          <div className="space-y-4">
+          <div className="space-y-2">
             {benefits.map((benefit, index) => {
               const IconComponent = benefit.icon;
               return (
@@ -181,11 +181,11 @@ export function BondGuideView({ onBack }: BondGuideViewProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-card border border-border p-6 hover:border-foreground transition-all duration-200"
+                  className="bg-card border-l-4 border-l-accent p-6 hover:border-l-accent/80 transition-all duration-200"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
-                      <IconComponent className={`w-8 h-8 ${benefit.color}`} />
+                      <IconComponent className={`w-6 h-6 ${benefit.color}`} />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-[1.125rem] font-bold mb-2 text-foreground" style={{ fontWeight: 600 }}>

@@ -105,7 +105,7 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
           </div>
         </motion.div>
 
-        {/* Pricing Popup - Style pricing tiers */}
+        {/* Pricing Popup - Style exact photo 2 */}
         {showPricingDetails && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -113,62 +113,97 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
           >
-            <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    Tarification Bond
-                  </h2>
-                  <button
-                    onClick={() => setShowPricingDetails(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                
-                {/* Pricing breakdown - Same style as pricing tiers */}
-                <div className="space-y-6">
-                  <div className="pricing-item border border-border rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-foreground">Création contrat sur-mesure</h3>
-                      <span className="text-2xl font-bold text-accent">119€</span>
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      Contrat professionnel validé par avocat avec 30+ articles
-                    </p>
-                  </div>
-                  
-                  <div className="pricing-item border border-border rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-foreground">Commission escrow sécurisé</h3>
-                      <span className="text-2xl font-bold text-accent">3%</span>
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      Système Stripe Connect avec gestion automatisée des jalons
-                    </p>
-                  </div>
-                  
-                  <div className="pricing-item border border-border rounded-lg p-6 bg-accent/5">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-foreground">Total</h3>
-                      <span className="text-3xl font-bold text-accent">119€ + 3%</span>
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      Frais bancaires Stripe inclus dans la commission
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="mt-8 p-4 bg-muted/30 border border-border rounded-lg">
-                  <p className="text-xs text-muted-foreground">
-                    <strong className="text-foreground">Frais bancaires inclus:</strong> Les frais bancaires Stripe (≈3%) sont inclus dans notre commission escrow de 3%. 
-                    Vous ne payez que ce qui est affiché, sans frais cachés.
-                  </p>
+            <div className="bg-white border-l-4 border-r-4 border-l-accent border-r-accent max-w-md w-full">
+              
+              {/* Top Section - Tag RECOMMANDÉ */}
+              <div className="text-center pt-4">
+                <div className="inline-block bg-accent text-accent-foreground px-3 py-1 rounded text-[0.75rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                  RECOMMANDÉ
                 </div>
               </div>
+              
+              {/* Title and Price Section */}
+              <div className="px-8 py-6">
+                <h2 className="text-[2rem] font-bold text-foreground mb-2" style={{ fontWeight: 600 }}>
+                  Bond
+                </h2>
+                <p className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground mb-4" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                  CONTRATS SÉCURISÉS ESCROW
+                </p>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-[3rem] font-bold text-foreground" style={{ fontWeight: 600 }}>119</span>
+                  <span className="text-[1rem] text-muted-foreground">€ + 3%</span>
+                </div>
+                <p className="text-[0.875rem] text-muted-foreground">
+                  Pour projets avec jalons et paiements sécurisés
+                </p>
+              </div>
+              
+              {/* Separator */}
+              <div className="border-t border-border mx-8"></div>
+              
+              {/* Benefits Introduction */}
+              <div className="px-8 py-4">
+                <div className="bg-muted/30 rounded p-4 flex items-center gap-3">
+                  <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-accent-foreground" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <span className="text-[0.875rem] text-muted-foreground">
+                    Système escrow complet et sécurisé
+                  </span>
+                </div>
+              </div>
+              
+              {/* Benefits List */}
+              <div className="px-8 pb-6">
+                <div className="space-y-3">
+                  {[
+                    "Contrat sur-mesure validé par avocat",
+                    "Système escrow Stripe Connect sécurisé", 
+                    "Gestion automatisée des jalons",
+                    "Validation et libération auto (72h)",
+                    "Service d'arbitrage en cas de litige",
+                    "Suivi temps réel du projet",
+                    "Notifications automatiques par email"
+                  ].map((benefit, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-4 h-4 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-2 h-2 text-accent-foreground" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                      <span className="text-[0.875rem] text-foreground">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Call to Action Button */}
+              <div className="px-8 pb-8">
+                <button
+                  onClick={() => {
+                    setShowPricingDetails(false);
+                    onNavigate('bond-create');
+                  }}
+                  className="w-full bg-accent text-accent-foreground py-4 rounded text-[0.75rem] uppercase tracking-[0.1em] font-semibold hover:bg-accent/90 transition-colors"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+                >
+                  CRÉER UN CONTRAT BOND
+                </button>
+              </div>
+              
+              {/* Close button */}
+              <button
+                onClick={() => setShowPricingDetails(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
             </div>
           </motion.div>
         )}
