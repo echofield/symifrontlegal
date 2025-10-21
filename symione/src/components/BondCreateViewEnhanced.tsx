@@ -369,20 +369,22 @@ export function BondCreateViewEnhanced({ onNavigate, templateId }: BondCreateVie
                 Votre réponse
               </label>
 
-              {/* Debug info */}
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-xs">
-                <div><strong>Debug Info:</strong></div>
-                <div>Question ID: {currentQuestion.id}</div>
-                <div>Question Type: {currentQuestion.type}</div>
-                <div>Options Count: {currentQuestion.options?.length || 0}</div>
-                <div>Options: {JSON.stringify(currentQuestion.options)}</div>
-                <div>Selected Template: {selectedTemplate}</div>
-                <div>Questions Loading: {questionsLoading ? 'Yes' : 'No'}</div>
-                <div>Questions Error: {questionsError ? 'Yes' : 'No'}</div>
-              </div>
+              {/* Debug info - Development only */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-xs">
+                  <div><strong>Debug Info (Dev only):</strong></div>
+                  <div>Question ID: {currentQuestion.id}</div>
+                  <div>Question Type: {currentQuestion.type}</div>
+                  <div>Options Count: {currentQuestion.options?.length || 0}</div>
+                  <div>Options: {JSON.stringify(currentQuestion.options)}</div>
+                  <div>Selected Template: {selectedTemplate}</div>
+                  <div>Questions Loading: {questionsLoading ? 'Yes' : 'No'}</div>
+                  <div>Questions Error: {questionsError ? 'Yes' : 'No'}</div>
+                </div>
+              )}
 
-              {/* Fallback input if Select fails */}
-              {(!currentQuestion.options || currentQuestion.options.length === 0) && (
+              {/* Fallback input if Select fails - Development only */}
+              {process.env.NODE_ENV === 'development' && (!currentQuestion.options || currentQuestion.options.length === 0) && (
                 <div className="space-y-2">
                   <p className="text-sm text-red-600">⚠️ No options available for this question</p>
                   <input
