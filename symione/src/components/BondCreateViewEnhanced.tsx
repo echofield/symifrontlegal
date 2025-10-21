@@ -156,7 +156,24 @@ export function BondCreateViewEnhanced({ onNavigate, templateId }: BondCreateVie
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
-  const templates = templatesData?.templates || [];
+  
+  // Filter templates and add icons
+  const getTemplateIcon = (templateId: string) => {
+    const icons = {
+      service: '💼',
+      travaux: '🏗️',
+      creation: '🎨',
+      custom: '⚙️'
+    };
+    return icons[templateId] || '📄';
+  };
+
+  const templates = (templatesData?.templates || [])
+    .filter(template => ['service', 'travaux', 'creation', 'custom'].includes(template.id))
+    .map(template => ({
+      ...template,
+      icon: getTemplateIcon(template.id)
+    }));
 
   // Loading state for templates
   if (templatesLoading && templates.length === 0) {
