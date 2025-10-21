@@ -296,43 +296,52 @@ export function BondSettingsView({ onBack }: BondSettingsViewProps) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2, ease: 'linear' }}
-              className="border border-border p-6"
+              className="border border-border p-8"
             >
-              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-8 pb-4 border-b border-border" 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                 Statistiques
               </h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+              <div className="space-y-6">
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Contrats actifs
-                  </div>
-                  <div className="text-[2rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  </span>
+                  <span className="text-[2rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     3
-                  </div>
+                  </span>
                 </div>
-                <div className="pt-4 border-t border-border">
-                  <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Total traité
-                  </div>
-                  <div className="text-[1.5rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  </span>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     85 000 €
-                  </div>
+                  </span>
                 </div>
-                <div className="pt-4 border-t border-border">
-                  <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Jalons complétés
-                  </div>
-                  <div className="text-[1.5rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  </span>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     12
-                  </div>
+                  </span>
                 </div>
-                <div className="pt-4 border-t border-border">
-                  <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Litiges résolus
-                  </div>
-                  <div className="text-[1.5rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  </span>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     1
-                  </div>
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -342,20 +351,24 @@ export function BondSettingsView({ onBack }: BondSettingsViewProps) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25, ease: 'linear' }}
-              className="border border-border p-6"
+              className="border border-border p-8"
             >
-              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-8 pb-4 border-b border-border" 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                 Actions rapides
               </h3>
-              <div className="space-y-3">
-                <button className="w-full px-6 py-3 border border-border hover:border-foreground transition-all duration-200 text-left text-[0.75rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Exporter l'historique
+              <div className="space-y-4">
+                <button className="w-full px-8 py-3 border border-border hover:border-foreground transition-all duration-200 text-left"
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  <span className="text-[0.75rem] uppercase tracking-[0.12em]">Exporter l'historique</span>
                 </button>
-                <button className="w-full px-6 py-3 border border-border hover:border-foreground transition-all duration-200 text-left text-[0.75rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Notifications
+                <button className="w-full px-8 py-3 border border-border hover:border-foreground transition-all duration-200 text-left"
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  <span className="text-[0.75rem] uppercase tracking-[0.12em]">Notifications</span>
                 </button>
-                <button className="w-full px-6 py-3 border border-border hover:border-foreground transition-all duration-200 text-left text-[0.75rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Paramètres de compte
+                <button className="w-full px-8 py-3 border border-border hover:border-foreground transition-all duration-200 text-left"
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  <span className="text-[0.75rem] uppercase tracking-[0.12em]">Paramètres de compte</span>
                 </button>
               </div>
             </motion.div>

@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, CreditCard, CheckCircle2, Clock, Shield } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "./ui/badge";
-import { BondAPI } from "./lib/useBondApi";
+import { BondAPI } from "../lib/api-client";
 
 interface BondPaymentViewProps {
   milestoneId: string;
@@ -43,7 +43,7 @@ export function BondPaymentView({ milestoneId, onBack }: BondPaymentViewProps) {
     setPaymentStatus('processing');
     try {
       // Create a PaymentIntent for the contract (demo values)
-      const intent = await BondAPI.intentCreate({ contractId: mockMilestone.contractId, amount: mockMilestone.amount, currency: 'eur' });
+      const intent = await BondAPI.intentCreate({ contractId: mockMilestone.contractId, milestoneId: mockMilestone.id, amount: mockMilestone.amount });
       console.log('clientSecret', intent?.clientSecret);
       setPaymentStatus('confirmed');
       await new Promise(r => setTimeout(r, 1200));
@@ -156,22 +156,33 @@ export function BondPaymentView({ milestoneId, onBack }: BondPaymentViewProps) {
             <div className="w-1 h-1 rounded-full bg-accent" />
             Détails du jalon
           </h2>
-          <div className="border border-border p-6">
-            <h3 className="text-[1.25rem] mb-3" style={{ fontWeight: 600 }}>
-              {mockMilestone.title}
-            </h3>
-            <p className="text-[0.875rem] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-              {mockMilestone.description}
-            </p>
-            <div className="pt-6 border-t border-border">
-              <div className="flex justify-between items-center">
-                <span className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+          <div className="border border-border p-8 lg:p-10">
+            <div className="pb-6 border-b border-border">
+              <h3 className="text-[1.5rem] mb-3 tracking-[-0.01em]" style={{ fontWeight: 600 }}>
+                {mockMilestone.title}
+              </h3>
+              <p className="text-[0.875rem] text-muted-foreground" 
+                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.6 }}>
+                {mockMilestone.description}
+              </p>
+            </div>
+            
+            {/* Récap montant */}
+            <div className="bg-accent/5 border border-accent/10 p-8 mt-6">
+              <div className="flex justify-between items-baseline">
+                <span className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                      style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                   Montant à payer
                 </span>
-                <span className="text-[2rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                <span className="text-[3rem] tracking-[-0.03em] text-accent" 
+                      style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                   {mockMilestone.amount.toLocaleString('fr-FR')} €
                 </span>
               </div>
+              <p className="text-[0.75rem] text-muted-foreground mt-2" 
+                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                + 3% frais de transaction Stripe
+              </p>
             </div>
           </div>
         </motion.div>
@@ -188,23 +199,25 @@ export function BondPaymentView({ milestoneId, onBack }: BondPaymentViewProps) {
               <div className="w-1 h-1 rounded-full bg-accent" />
               Méthode de paiement
             </h2>
-            <div className="border border-border p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded border border-border flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-accent" strokeWidth={1.5} />
+            <div className="border border-border p-8 lg:p-10">
+              <div className="flex items-center gap-6 mb-6">
+                <div className="w-16 h-16 border border-border flex items-center justify-center">
+                  <CreditCard className="w-8 h-8 text-accent" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <div className="text-[1rem] mb-1" style={{ fontWeight: 600 }}>
+                  <div className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>
                     Carte bancaire
                   </div>
-                  <div className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                    Paiement sécurisé via Stripe
+                  <div className="text-[0.75rem] text-muted-foreground" 
+                       style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                    Paiement sécurisé via Stripe Connect
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border">
-                <div className="flex items-start gap-2 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                  <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+              <div className="pt-6 border-t border-border">
+                <div className="flex items-start gap-3 text-[0.75rem] text-muted-foreground" 
+                     style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                  <Shield className="w-5 h-5 mt-0.5 flex-shrink-0 text-accent" strokeWidth={1.5} />
                   <span>
                     Les fonds sont conservés en sécurité et ne seront transférés au prestataire qu'après validation du jalon par le client.
                   </span>
@@ -311,23 +324,45 @@ export function BondPaymentView({ milestoneId, onBack }: BondPaymentViewProps) {
               <div className="w-1 h-1 rounded-full bg-accent" />
               Détails de la transaction
             </h2>
-            <div className="border border-border p-6">
-              <div className="space-y-3 text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)' }}>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground" style={{ fontWeight: 300 }}>ID Transaction</span>
-                  <span style={{ fontWeight: 400 }}>TXN-{Date.now().toString().slice(-8)}</span>
+            <div className="border border-border p-8">
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline pb-3 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    ID Transaction
+                  </span>
+                  <span className="text-[0.875rem]" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                    TXN-{Date.now().toString().slice(-8)}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground" style={{ fontWeight: 300 }}>Date</span>
-                  <span style={{ fontWeight: 400 }}>{new Date().toLocaleDateString('fr-FR')}</span>
+                <div className="flex justify-between items-baseline pb-3 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    Date
+                  </span>
+                  <span className="text-[0.875rem]" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                    {new Date().toLocaleDateString('fr-FR')}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground" style={{ fontWeight: 300 }}>Heure</span>
-                  <span style={{ fontWeight: 400 }}>{new Date().toLocaleTimeString('fr-FR')}</span>
+                <div className="flex justify-between items-baseline pb-3 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    Heure
+                  </span>
+                  <span className="text-[0.875rem]" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                    {new Date().toLocaleTimeString('fr-FR')}
+                  </span>
                 </div>
-                <div className="flex justify-between pt-3 border-t border-border">
-                  <span className="text-muted-foreground" style={{ fontWeight: 300 }}>Montant</span>
-                  <span className="text-[1rem]" style={{ fontWeight: 600 }}>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    Montant
+                  </span>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     {mockMilestone.amount.toLocaleString('fr-FR')} €
                   </span>
                 </div>

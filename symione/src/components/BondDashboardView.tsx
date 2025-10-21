@@ -2,7 +2,8 @@ import { motion } from "motion/react";
 import { Plus, ChevronRight } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useEffect, useState } from "react";
-import { bondFetch } from "./lib/useBondApi";
+import { BondAPI, useAPI } from "../lib/api-client";
+import { LoadingCard } from "./LoadingComponents";
 
 interface BondContract {
   id: string;
@@ -39,37 +40,21 @@ const statusColors: Record<BondContract['status'], string> = {
 };
 
 export function BondDashboardView({ onNavigate }: BondDashboardViewProps) {
-  const [contracts, setContracts] = useState<BondContract[]>(mockContracts);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: contractsData, loading, error, refetch } = useAPI(
+    () => BondAPI.getContracts(),
+    [],
+    { retryOnError: true, maxRetries: 3 }
+  );
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await bondFetch<{ ok: boolean; contracts: any[] }>(`/api/escrow/contracts`);
-        if (!mounted) return;
-        const mapped = (data?.contracts || []).map((c) => ({
-          id: c.id,
-          title: c.title,
-          totalAmount: c.totalAmount / 100 ?? c.totalAmount,
-          status: String(c.status || 'active').toLowerCase() as BondContract['status'],
-          parties: { client: '', provider: '' },
-          createdAt: new Date(c.createdAt).toLocaleDateString('fr-FR'),
-          progress: c.milestonesCount ? Math.round((c.paidCount / c.milestonesCount) * 100) : 0,
-        })) as BondContract[];
-        setContracts(mapped);
-        setError(null);
-      } catch (e: any) {
-        console.error('Dashboard fetch error', e?.message || e);
-        setError('Impossible de charger les contrats');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  const contracts: BondContract[] = contractsData?.contracts?.map((c: any) => ({
+    id: c.id,
+    title: c.title,
+    totalAmount: c.totalAmount / 100 ?? c.totalAmount,
+    status: String(c.status || 'active').toLowerCase() as BondContract['status'],
+    parties: { client: '', provider: '' },
+    createdAt: new Date(c.createdAt).toLocaleDateString('fr-FR'),
+    progress: c.milestonesCount ? Math.round((c.paidCount / c.milestonesCount) * 100) : 0,
+  })) || [];
 
   return (
     <div className="min-h-screen pt-16">
@@ -107,21 +92,24 @@ export function BondDashboardView({ onNavigate }: BondDashboardViewProps) {
 
         {/* Loader */}
         {loading && (
-          <div className="text-center py-12">
-            <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-[0.875rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>Chargement…</p>
-          </div>
+          <LoadingCard message="Chargement des contrats..." />
         )}
 
         {/* Error */}
         {!loading && error && (
           <div className="text-center py-12">
-            <p className="text-[0.875rem] text-destructive" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>{error}</p>
+            <p className="text-[0.875rem] text-destructive mb-4" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>{error.message}</p>
+            <button 
+              onClick={refetch}
+              className="px-6 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors"
+            >
+              Réessayer
+            </button>
           </div>
         )}
 
         {/* Contracts Grid */}
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {contracts.map((contract, index) => (
             <motion.div
               key={contract.id}
@@ -131,74 +119,89 @@ export function BondDashboardView({ onNavigate }: BondDashboardViewProps) {
             >
               <button
                 onClick={() => onNavigate('bond-contract', contract.id)}
-                className="w-full border border-border hover:border-foreground transition-all duration-200 p-6 text-left group"
+                className="w-full border border-border hover:border-accent/50 transition-all duration-200 p-8 lg:p-10 text-left group"
               >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  {/* Left: Info */}
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-[1.125rem] tracking-[-0.01em]" style={{ fontWeight: 600 }}>
-                            {contract.title}
-                          </h3>
-                          <Badge className={`${statusColors[contract.status]} border text-[0.625rem] uppercase tracking-[0.1em]`} style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                            {statusLabels[contract.status]}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                          <span>ID: {contract.id}</span>
-                          <span>•</span>
-                          <span>{contract.createdAt}</span>
-                        </div>
+                <div className="flex flex-col gap-6">
+                  {/* Header avec titre + badge */}
+                  <div className="flex items-start justify-between gap-6 pb-6 border-b border-border">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-[1.5rem] tracking-[-0.02em]" style={{ fontWeight: 600 }}>
+                          {contract.title}
+                        </h3>
+                        <Badge className={`${statusColors[contract.status]} border text-[0.625rem] uppercase tracking-[0.1em]`} 
+                               style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          {statusLabels[contract.status]}
+                        </Badge>
+                      </div>
+                      
+                      {/* Métadonnées */}
+                      <div className="flex items-center gap-4 text-[0.75rem] text-muted-foreground" 
+                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                        <span>ID: {contract.id}</span>
+                        <span>•</span>
+                        <span>{contract.createdAt}</span>
                       </div>
                     </div>
-
-                    {/* Parties */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                      <div className="text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)' }}>
-                        <span className="text-muted-foreground uppercase tracking-[0.1em] block mb-1" style={{ fontWeight: 400 }}>Client</span>
-                        <span style={{ fontWeight: 400 }}>{contract.parties.client}</span>
-                      </div>
-                      <div className="text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)' }}>
-                        <span className="text-muted-foreground uppercase tracking-[0.1em] block mb-1" style={{ fontWeight: 400 }}>Prestataire</span>
-                        <span style={{ fontWeight: 400 }}>{contract.parties.provider}</span>
-                      </div>
-                    </div>
-
-                    {/* Progress */}
-                    {contract.status === 'active' && (
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                            Progression
-                          </span>
-                          <span className="text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                            {contract.progress}%
-                          </span>
-                        </div>
-                        <div className="h-1 bg-muted overflow-hidden">
-                          <div 
-                            className="h-full bg-accent transition-all duration-500"
-                            style={{ width: `${contract.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right: Amount + Action */}
-                  <div className="flex items-center gap-6 lg:flex-col lg:items-end lg:gap-4">
+                    
+                    {/* Montant à droite */}
                     <div className="text-right">
-                      <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-1" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                      <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" 
+                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                         Montant total
                       </div>
-                      <div className="text-[1.5rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                      <div className="text-[2rem] tracking-[-0.03em]" 
+                           style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                         {contract.totalAmount.toLocaleString('fr-FR')} €
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.1em] text-accent group-hover:gap-3 transition-all duration-200" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                  </div>
+                  
+                  {/* Parties (en grille) */}
+                  <div className="grid grid-cols-2 gap-6 pb-6 border-b border-border">
+                    <div className="border-l-2 border-border pl-4">
+                      <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" 
+                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                        Client
+                      </div>
+                      <div className="text-[0.875rem]" style={{ fontWeight: 500 }}>
+                        {contract.parties.client || 'Non défini'}
+                      </div>
+                    </div>
+                    <div className="border-l-2 border-border pl-4">
+                      <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" 
+                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                        Prestataire
+                      </div>
+                      <div className="text-[0.875rem]" style={{ fontWeight: 500 }}>
+                        {contract.parties.provider || 'Non défini'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar + CTA */}
+                  <div className="flex items-end justify-between gap-6">
+                    {contract.status === 'active' && (
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                                style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                            Progression
+                          </span>
+                          <span className="text-[0.875rem]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                            {contract.progress}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-muted overflow-hidden">
+                          <div className="h-full bg-accent transition-all duration-500" 
+                               style={{ width: `${contract.progress}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Flèche d'action */}
+                    <div className="flex items-center gap-2 text-accent text-[0.75rem] uppercase tracking-[0.1em] group-hover:gap-3 transition-all duration-200" 
+                         style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                       Ouvrir
                       <ChevronRight className="w-4 h-4" strokeWidth={2} />
                     </div>

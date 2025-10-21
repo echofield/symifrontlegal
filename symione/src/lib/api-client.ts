@@ -1,3 +1,17 @@
+// Import API types from backend
+import type { 
+  ContractCreateResponse,
+  ContractListResponse,
+  ContractDetailResponse,
+  MilestoneSubmitResponse,
+  MilestoneValidateResponse,
+  TemplateListResponse,
+  QuestionListResponse,
+  ContractSuggestResponse,
+  BondContract,
+  BondMilestone
+} from '../../symilegalback/src/types/api';
+
 // Enterprise-grade API Client with comprehensive error handling and monitoring
 class APIClient {
   private baseURL: string;
@@ -375,24 +389,24 @@ interface BondQuestion {
 // Enhanced Bond API with better error handling and type safety
 export const BondAPI = {
   // Template management
-  getTemplates: () => apiClient.get<{ ok: boolean; templates: Template[] }>('/contracts/templates'),
+  getTemplates: () => apiClient.get<TemplateListResponse>('/contracts/templates'),
   
   // Question management
-  getQuestions: (id?: string) => apiClient.get<{ ok: boolean; questions: BondQuestion[] | Record<string, BondQuestion[]> }>(
+  getQuestions: (id?: string) => apiClient.get<QuestionListResponse>(
     id ? `/contracts/questions?id=${encodeURIComponent(id)}` : '/contracts/questions'
   ),
   
   // Contract generation
   suggest: (payload: { templateId: string; answers: Record<string, any> }) => 
-    apiClient.post<{ success: boolean; contract: string; suggestions?: string[] }>('/contracts/suggest', payload),
+    apiClient.post<ContractSuggestResponse>('/contracts/suggest', payload),
   
   create: (payload: { templateId: string; answers: Record<string, any> }) => 
-    apiClient.post<{ success: boolean; contractId: string }>('/contracts/create', payload),
+    apiClient.post<ContractCreateResponse>('/contracts/create', payload),
   
   // Contract management
-  getContracts: () => apiClient.get<{ success: boolean; contracts: BondContract[] }>('/escrow/contracts'),
+  getContracts: () => apiClient.get<ContractListResponse>('/escrow/contracts'),
   
-  getContract: (id: string) => apiClient.get<{ ok: boolean; contract: BondContract }>(`/escrow/contracts/${id}`),
+  getContract: (id: string) => apiClient.get<ContractDetailResponse>(`/escrow/contracts/${id}`),
   
   // Payment management
   createPaymentIntent: (payload: { contractId: string; amount: number; currency: string }) => 
@@ -403,10 +417,10 @@ export const BondAPI = {
   
   // Milestone management
   submitMilestone: (payload: { milestoneId: string; proof: string; description?: string }) => 
-    apiClient.post<{ success: boolean; milestone: any }>('/escrow/milestone/submit', payload),
+    apiClient.post<MilestoneSubmitResponse>('/escrow/milestone/submit', payload),
   
   validateMilestone: (payload: { milestoneId: string; approved: boolean; feedback?: string }) => 
-    apiClient.post<{ success: boolean; milestone: any }>('/escrow/milestone/validate', payload),
+    apiClient.post<MilestoneValidateResponse>('/escrow/milestone/validate', payload),
 };
 
 // Enhanced Conseiller API

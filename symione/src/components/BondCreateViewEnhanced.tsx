@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Plus, AlertCircle, CheckCircle } from 'lucide-react';
 import { BondAPI, useAPI, APIError, RateLimitError } from '../lib/api-client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import type { BondMilestone } from '../lib/api-client';
 import { LoadingSpinner, LoadingCard, LoadingButton, useLoadingState } from './LoadingComponents';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -14,7 +16,7 @@ interface Template {
   title: string;
   description: string;
   roles: string[];
-  milestones: any[];
+  milestones: BondMilestone[];
   terms: string[];
   risks: string[];
   tags: string[];
@@ -23,20 +25,9 @@ interface Template {
 interface Question {
   id: string;
   question: string;
-  type: 'select' | 'multiselect' | 'text' | 'number' | 'date';
+  type: 'choice' | 'input';
   options?: string[];
-  validation?: {
-    required?: boolean;
-    min?: number;
-    max?: number;
-    pattern?: string;
-  };
-  conditions?: {
-    dependsOn: string;
-    showIf: any;
-  };
-  help?: string;
-  legalImplication?: string;
+  legalContext?: string;
 }
 
 export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
@@ -226,25 +217,50 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setSelectedTemplate(template.id)}
-                className="bg-card border border-border rounded-xl p-6 cursor-pointer hover:border-accent hover:shadow-lg transition-all group"
+                className={`border border-border p-8 lg:p-10 text-left transition-all duration-200 hover:border-accent/50 group ${
+                  selectedTemplate === template.id ? 'border-accent bg-accent/5 ring-2 ring-accent ring-offset-2' : ''
+                }`}
               >
-                <h3 className="text-xl font-bold mb-3 text-foreground">{template.title}</h3>
-                <p className="text-muted-foreground mb-4">{template.description}</p>
+                <div className="text-[2.5rem] mb-6">{template.icon}</div>
                 
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Rôles:</strong> {template.roles?.join(', ') || 'Non spécifié'}
+                <h3 className="text-[1.25rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>
+                  {template.title}
+                </h3>
+                
+                <p className="text-[0.75rem] text-muted-foreground mb-4" 
+                   style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
+                  {template.description}
+                </p>
+                
+                {/* Métadonnées enrichies */}
+                <div className="space-y-2 mb-4 pb-4 border-b border-border">
+                  <div className="flex items-center gap-2 text-[0.625rem] text-muted-foreground" 
+                       style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    <span>👥</span>
+                    <span className="uppercase tracking-[0.1em]">Rôles:</span>
+                    <span style={{ fontWeight: 300 }}>Client, Prestataire</span>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Jalons:</strong> {template.milestones?.length || 0}
+                  <div className="flex items-center gap-2 text-[0.625rem] text-muted-foreground" 
+                       style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    <span>📋</span>
+                    <span className="uppercase tracking-[0.1em]">Jalons:</span>
+                    <span style={{ fontWeight: 300 }}>3-5 étapes</span>
                   </div>
-                  {template.popular && (
-                    <div className="inline-flex items-center px-2 py-1 bg-accent/10 text-accent text-xs rounded-full">
-                      <CheckCircle className="w-3 h-3 mr-1" />
+                  {template.id === 'service' && (
+                    <div className="bg-accent/10 text-accent border-accent/20 border text-[0.625rem] uppercase tracking-[0.1em] mt-2 inline-flex items-center px-2 py-1" 
+                         style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                       Populaire
                     </div>
                   )}
                 </div>
+                
+                {selectedTemplate === template.id && (
+                  <div className="flex items-center gap-2 text-accent text-[0.75rem] uppercase tracking-[0.1em]" 
+                       style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                    <CheckCircle className="w-4 h-4" strokeWidth={2} />
+                    Sélectionné
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
@@ -260,28 +276,37 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
         <div className="max-w-4xl mx-auto px-6 py-12">
           {/* Header with progress */}
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-3xl font-bold text-foreground">
-                Configuration du Contrat
-              </h1>
-              <button
-                onClick={() => setSelectedTemplate(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ✕ Annuler
-              </button>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-[1.25rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>
+                  Configuration du contrat
+                </h1>
+                <p className="text-[0.75rem] text-muted-foreground" 
+                   style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                  Précisez les modalités de votre contrat
+                </p>
+              </div>
+              
+              {/* Indicateur de progression visible */}
+              <div className="text-right">
+                <div className="text-[1.5rem] tracking-[-0.02em] mb-1" 
+                     style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  {Math.round((currentQuestionIndex / questions.length) * 100)}%
+                </div>
+                <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                     style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                  Question {currentQuestionIndex + 1} sur {questions.length}
+                </div>
+              </div>
             </div>
             
-            <div className="w-full bg-muted rounded-full h-3">
+            <div className="w-full bg-muted h-2">
               <motion.div 
-                className="bg-accent h-3 rounded-full transition-all duration-300"
+                className="bg-accent h-2 transition-all duration-300"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Question {currentQuestionIndex + 1} sur {questions.length} ({Math.round(progress)}%)
-            </p>
           </div>
 
           {/* Error handling for questions */}
@@ -311,37 +336,80 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-card border border-border rounded-xl p-8"
+              className="border border-border p-8 lg:p-10"
             >
               <h2 className="text-xl font-semibold mb-4 text-foreground">
                 {currentQuestion.question}
               </h2>
               
-              {currentQuestion.help && (
-                <p className="text-sm text-muted-foreground mb-4">{currentQuestion.help}</p>
+              {currentQuestion.legalContext && (
+                <div className="bg-accent/5 border border-accent/20 p-4 flex items-start gap-3 mb-6">
+                  <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-accent" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM8 11a.75.75 0 0 1-.75-.75v-3.5a.75.75 0 0 1 1.5 0v3.5A.75.75 0 0 1 8 11zm0-6a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5z"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[0.625rem] uppercase tracking-[0.1em] text-accent mb-1" 
+                         style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                      Implication légale
+                    </div>
+                    <p className="text-[0.75rem] text-muted-foreground" 
+                       style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
+                      {currentQuestion.legalContext}
+                    </p>
+                  </div>
+                </div>
               )}
+
+              {/* Label du champ */}
+              <label className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground block mb-2" 
+                     style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                Votre réponse
+              </label>
 
               {/* Form field rendering based on type */}
-              {currentQuestion.type === 'select' && (
-                <select
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
-                >
-                  <option value="">Sélectionnez une option...</option>
-                  {currentQuestion.options?.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
+              {currentQuestion.type === 'choice' && currentQuestion.options && (
+                <div className="space-y-2">
+                  <Select
+                    value={answers[currentQuestion.id] || ''}
+                    onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
+                  >
+                    <SelectTrigger 
+                      className="w-full border border-border bg-background hover:border-accent/50 focus:border-accent focus:ring-0 focus:ring-offset-0 transition-colors duration-200 h-12 px-4"
+                      style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
+                    >
+                      <SelectValue 
+                        placeholder="Sélectionnez une option..." 
+                        className="text-[0.875rem] text-muted-foreground"
+                      />
+                    </SelectTrigger>
+                    <SelectContent 
+                      className="border border-border bg-background max-h-[300px] overflow-y-auto"
+                      style={{ fontFamily: 'var(--font-mono)' }}
+                    >
+                      {currentQuestion.options.map((option) => (
+                        <SelectItem 
+                          key={option} 
+                          value={option}
+                          className="text-[0.875rem] py-3 px-4 hover:bg-accent/5 focus:bg-accent/10 cursor-pointer transition-colors duration-200 border-b border-border last:border-0"
+                          style={{ fontWeight: 400 }}
+                        >
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
-              {currentQuestion.type === 'text' && (
+              {currentQuestion.type === 'input' && (
                 <textarea
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors resize-none"
-                  rows={4}
-                  placeholder="Décrivez votre projet..."
+                  placeholder="Votre réponse..."
+                  className="w-full px-4 py-3 border border-border bg-background focus:border-accent focus:outline-none transition-colors duration-200 min-h-[120px] resize-none"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                 />
               )}
 
@@ -350,7 +418,8 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                   type="number"
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, parseFloat(e.target.value))}
-                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 border border-border bg-input-background focus:border-accent focus:outline-none transition-colors duration-200"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                   placeholder="Montant en euros"
                 />
               )}
@@ -360,7 +429,8 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                   type="date"
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 border border-border bg-input-background focus:border-accent focus:outline-none transition-colors duration-200"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                 />
               )}
 
@@ -372,14 +442,16 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                 </div>
               )}
 
-              {/* Navigation buttons */}
-              <div className="flex justify-between mt-8">
+              {/* Navigation */}
+              <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
                 <button
                   onClick={handlePrevious}
                   disabled={currentQuestionIndex === 0}
-                  className="px-6 py-3 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+                  className="px-8 py-3 border border-border hover:border-foreground transition-all duration-200 inline-flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                 >
-                  Précédent
+                  <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+                  <span className="text-[0.75rem] uppercase tracking-[0.12em]">Précédent</span>
                 </button>
                 
                 <div className="flex gap-3">
@@ -387,9 +459,10 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                     <LoadingButton
                       loading={suggestLoading}
                       onClick={handleSuggest}
-                      className="px-6 py-3 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                      className="px-8 py-3 border border-border hover:border-foreground transition-all duration-200"
+                      style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                     >
-                      Prévisualiser
+                      <span className="text-[0.75rem] uppercase tracking-[0.12em]">Prévisualiser</span>
                     </LoadingButton>
                   )}
                   
@@ -397,9 +470,17 @@ export function BondCreateViewEnhanced({ onNavigate }: BondCreateViewProps) {
                     loading={createLoading}
                     onClick={currentQuestionIndex === questions.length - 1 ? handleSubmit : handleNext}
                     disabled={!answers[currentQuestion.id]}
-                    className="px-6 py-3 bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="px-10 py-4 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
                   >
-                    {currentQuestionIndex === questions.length - 1 ? 'Créer le contrat' : 'Suivant'}
+                    <span className="text-[0.75rem] uppercase tracking-[0.12em]">
+                      {currentQuestionIndex === questions.length - 1 ? 'Créer le contrat' : 'Suivant'}
+                    </span>
+                    {currentQuestionIndex < questions.length - 1 && (
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="stroke-current">
+                        <path d="M2 7H12M12 7L8 3M12 7L8 11" strokeWidth="1.5" strokeLinecap="square" />
+                      </svg>
+                    )}
                   </LoadingButton>
                 </div>
               </div>

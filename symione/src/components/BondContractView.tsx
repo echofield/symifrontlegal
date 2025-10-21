@@ -3,7 +3,7 @@ import { ArrowLeft, Download, CheckCircle2, Clock, AlertCircle, CreditCard } fro
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { bondFetch } from "./lib/useBondApi";
+import { BondAPI, useAPI } from "../lib/api-client";
 
 interface BondContractViewProps {
   contractId: string;
@@ -117,9 +117,13 @@ const statusIcons: Record<MilestoneStatus, React.ReactNode> = {
 };
 
 export function BondContractView({ contractId, onBack, onNavigate }: BondContractViewProps) {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [notFound, setNotFound] = useState<boolean>(false);
-  const [contract, setContract] = useState<any>(null);
+  const { data: contractData, loading, error } = useAPI(
+    () => BondAPI.getContract(contractId),
+    [contractId],
+    { retryOnError: true, maxRetries: 3 }
+  );
+
+  const contract = contractData?.contract || mockContract;
   const milestones: Milestone[] = useMemo(() => {
     if (!contract) return [];
     return (contract.milestones || []).map((m: any) => ({
@@ -132,23 +136,7 @@ export function BondContractView({ contractId, onBack, onNavigate }: BondContrac
     }));
   }, [contract]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await bondFetch<{ ok: boolean; contract: any }>(`/api/escrow/contracts/${contractId}`);
-        if (!mounted) return;
-        setContract(data?.contract);
-        setNotFound(!data?.contract);
-      } catch (e) {
-        setNotFound(true);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [contractId]);
+  const notFound = !contractData?.contract && !loading;
 
   const paidAmount = milestones
     .filter(m => m.status === 'paid')
@@ -287,86 +275,97 @@ export function BondContractView({ contractId, onBack, onNavigate }: BondContrac
 
               <div className="space-y-4">
                 {milestones.map((milestone, index) => (
-                  <div key={milestone.id} className="border border-border p-6">
-                    <div className="flex flex-col gap-4">
-                      {/* Header */}
-                      <div className="flex items-start justify-between gap-4">
+                  <div key={milestone.id} className="border border-border p-8 lg:p-10 transition-all duration-200 hover:border-accent/30">
+                    {/* Header du jalon */}
+                    <div className="pb-6 border-b border-border">
+                      <div className="flex items-start justify-between gap-6 mb-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                               Jalon {index + 1}
                             </span>
-                            <Badge className={`${statusColors[milestone.status]} border inline-flex items-center gap-1.5 text-[0.625rem] uppercase tracking-[0.1em]`} style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                            <Badge className={`${statusColors[milestone.status]} border inline-flex items-center gap-1.5 text-[0.625rem] uppercase tracking-[0.1em]`} 
+                                   style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                               {statusIcons[milestone.status]}
                               {statusLabels[milestone.status]}
                             </Badge>
                           </div>
-                          <h3 className="text-[1.125rem] mb-2" style={{ fontWeight: 600 }}>
+                          
+                          <h3 className="text-[1.5rem] mb-3 tracking-[-0.01em]" style={{ fontWeight: 600 }}>
                             {milestone.title}
                           </h3>
-                          <p className="text-[0.875rem] text-muted-foreground mb-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                            {milestone.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                            <span>Échéance: {milestone.deadline}</span>
-                            {milestone.submittedDate && (
-                              <>
-                                <span>•</span>
-                                <span>Soumis: {milestone.submittedDate}</span>
-                              </>
-                            )}
-                            {milestone.paidDate && (
-                              <>
-                                <span>•</span>
-                                <span>Payé: {milestone.paidDate}</span>
-                              </>
-                            )}
-                          </div>
                         </div>
+                        
+                        {/* Montant */}
                         <div className="text-right">
-                          <div className="text-[1.25rem] tracking-[-0.02em]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                          <div className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground mb-2" 
+                               style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                            Montant
+                          </div>
+                          <div className="text-[2rem] tracking-[-0.03em]" 
+                               style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                             {milestone.amount.toLocaleString('fr-FR')} €
                           </div>
                         </div>
                       </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 pt-3 border-t border-border">
-                        {milestone.status === 'upcoming' && (
-                          <button
-                            onClick={() => handleSubmitMilestone(milestone.id)}
-                            className="px-6 py-2.5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] uppercase tracking-[0.1em]"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
-                          >
-                            Soumettre
-                          </button>
+                      
+                      {/* Description */}
+                      <p className="text-[0.875rem] text-muted-foreground mb-4" 
+                         style={{ lineHeight: 1.6 }}>
+                        {milestone.description}
+                      </p>
+                      
+                      {/* Dates */}
+                      <div className="flex items-center gap-4 text-[0.75rem] text-muted-foreground" 
+                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                        <span>Échéance: {milestone.deadline}</span>
+                        {milestone.submittedDate && (
+                          <>
+                            <span>•</span>
+                            <span>Soumis: {milestone.submittedDate}</span>
+                          </>
                         )}
-                        {milestone.status === 'submitted' && (
-                          <button
-                            onClick={() => handleValidateMilestone(milestone.id)}
-                            className="px-6 py-2.5 bg-accent text-accent-foreground hover:shadow-[0_0_15px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] uppercase tracking-[0.1em]"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-                          >
-                            Valider
-                          </button>
-                        )}
-                        {milestone.status === 'validated' && (
-                          <button
-                            onClick={() => handlePayMilestone(milestone.id)}
-                            className="px-6 py-2.5 bg-accent text-accent-foreground hover:shadow-[0_0_15px_var(--accent-glow)] transition-all duration-200 inline-flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.1em]"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-                          >
-                            <CreditCard className="w-3.5 h-3.5" strokeWidth={2} />
-                            Payer
-                          </button>
-                        )}
-                        {milestone.status === 'paid' && (
-                          <div className="px-6 py-2.5 bg-accent/10 text-accent inline-flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.1em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
-                            Payé
-                          </div>
+                        {milestone.paidDate && (
+                          <>
+                            <span>•</span>
+                            <span>Payé: {milestone.paidDate}</span>
+                          </>
                         )}
                       </div>
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-6">
+                      {milestone.status === 'upcoming' && (
+                        <button onClick={() => handleSubmitMilestone(milestone.id)}
+                                className="px-8 py-3 border border-border hover:border-foreground transition-all duration-200"
+                                style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                          <span className="text-[0.75rem] uppercase tracking-[0.12em]">Soumettre</span>
+                        </button>
+                      )}
+                      {milestone.status === 'submitted' && (
+                        <button onClick={() => handleValidateMilestone(milestone.id)}
+                                className="px-8 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200"
+                                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          <span className="text-[0.75rem] uppercase tracking-[0.12em]">Valider</span>
+                        </button>
+                      )}
+                      {milestone.status === 'validated' && (
+                        <button onClick={() => handlePayMilestone(milestone.id)}
+                                className="px-8 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 inline-flex items-center gap-2"
+                                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          <CreditCard className="w-4 h-4" strokeWidth={2} />
+                          <span className="text-[0.75rem] uppercase tracking-[0.12em]">Payer</span>
+                        </button>
+                      )}
+                      {milestone.status === 'paid' && (
+                        <div className="px-8 py-3 bg-accent/10 text-accent inline-flex items-center gap-2 border border-accent/20"
+                             style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                          <CheckCircle2 className="w-4 h-4" strokeWidth={2} />
+                          <span className="text-[0.75rem] uppercase tracking-[0.12em]">Payé</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -386,11 +385,15 @@ export function BondContractView({ contractId, onBack, onNavigate }: BondContrac
 
               <Accordion type="single" collapsible className="border border-border">
                 {(Array.isArray(contract?.termsJson?.terms) ? contract.termsJson.terms : []).map((clause: string, index: number) => (
-                  <AccordionItem key={index} value={`clause-${index}`} className="border-b border-border last:border-0">
-                    <AccordionTrigger className="px-6 py-4 hover:no-underline text-[0.875rem]" style={{ fontWeight: 600 }}>
-                      Clause {index + 1}
+                  <AccordionItem key={index} value={`clause-${index}`} 
+                                 className="border-b border-border last:border-0">
+                    <AccordionTrigger className="px-8 py-6 hover:no-underline hover:bg-accent/5 transition-colors duration-200">
+                      <span className="text-[1rem] tracking-[-0.005em]" style={{ fontWeight: 600 }}>
+                        Clause {index + 1}
+                      </span>
                     </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-4 text-[0.875rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                    <AccordionContent className="px-8 pb-6 text-[0.875rem] text-muted-foreground border-t border-border" 
+                                      style={{ lineHeight: 1.7 }}>
                       {clause}
                     </AccordionContent>
                   </AccordionItem>
@@ -406,41 +409,58 @@ export function BondContractView({ contractId, onBack, onNavigate }: BondContrac
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.15, ease: 'linear' }}
-              className="border border-border p-6"
+              className="border border-border p-8"
             >
-              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-8 pb-4 border-b border-border" 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                 Récapitulatif
               </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-start pb-3 border-b border-border">
-                  <span className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+              
+              <div className="space-y-6">
+                {/* Montant total */}
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Montant total
                   </span>
-                  <span className="text-[1.125rem]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     {mockContract.totalAmount.toLocaleString('fr-FR')} €
                   </span>
                 </div>
-                <div className="flex justify-between items-start pb-3 border-b border-border">
-                  <span className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                
+                {/* Payé */}
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Payé
                   </span>
-                  <span className="text-[1.125rem] text-accent" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  <span className="text-[1.5rem] tracking-[-0.02em] text-accent" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     {paidAmount.toLocaleString('fr-FR')} €
                   </span>
                 </div>
-                <div className="flex justify-between items-start pb-3 border-b border-border">
-                  <span className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                
+                {/* Restant */}
+                <div className="flex justify-between items-baseline pb-4 border-b border-border">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                     Restant
                   </span>
-                  <span className="text-[1.125rem]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     {(mockContract.totalAmount - paidAmount).toLocaleString('fr-FR')} €
                   </span>
                 </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                    Nombre de jalons
+                
+                {/* Nombre de jalons */}
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[0.625rem] uppercase tracking-[0.1em] text-muted-foreground" 
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    Jalons
                   </span>
-                  <span className="text-[1.125rem]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  <span className="text-[1.5rem] tracking-[-0.02em]" 
+                        style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                     {milestones.length}
                   </span>
                 </div>
@@ -452,23 +472,26 @@ export function BondContractView({ contractId, onBack, onNavigate }: BondContrac
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2, ease: 'linear' }}
-              className="border border-border p-6"
+              className="border border-border p-8"
             >
-              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+              <h3 className="text-[0.75rem] uppercase tracking-[0.1em] mb-8 pb-4 border-b border-border" 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                 État des jalons
               </h3>
-              <div className="space-y-3">
+              
+              <div className="space-y-2">
                 {Object.entries(statusLabels).map(([status, label]) => {
                   const count = milestones.filter(m => m.status === status).length;
                   return (
-                    <div key={status} className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
+                    <div key={status} className="flex justify-between items-center pb-3 border-b border-border last:border-0">
+                      <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-accent" />
-                        <span className="text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
+                        <span className="text-[0.75rem]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
                           {label}
                         </span>
                       </div>
-                      <span className="text-[0.875rem]" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                      <span className="text-[1.25rem] tracking-[-0.01em]" 
+                            style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                         {count}
                       </span>
                     </div>
