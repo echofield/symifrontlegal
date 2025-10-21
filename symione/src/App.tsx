@@ -13,6 +13,7 @@ import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
 import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
 import { BondSimpleView } from './components/BondSimpleView';
+import { BondGuideView } from './components/BondGuideView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 import { SupportAgent } from './components/SupportAgent';
@@ -23,7 +24,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializePerformanceMonitoring, useRenderPerformance } from './lib/performance-monitoring';
 import { supabase } from './lib/supabaseClient';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -353,6 +354,18 @@ function AppContent() {
               transition={{ duration: 0.2, ease: 'linear' }}
             >
               <BondSimpleView onNavigate={handleNavigate} />
+            </motion.div>
+          )}
+
+          {currentView === 'bond-guide' && (
+            <motion.div
+              key="bond-guide"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <BondGuideView onBack={() => handleNavigate('bond')} />
             </motion.div>
           )}
 
