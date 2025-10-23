@@ -11,7 +11,7 @@ import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
 import { ContactView } from './components/ContactView';
-import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
+import { BondCreateView } from './components/BondCreateView';
 import { BondSimpleView } from './components/BondSimpleView';
 import { BondGuideView } from './components/BondGuideView';
 import { SystemToast } from './components/SystemToast';
@@ -341,7 +341,7 @@ function AppContent() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: 'linear' }}
             >
-              <BondCreateViewEnhanced onNavigate={handleNavigate} />
+              <BondCreateView onBack={handleBack} onNavigate={handleNavigate} onContractCreated={(contractId) => handleNavigate('bond-contract', contractId)} />
             </motion.div>
           )}
 
