@@ -1,242 +1,117 @@
-import { useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
+import { LAWYER_AUDIT_QUESTIONS } from "@/data/lawyer-audit-questions";
+import { FormField } from "@/components/forms/FormField";
 
-// 🛡️ Safe array helper
-const ensureArray = <T,>(val: unknown, label: string): T[] => {
-  if (!val) return [];
-  if (!Array.isArray(val)) {
-    console.warn(`[ensureArray] Expected array for ${label}, got`, val);
-    return [];
-  }
-  return val as T[];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+type AdvisorResponse = {
+  output?: {
+    reply_text?: string;
+  };
 };
 
-type Lawyer = {
-  name: string;
-  address?: string;
-  rating?: number;
-  place_id?: string;
-  location?: { lat: number; lng: number };
-};
-
-type AdvisorOutput = {
-  thought: string;
-  followup_question: string | null;
-  action: { type: string; args?: Record<string, unknown> };
-  reply_text: string;
-};
-
-// Google Maps removed per product decision
+type AdvisorForm = Record<string, string>;
 
 export default function ConseillerPage() {
-  const [q, setQ] = useState("");
-  const [answer, setAnswer] = useState<AdvisorOutput | null>(null);
-  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [finding, setFinding] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [formData, setFormData] = useState<AdvisorForm>({ typeSituation: "", urgence: "", budget: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [advisorAnswer, setAdvisorAnswer] = useState<string | null>(null);
 
-  const api = process.env.NEXT_PUBLIC_API_URL;
-
-  // ---- Ask the AI advisor ----
-  const ask = async () => {
-    if (!q.trim()) {
-      alert("Veuillez poser une question.");
-      return;
+  const defaultFormData = useMemo(() => {
+    const defaults: AdvisorForm = {};
+    for (const q of LAWYER_AUDIT_QUESTIONS) {
+      defaults[q.id] = "";
     }
+    return defaults;
+  }, []);
 
-    setLoading(true);
+  const mergedFormData = { ...defaultFormData, ...formData };
+
+  const handleSubmit = async () => {
+    if (!question || !mergedFormData.typeSituation) return;
+
+    setSubmitting(true);
+    setStatusMessage(null);
+
     try {
-      console.log("📡 Asking advisor:", `${api}/api/advisor`);
-      const r = await fetch(`${api}/api/advisor`, {
+      const response = await fetch(`${API_URL}/api/advisor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question, context: mergedFormData }),
       });
 
-      if (!r.ok) {
-        const errorText = await r.text();
-        throw new Error(`API error (${r.status}): ${errorText}`);
+      if (!response.ok) {
+        throw new Error(`API error ${response.status}`);
       }
-      
-      const data = await r.json();
-      setAnswer(data?.output || null);
-    } catch (err: any) {
-      console.error("❌ Advisor error:", err);
-      alert(`Erreur lors de la consultation: ${err.message}`);
+
+      const data = (await response.json()) as AdvisorResponse;
+      setAdvisorAnswer(data.output?.reply_text ?? null);
+      setStatusMessage("✅ Vos informations ont bien été transmises à un conseiller juridique.");
+      setQuestion("");
+      setFormData({ ...defaultFormData });
+    } catch (error) {
+      console.error(error);
+      setStatusMessage("❌ Une erreur est survenue, veuillez réessayer.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
-
-  // ---- Search nearby lawyers ----
-  const searchLawyers = async () => {
-    setFinding(true);
-    let userLoc: { lat: number; lng: number } | null = null;
-
-    try {
-      userLoc = await new Promise((resolve) => {
-        if (!navigator.geolocation) return resolve(null);
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => resolve(null),
-          { timeout: 3000 }
-        );
-      });
-    } catch (err) {
-      console.warn("Erreur géolocalisation:", err);
-    }
-
-    const fallback = { lat: 48.8566, lng: 2.3522 }; // Paris default
-    const loc = userLoc || fallback;
-    if (!userLoc) alert("Localisation non disponible, affichage des résultats à Paris.");
-    setCoords(loc);
-
-    const spec = (answer?.action?.args?.topic as string) || "contrat";
-
-    try {
-      console.log("📡 Searching lawyers for:", spec);
-      const r = await fetch(`${api}/api/lawyers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `avocat ${spec}`,
-          lat: loc.lat,
-          lng: loc.lng,
-        }),
-      });
-
-      if (!r.ok) {
-        const errorText = await r.text();
-        throw new Error(`API error (${r.status}): ${errorText}`);
-      }
-      
-      const data = await r.json();
-
-      console.log('🔍 Filter debug:', {
-        array: data?.lawyers,
-        arrayType: typeof data?.lawyers,
-        isArray: Array.isArray(data?.lawyers),
-        location: 'ConseillerPage searchLawyers'
-      });
-      const validLawyers = Array.isArray(data?.lawyers)
-        ? (data.lawyers || [])
-            .filter((l: any) => l && typeof l.name === "string")
-            .map((l: any) => ({
-              name: l.name,
-              address: l.address,
-              rating: l.rating,
-              // Accept both camelCase and snake_case from backend
-              place_id: l.place_id || l.placeId,
-              // Normalize coordinates: accept top-level lat/lng or nested location.lat/lng
-              lat: typeof l.lat === 'number' ? l.lat : (l.location?.lat ?? undefined),
-              lng: typeof l.lng === 'number' ? l.lng : (l.location?.lng ?? undefined),
-            }))
-        : [];
-
-      console.log(`✅ Found ${validLawyers.length} lawyers`);
-      setLawyers(validLawyers);
-      setSelected(null);
-    } catch (err: any) {
-      console.error("❌ Lawyer search error:", err);
-      alert(`Erreur lors de la recherche d'avocats: ${err.message}`);
-      setLawyers([]);
-    } finally {
-      setFinding(false);
-    }
-  };
-
-  // Safe lawyers array for rendering
-  const safeLawyers = ensureArray<Lawyer>(lawyers, "lawyers");
 
   return (
-    <main className="container">
-      <h1>Conseiller</h1>
-      <p>Posez votre question juridique, SYMIONE vous oriente vers le bon modèle ou un avocat.</p>
+    <div className="mx-auto max-w-4xl px-6 py-12">
+      <header className="mb-10 space-y-3">
+        <h1 className="text-3xl font-bold text-slate-900">Assistant juridique</h1>
+        <p className="text-slate-600">
+          Décrivez votre situation pour recevoir une analyse détaillée et des recommandations d&apos;avocats.
+        </p>
+      </header>
 
-      {/* --- Question Input --- */}
-      <div className="row" style={{ marginBottom: 16 }}>
-        <input
-          className="input"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Ex : Je veux rompre un CDD, que faire ?"
-          style={{ flex: 1 }}
+      <div className="mb-8 space-y-3">
+        <label className="block text-sm font-medium text-slate-700">
+          Décrivez votre situation à gauche pour recevoir une analyse juridique détaillée
+        </label>
+        <textarea
+          value={question}
+          onChange={(event) => setQuestion(event.target.value)}
+          placeholder="Exemple: Mon employeur refuse de me payer mes heures supplémentaires depuis 3 mois..."
+          rows={6}
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
         />
-        <button onClick={ask} disabled={loading} className="btn btn-primary">
-          {loading ? "Analyse…" : "Demander"}
-        </button>
       </div>
 
-      {/* --- Advisor Response --- */}
-      {answer && (
-        <section className="card" style={{ marginTop: 16 }}>
-          <h2>Réponse</h2>
-          <p>{answer.reply_text || "Aucune réponse disponible."}</p>
-          <div className="row">
-            <Link href="/contracts" className="btn btn-secondary">
-              Voir les modèles
-            </Link>
-            <button onClick={searchLawyers} className="btn btn-primary">
-              {finding ? "Recherche…" : "Trouver un avocat"}
-            </button>
-          </div>
+      <div className="space-y-6">
+        {LAWYER_AUDIT_QUESTIONS.map((q) => (
+          <FormField
+            key={q.id}
+            question={q}
+            value={mergedFormData[q.id]}
+            onChange={(value) => setFormData((prev) => ({ ...prev, [q.id]: value }))}
+          />
+        ))}
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={!question || !mergedFormData.typeSituation || submitting}
+        className="mt-8 w-full rounded-xl bg-primary-600 py-3 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+      >
+        {submitting ? "Envoi en cours..." : "Obtenir une analyse et des recommandations d\u2019avocats"}
+      </button>
+
+      {advisorAnswer && (
+        <section className="mt-10 rounded-2xl border border-primary-100 bg-primary-50 p-6 text-sm text-primary-900">
+          <h2 className="text-lg font-semibold text-primary-700">Réponse du conseiller</h2>
+          <p className="mt-2 whitespace-pre-wrap">{advisorAnswer}</p>
         </section>
       )}
 
-      {/* --- Lawyer Results --- */}
-      {safeLawyers.length > 0 && (
-        <section style={{ marginTop: 24 }}>
-          <h3>Avocats recommandés</h3>
-          <div className="grid grid-5-7" style={{ gap: 16, alignItems: "stretch" }}>
-            <aside className="card">
-              <ul className="list">
-                {safeLawyers.map((l, i) => {
-                  const ratingText = typeof l.rating === "number" ? `⭐️ ${l.rating}` : "";
-                  const addressText = l.address ? l.address : "";
-                  console.log('🔍 Filter debug:', {
-                    array: [ratingText, addressText],
-                    arrayType: typeof [ratingText, addressText],
-                    isArray: Array.isArray([ratingText, addressText]),
-                    location: 'ConseillerPage displayText'
-                  });
-                  const displayText = ([ratingText, addressText] || []).filter(Boolean).join(" • ");
-
-                  return (
-                    <li
-                      key={i}
-                      onClick={() => setSelected(i)}
-                      style={{
-                        padding: 10,
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        background: selected === i ? "var(--accent-weak)" : "transparent",
-                      }}
-                    >
-                      <div style={{ fontWeight: 600 }}>{l.name}</div>
-                      {displayText && (
-                        <div className="muted" style={{ fontSize: 13 }}>
-                          {displayText}
-                        </div>
-                      )}
-                      <div style={{ display: "flex", gap: 8, marginTop: 6 }} />
-                    </li>
-                  );
-                })}
-              </ul>
-              <div className="footer-note" style={{ marginTop: 12 }} />
-            </aside>
-
-            <div style={{ height: 0 }} />
-          </div>
-        </section>
+      {statusMessage && (
+        <p className="mt-6 text-sm text-slate-700" role="status">
+          {statusMessage}
+        </p>
       )}
-
-      {/* --- Empty state --- */}
-      {safeLawyers.length === 0 && answer && !finding && (
-        <p style={{ marginTop: 16, color: "#888" }}>Aucun avocat trouvé pour cette recherche.</p>
-      )}
-    </main>
+    </div>
   );
 }
