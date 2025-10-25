@@ -153,10 +153,10 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
                        <p className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
                          CONTRATS DE CONFIANCE AVEC COFFRE-FORT
                        </p>
-                       <div className="flex items-baseline gap-2 mb-4">
-                         <span className="text-[3.5rem] font-bold text-foreground" style={{ fontWeight: 600 }}>119</span>
-                         <span className="text-[1.25rem] text-muted-foreground" style={{ fontWeight: 400 }}>€ + 3%</span>
-                       </div>
+                      <div className="flex items-baseline gap-2 mb-4">
+                        <span className="text-[3.5rem] font-bold text-foreground" style={{ fontWeight: 600 }}>149</span>
+                        <span className="text-[1.25rem] text-muted-foreground" style={{ fontWeight: 400 }}>€ + 3%</span>
+                      </div>
                        <p className="text-[0.875rem] text-muted-foreground leading-relaxed">
                          Vos paiements par jalons protégés dans un coffre-fort digital
                        </p>
@@ -250,8 +250,7 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
               { id: 'service', title: 'Prestation de service', description: 'Pour missions de conseil, développement, design, marketing...', category: 'ENTREPRISE', popular: true, type: 'service' },
               { id: 'travaux', title: 'Travaux', description: 'Construction, rénovation, aménagements...', category: 'CONSTRUCTION', popular: false, type: 'work' },
               { id: 'creation', title: 'Création artistique', description: 'Design, illustration, musique, vidéo...', category: 'CRÉATIF', popular: false, type: 'custom' },
-              { id: 'challenge', title: 'Pacte entre amis', description: 'Défis, paris, engagements personnels...', category: 'PERSONNEL', popular: false, type: 'partnership' },
-              { id: 'custom', title: 'IA libre', description: 'Décrivez entièrement votre besoin, l\'IA s\'adapte', category: 'CUSTOM', popular: false, type: 'custom' },
+              { id: 'event', title: 'Événementiel', description: 'Organisation événements, traiteur, logistique...', category: 'ÉVÉNEMENT', popular: false, type: 'service' },
             ].map((template, index) => (
               <motion.div
                 key={template.id}
