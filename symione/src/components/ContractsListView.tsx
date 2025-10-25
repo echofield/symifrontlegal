@@ -99,7 +99,8 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
     if (!q || q.length < 16) { setSearchAnalysis(null); return; }
     setAnalyzing(true);
     try {
-      const res = await fetch('/api/templates/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://symilegalback-virid.vercel.app';
+      const res = await fetch(`${apiUrl}/api/templates/analyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
       if (res.ok) {
         const data = await res.json();
         setSearchAnalysis(data);
@@ -160,7 +161,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="🔍 Rechercher un contrat (ex: bail, CDI, NDA...)"
+                placeholder="Rechercher un contrat (ex: bail, CDI, NDA...)"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); analyzeSearch(e.target.value); }}
                 className="w-full pl-10 pr-4 py-3 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem]"
@@ -198,12 +199,12 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
               {searchAnalysis && (
                 <>
                   <div className="text-[0.875rem] mb-3">
-                    <h4 className="text-[0.95rem] mb-1" style={{ fontWeight: 600 }}>💡 Analyse de votre besoin</h4>
+                    <h4 className="text-[0.95rem] mb-1" style={{ fontWeight: 600 }}>Analyse de votre besoin</h4>
                     <p className="text-muted-foreground">{searchAnalysis.interpretation}</p>
                   </div>
                   {searchAnalysis.matchingTemplates.length > 0 ? (
                     <div className="space-y-3">
-                      <h4 className="text-[0.95rem]" style={{ fontWeight: 600 }}>📄 Templates correspondants</h4>
+                      <h4 className="text-[0.95rem]" style={{ fontWeight: 600 }}>Templates correspondants</h4>
                       {searchAnalysis.matchingTemplates.map((t) => (
                         <button key={t.id} onClick={() => onSelectTemplate(t.id, jurisdiction)} className="w-full text-left border border-border p-3 hover:border-foreground">
                           <div className="flex items-center justify-between">
@@ -241,7 +242,7 @@ export function ContractsListView({ onBack, onSelectTemplate, plan = 'free' }: C
               className="px-6 py-3 border border-border text-[0.75rem] uppercase tracking-[0.12em]"
               style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
             >
-              💬 Décrire mon besoin au Conseiller Juridique
+              Décrire mon besoin au Conseiller Juridique
             </button>
           </div>
         ) : (
