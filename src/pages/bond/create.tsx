@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from "react";
 
 const BOND_TYPES = [
@@ -24,8 +22,6 @@ const BOND_TYPES = [
     name: "Événementiel",
     description: "Organisation événements, traiteur, location matériel...",
   },
-  // ❌ SUPPRIMER "IA libre"
-  // ❌ SUPPRIMER "Pacte entre amis" (pas professionnel)
 ];
 
 const FORM_STEPS = [
@@ -109,7 +105,6 @@ export default function BondCreatePage() {
   const [responses, setResponses] = useState<Record<string, string>>({});
 
   const progress = useMemo(() => Math.round(((currentStep + 1) / FORM_STEPS.length) * 100), [currentStep]);
-
   const currentQuestion = FORM_STEPS[currentStep];
 
   const goToStep = (stepIndex: number) => {
@@ -118,7 +113,6 @@ export default function BondCreatePage() {
   };
 
   const goNext = () => {
-    if (currentStep === FORM_STEPS.length - 1) return;
     setCurrentStep((step) => Math.min(step + 1, FORM_STEPS.length - 1));
   };
 
@@ -127,101 +121,96 @@ export default function BondCreatePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+    <div className="mx-auto max-w-5xl space-y-12 px-6 py-12">
       <header className="space-y-4">
-        <p className="text-sm font-semibold uppercase tracking-[0.4em] text-blue-600">Bond</p>
-        <h1 className="text-4xl font-bold">Configurer votre contrat sécurisé</h1>
-        <p className="text-gray-600 max-w-2xl">
-          Sélectionnez un type de mission puis complétez les étapes. Bond génère automatiquement un contrat juridique,
-          un plan de jalons et un escrow pour sécuriser le paiement.
+        <p className="text-sm font-semibold uppercase tracking-[0.4em] text-primary-600">Bond</p>
+        <h1 className="text-4xl font-bold text-slate-900">Configurer votre contrat sécurisé</h1>
+        <p className="text-slate-600">
+          Sélectionnez un type de mission puis complétez les étapes. Bond génère automatiquement un contrat juridique, un plan de
+          jalons et un escrow pour sécuriser le paiement.
         </p>
       </header>
 
-      <section className="grid md:grid-cols-2 gap-6">
+      <section className="grid gap-6 md:grid-cols-2">
         {BOND_TYPES.map((type) => (
           <button
             key={type.id}
             onClick={() => setSelectedType(type.id)}
-            className={`text-left border rounded-2xl p-6 transition hover:border-blue-500 hover:shadow-sm ${
-              selectedType === type.id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white"
+            className={`text-left rounded-2xl border p-6 transition hover:border-primary-500 hover:shadow ${
+              selectedType === type.id ? "border-primary-500 bg-primary-50" : "border-slate-200 bg-white"
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{type.name}</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-slate-900">{type.name}</h2>
               {type.popular && (
-                <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">Populaire</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-primary-600">Populaire</span>
               )}
             </div>
-            <p className="text-gray-600 leading-relaxed">{type.description}</p>
+            <p className="mt-3 text-sm text-slate-600">{type.description}</p>
           </button>
         ))}
       </section>
 
-      <section className="border border-gray-200 rounded-3xl bg-white shadow-sm p-8">
-        <div className="flex items-center justify-between mb-6">
+      <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm uppercase text-gray-500 tracking-[0.3em]">Configuration du contrat</p>
-            <h2 className="text-2xl font-semibold text-gray-900">Étape {currentStep + 1} sur {FORM_STEPS.length}</h2>
+            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Configuration du contrat</p>
+            <h2 className="text-2xl font-semibold text-slate-900">Étape {currentStep + 1} sur {FORM_STEPS.length}</h2>
           </div>
-          <span className="text-sm font-semibold text-blue-600">{progress}% complété</span>
+          <span className="text-sm font-semibold text-primary-600">{progress}% complété</span>
         </div>
 
-        <div className="w-full bg-gray-100 h-2 rounded-full mb-8">
-          <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${progress}%` }} />
+        <div className="mt-6 h-2 w-full rounded-full bg-slate-100">
+          <div className="h-2 rounded-full bg-primary-600 transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="grid md:grid-cols-[2fr,3fr] gap-8 items-start">
+        <div className="mt-8 grid gap-8 md:grid-cols-[220px,1fr]">
           <aside className="space-y-3">
             {FORM_STEPS.map((step, index) => (
               <button
                 key={step.id}
                 onClick={() => goToStep(index)}
-                className={`w-full text-left px-4 py-3 rounded-xl border transition ${
+                className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
                   index === currentStep
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-transparent hover:border-gray-200"
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-transparent hover:border-slate-200"
                 }`}
               >
-                <p className="text-sm font-semibold">Étape {index + 1}</p>
-                <p className="text-sm text-gray-600">{step.title}</p>
+                <p className="font-semibold">Étape {index + 1}</p>
+                <p className="text-slate-600">{step.title}</p>
               </button>
             ))}
           </aside>
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{currentQuestion.title}</h3>
-              <p className="text-gray-600 mb-4">{currentQuestion.description}</p>
+              <h3 className="text-xl font-semibold text-slate-900">{currentQuestion.title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{currentQuestion.description}</p>
               <textarea
                 value={responses[currentQuestion.id] ?? ""}
                 onChange={(event) =>
                   setResponses((prev) => ({ ...prev, [currentQuestion.id]: event.target.value }))
                 }
                 placeholder={currentQuestion.placeholder}
-                rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={5}
+                className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={goPrev}
-                  disabled={currentStep === 0}
-                  className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Étape précédente
-                </button>
-                <button
-                  onClick={goNext}
-                  disabled={currentStep === FORM_STEPS.length - 1}
-                  className="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                >
-                  Étape suivante
-                </button>
-              </div>
-              <button className="px-6 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-                Générer l'aperçu du contrat
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                onClick={goPrev}
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 disabled:opacity-40"
+                disabled={currentStep === 0}
+              >
+                Étape précédente
+              </button>
+              <button
+                onClick={goNext}
+                className="inline-flex items-center justify-center rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700"
+                disabled={currentStep === FORM_STEPS.length - 1}
+              >
+                Étape suivante
               </button>
             </div>
           </div>

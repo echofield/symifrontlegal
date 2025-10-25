@@ -11,14 +11,7 @@ export const LAWYER_AUDIT_QUESTIONS: LawyerAuditQuestion[] = [
     id: "typeSituation",
     label: "Quel est le type de situation juridique ?",
     type: "select",
-    options: [
-      "Contrat",
-      "Ressources humaines",
-      "Immobilier",
-      "Entreprise",
-      "Contentieux",
-      "Autre",
-    ],
+    options: ["Contrat", "Ressources humaines", "Immobilier", "Entreprise", "Contentieux", "Autre"],
   },
   {
     id: "urgence",
