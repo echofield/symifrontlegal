@@ -12,6 +12,8 @@ export function Footer() {
               <a href="/confidentialite" className="underline ml-2">Politique de confidentialité</a>
               <span className="mx-2">•</span>
               <a href="/mentions-legales" className="underline">Mentions légales</a>
+              <span className="mx-2">•</span>
+              <a href="mailto:contact@symi.io" className="underline">contact@symi.io</a>
             </p>
           </div>
 

@@ -7,6 +7,7 @@ import { downloadContractPdf } from "../lib/exportPdf";
 import { showToast } from "./SystemToast";
 import { useRateLimitCountdown } from "../hooks/useRateLimit";
 import { ReviewPanel } from "./ReviewPanel";
+import { LegalDisclaimerModal } from "./LegalDisclaimerModal";
 import type { ContractTemplate, GenerateResponse } from "../types/contracts";
 
 interface ContractEditorViewProps {
@@ -21,7 +22,6 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [generatedText, setGeneratedText] = useState<string>('');
@@ -156,7 +156,6 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
   };
 
   const confirmDownloadPdf = async () => {
-    if (!acceptedTerms) return;
     setExporting(true);
     try {
       await downloadContractPdf({
@@ -166,7 +165,6 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
       });
       showToast('Contract exported as PDF', 'success');
       setShowDownloadModal(false);
-      setAcceptedTerms(false);
     } catch (err: any) {
       showToast(err.message || 'Export failed', 'error');
     } finally {
@@ -373,29 +371,12 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
       )}
 
     {/* Modal before download */}
-    {showDownloadModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-card border border-border p-6 w-full max-w-lg">
-          <h3 className="text-[1.125rem] mb-3" style={{ fontWeight: 600 }}>Conditions d'utilisation du document</h3>
-          <div className="space-y-3 text-[0. NineTwoFiverem]" style={{ lineHeight: 1.6 }}>
-            <p>Ce document est généré automatiquement par intelligence artificielle et fourni à titre informatif uniquement.</p>
-            <p>Il ne remplace pas l'avis personnalisé d'un avocat et n'a pas de valeur juridique sans validation par un professionnel du droit.</p>
-            <p>Symione décline toute responsabilité en cas de litige découlant de l'utilisation de ce document sans consultation juridique préalable.</p>
-            <p>Pour une situation à enjeu important, nous recommandons de faire valider ce document par un avocat.</p>
-          </div>
-          <div className="mt-4 space-y-4">
-            <label className="flex items-center gap-2 text-[0.875rem]">
-              <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-              J'ai lu et j'accepte ces conditions d'utilisation
-            </label>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => { setShowDownloadModal(false); setAcceptedTerms(false); }} className="px-4 py-2 border border-border">Annuler</button>
-              <button onClick={confirmDownloadPdf} disabled={!acceptedTerms || exporting} className="px-4 py-2 bg-accent text-accent-foreground disabled:opacity-50">Télécharger le contrat PDF</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
+    <LegalDisclaimerModal
+      isOpen={showDownloadModal}
+      onClose={() => setShowDownloadModal(false)}
+      onAccept={confirmDownloadPdf}
+      type="contract"
+    />
 
     {/* Upgrade modal */}
     {showUpgradeModal && (

@@ -7,42 +7,40 @@ interface PricingViewProps {
 
 const plans = [
   {
-    id: 'pro',
-    name: 'Pro',
-    price: '149',
-    period: '/ mois',
-    description: 'Pour freelances, PME et consultants qui veulent une équipe juridique à portée de main',
+    id: 'documents',
+    name: 'Documents',
+    price: '119',
+    period: '/ document',
+    description: 'Tous types de contrats juridiques professionnels',
     features: [
-      '20 contrats par mois',
-      'Accès bibliothèque complète (50+ modèles)',
-      'Conseiller IA (chat + vocal)',
-      'Export PDF & DOCX',
-      'Révisions illimitées',
-      'Support prioritaire (< 24h)',
+      'CDI, CDD, Stage, Freelance',
+      'NDA, CGU/CGV, Prestation services',
+      'Bail habitation, Promesse vente',
+      'Reconnaissance dette, Pacte associés',
+      'Export PDF professionnel',
+      'Support standard',
     ],
     icon: MessageSquare,
-    iconText: 'Assistant IA quotidien, simple et efficace',
-    cta: 'Commencer',
+    iconText: 'Accès immédiat sans engagement',
+    cta: 'Générer un contrat',
     variant: 'outline' as const,
-    target: 'Freelances, PME, Consultants',
+    target: 'Particuliers & Professionnels',
   },
   {
     id: 'cabinet',
     name: 'Cabinet',
-    price: '349',
+    price: '350',
     period: '/ mois',
     description: 'Pour cabinets d\'avocats et directions juridiques',
     features: [
-      'Contrats illimités',
-      'Rapport SYMI Intelligence hebdomadaire',
-      'Référencement prioritaire (Top 3 suggestions)',
-      'Assistant vocal IA personnalisé (votre branding)',
-      'Onboarding & formation inclus',
-      'Support prioritaire (< 2h, 7j/7)',
-      'Formation continue (1x/trimestre)',
+      'Rapport BODACC hebdomadaire',
+      'Veille juridique entreprises',
+      'Référencement prioritaire conseiller',
+      'Support prioritaire 48h',
+      'Accès API données entreprises',
     ],
     icon: Scale,
-    iconText: 'Partenariat avancé et avantages exclusifs',
+    iconText: 'Partenariat professionnel et visibilité',
     cta: 'Devenir partenaire',
     variant: 'accent' as const,
     highlighted: true,
@@ -53,19 +51,18 @@ const plans = [
     name: 'Entreprise',
     price: 'Sur consultation',
     period: '',
-    description: 'Pour grands cabinets (20+) et corporate',
+    description: 'Pour grandes organisations (20+ employés)',
     features: [
-      'White label complet (votre marque)',
-      'Accès API (ERP/CRM)',
-      'Rapports SYMI personnalisés',
-      'Multi-juridictions (FR, UE, UK, US)',
-      'SLA 99.9% garanti',
-      'Account manager dédié',
-      'Installation sur-mesure et développements custom',
+      'Documents illimités',
+      'API Access (ERP/CRM)',
+      'White-label complet',
+      'Support dédié',
+      'SLA 99.9%',
+      'Installation sur-mesure',
     ],
     icon: Phone,
-    iconText: 'Accompagnement dédié et intégrations avancées',
-    cta: 'Discuter de vos besoins',
+    iconText: 'Solutions sur-mesure et intégration',
+    cta: 'Nous consulter',
     variant: 'outline' as const,
     target: 'Grandes organisations',
   },
@@ -73,8 +70,10 @@ const plans = [
 
 export function PricingView({ onNavigate }: PricingViewProps) {
   const handleSelectPlan = (planId: string) => {
-    if (planId === 'cabinet') {
+    if (planId === 'cabinet' || planId === 'enterprise') {
       onNavigate('contact');
+    } else if (planId === 'documents') {
+      onNavigate('contracts');
     } else {
       onNavigate('login');
     }
@@ -219,15 +218,15 @@ export function PricingView({ onNavigate }: PricingViewProps) {
                 {/* CTA */}
                 <button
                   onClick={async () => {
-                    if (plan.id === 'pro' || plan.id === 'cabinet') {
+                    if (plan.id === 'cabinet') {
                       try {
-                        const res = await fetch('/api/stripe/create-checkout', {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://symilegalback-virid.vercel.app'}/api/cabinet/subscribe`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ plan: plan.id })
+                          body: JSON.stringify({ email: '', cabinetName: '', siret: '' })
                         });
                         const data = await res.json();
-                        if (data?.url) window.location.href = data.url; else handleSelectPlan(plan.id);
+                        if (data?.checkoutUrl) window.location.href = data.checkoutUrl; else handleSelectPlan(plan.id);
                       } catch {
                         handleSelectPlan(plan.id);
                       }
@@ -249,7 +248,121 @@ export function PricingView({ onNavigate }: PricingViewProps) {
           })}
         </div>
 
-        {/* Validation avocat supprimée par consigne */}
+        {/* Bond Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.3, ease: 'linear', delay: 0.3 }}
+          className="mt-16 border border-border p-10"
+        >
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <h3 
+                className="text-[2rem] mb-4 tracking-[-0.02em]"
+                style={{ fontWeight: 600 }}
+              >
+                Bond - Coffre-fort Sécurisé
+              </h3>
+              <p 
+                className="text-[1rem] text-muted-foreground mb-4"
+                style={{ lineHeight: 1.7 }}
+              >
+                Pour missions freelance avec paiements par jalons sécurisés
+              </p>
+              <div className="flex items-baseline gap-4">
+                <div>
+                  <span 
+                    className="text-[2.5rem] tracking-[-0.03em]"
+                    style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}
+                  >
+                    149
+                  </span>
+                  <span 
+                    className="text-[1rem] text-muted-foreground ml-1"
+                    style={{ fontFamily: 'var(--font-mono)' }}
+                  >
+                    € setup
+                  </span>
+                </div>
+                <span className="text-muted-foreground mx-2">+</span>
+                <div>
+                  <span 
+                    className="text-[2.5rem] tracking-[-0.03em]"
+                    style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}
+                  >
+                    3
+                  </span>
+                  <span 
+                    className="text-[1rem] text-muted-foreground ml-1"
+                    style={{ fontFamily: 'var(--font-mono)' }}
+                  >
+                    % commission
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div>
+              <p className="text-sm font-medium mb-3">4 types de contrats :</p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Prestation de service (dev, design, conseil...)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Travaux (construction, rénovation...)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Création artistique (design, vidéo...)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Événementiel (organisation, traiteur...)
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium mb-3">Fonctionnalités :</p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Paiements sécurisés par jalon
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Validation client avant versement
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Protection vendeur et acheteur
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-accent" />
+                  Livraison conditionnelle
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Exemple : Mission 10 000€ = 149€ + 300€ commission = <span className="font-semibold text-foreground">449€ total</span>
+            </p>
+            <button
+              onClick={() => onNavigate('contracts')}
+              className="px-8 py-3 bg-accent text-accent-foreground text-[0.75rem] uppercase tracking-[0.12em] hover:shadow-[0_0_20px_var(--accent-glow)] transition-all"
+              style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+            >
+              Créer un contrat Bond
+            </button>
+          </div>
+        </motion.div>
 
         {/* Additional info */}
         <motion.div
@@ -263,7 +376,7 @@ export function PricingView({ onNavigate }: PricingViewProps) {
             className="text-[0.875rem] text-muted-foreground mb-6"
             style={{ lineHeight: 1.7 }}
           >
-            Tous les plans incluent l'accès aux 3 juridictions (FR, UK, US) et la garantie de génération en moins de 5 minutes.
+            Documents générés conformes au droit français. Garantie de génération en moins de 5 minutes.
           </p>
           <button
             onClick={() => onNavigate('contact')}

@@ -5,6 +5,8 @@ import { showToast } from "./SystemToast";
 import { ConseillerAPI, useAPI, APIError, RateLimitError } from "../lib/api-client";
 import { LoadingSpinner, LoadingButton, useLoadingState } from "./LoadingComponents";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { LawyerContactCard } from "./LawyerContactCard";
+import { LegalDisclaimerModal } from "./LegalDisclaimerModal";
 
 const SYSTEM_GREETING = `Bonjour, je suis votre assistant juridique intelligent.
 
@@ -34,6 +36,27 @@ interface AnalyzeResult {
   recommendedLawyers?: LawyerRec[];
 }
 
+const HELPER_QUESTIONS = [
+  "Type de situation juridique ?",
+  "Niveau d'urgence ?",
+  "Budget disponible pour honoraires avocat ?",
+  "Quel est l'enjeu financier du dossier ?",
+  "Qui est la partie adverse ?",
+  "Y a-t-il une procédure déjà en cours ?",
+  "Avez-vous des documents/preuves ?",
+  "Localisation géographique du dossier ?",
+  "Préférence type d'avocat ?",
+  "Expérience minimale souhaitée ?",
+  "Langue(s) de travail souhaitée(s) ?",
+  "Modalité de rendez-vous préférée ?",
+  "Votre disponibilité pour un premier RDV ?",
+  "Avez-vous déjà consulté un avocat pour ce dossier ?",
+  "Quel est votre objectif principal ?",
+  "Le dossier présente-t-il une sensibilité particulière ?",
+  "Contexte, enjeux, dates clés ?",
+  "Actions déjà entreprises ?"
+];
+
 export function ConseillerView({ onBack }: ConseillerViewProps) {
   const [problem, setProblem] = useState('');
   const [city, setCity] = useState('');
@@ -43,6 +66,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([]);
   const [followUpQuestion, setFollowUpQuestion] = useState('');
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [showHelperQuestions, setShowHelperQuestions] = useState(false);
   
   const { loading, error, startLoading, stopLoading, setErrorState } = useLoadingState();
 
@@ -51,6 +76,12 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       showToast('Veuillez décrire votre situation en détail (min 50 caractères)', 'error');
       return;
     }
+    
+    setShowDisclaimer(true);
+  };
+
+  const handleDisclaimerAccept = async () => {
+    setShowDisclaimer(false);
     
     try {
       startLoading();
@@ -272,14 +303,37 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
               </div>
 
               <div>
-                <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                  Décrivez votre situation en détail
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                    Décrivez votre situation en détail
+                  </label>
+                  <button
+                    onClick={() => setShowHelperQuestions(!showHelperQuestions)}
+                    className="text-[0.625rem] uppercase tracking-[0.08em] text-accent hover:underline"
+                    style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
+                  >
+                    {showHelperQuestions ? 'Masquer les suggestions' : 'Voir les questions suggérées'}
+                  </button>
+                </div>
+                
+                {showHelperQuestions && (
+                  <div className="mb-3 p-3 bg-accent/5 border border-accent/10 text-[0.75rem] space-y-1">
+                    <p className="text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>
+                      Pour une analyse complète, pensez à mentionner:
+                    </p>
+                    <ul className="list-disc list-inside space-y-0.5 text-muted-foreground/80">
+                      {HELPER_QUESTIONS.slice(0, 8).map((q, i) => (
+                        <li key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{q}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <textarea
                   value={problem}
                   onChange={(e) => setProblem(e.target.value)}
                   rows={8}
-                  placeholder={"Contexte, enjeux, dates clés, actions déjà réalisées"}
+                  placeholder={"Contexte, enjeux, dates clés, actions déjà réalisées..."}
                   className="w-full px-3 py-2.5 bg-input-background border border-border focus-precision transition-all duration-200 text-[0.875rem] resize-none placeholder:text-muted-foreground/50"
                   style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}
                 />
@@ -298,15 +352,16 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 />
               </div>
 
-              <LoadingButton
-                loading={loading}
-                onClick={analyzeAndRecommend}
-                disabled={!problem.trim()}
-                className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em]"
-                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-              >
-                {loading ? 'Analyse en cours...' : 'Analyser ma situation'}
-              </LoadingButton>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                <LoadingButton
+                  loading={loading}
+                  onClick={analyzeAndRecommend}
+                  disabled={!problem.trim()}
+                  className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em]"
+                >
+                  {loading ? 'Analyse en cours...' : 'Analyser ma situation'}
+                </LoadingButton>
+              </div>
 
               <p className="text-[0.625rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300, lineHeight: 1.5 }}>
                 Réponse en moins de 30 secondes • Service confidentiel
@@ -381,34 +436,34 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 <div className="bg-card border border-border p-6 lg:p-8">
                   <h2 className="text-[1.25rem] mb-4" style={{ fontWeight: 600 }}>Avocats recommandés</h2>
                   {!result.recommendedTemplate && (
-                    <p className="text-[0.875rem] text-muted-foreground mb-3">Ce cas nécessite l'expertise d'un avocat spécialisé. Aucun template standard ne correspond à votre situation.</p>
+                    <p className="text-[0.875rem] text-muted-foreground mb-4">Ce cas nécessite l'expertise d'un avocat spécialisé. Aucun template standard ne correspond à votre situation.</p>
                   )}
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {result.recommendedLawyers.map((l, i) => (
-                      <div key={i} className="border border-border p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="text-[1rem]" style={{ fontWeight: 600 }}>{l.name}</div>
-                          {typeof l.rating === 'number' && (
-                            <div className="text-[0.75rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>{l.rating}/5</div>
-                          )}
-                        </div>
-                        <div className="text-[0.875rem] text-muted-foreground mt-1">
-                          {[l.specialty, l.city, l.firm].filter(Boolean).join(' • ')}
-                        </div>
-                        {l.phone && (
-                          <a href={`tel:${l.phone}`} className="text-[0.75rem] mt-2 inline-block underline">Contacter</a>
-                        )}
-                      </div>
+                      <LawyerContactCard key={i} lawyer={l} />
                     ))}
                   </div>
+                  {result.recommendedLawyers.length === 0 && (
+                    <div className="text-center p-6 bg-accent/5 border border-accent/10">
+                      <p className="text-[0.875rem] text-muted-foreground mb-3">
+                        Aucun avocat trouvé dans votre zone.
+                      </p>
+                      <a 
+                        href="mailto:contact@symi.io"
+                        className="text-accent hover:underline text-[0.75rem] uppercase tracking-[0.08em]"
+                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
+                      >
+                        Contactez-nous pour une mise en relation
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Soft CTA */}
               <div className="border border-border p-4 text-[0.875rem] bg-accent/5">
-                <span className="mr-2">💡</span>
-                Créez un compte gratuit pour sauvegarder vos consultations et générer des contrats personnalisés.
-                <button onClick={() => (window.location.href = '/login')} className="ml-3 underline">Créer un compte</button>
+                Créez un compte pour sauvegarder vos consultations et générer des contrats personnalisés.
+                <button onClick={() => (window.location.href = '/login')} className="ml-3 underline text-accent">Créer un compte</button>
               </div>
             </motion.div>
           )}
@@ -521,6 +576,14 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
         </div>
       </div>
       </div>
+
+      {/* Legal Disclaimer Modal */}
+      <LegalDisclaimerModal
+        isOpen={showDisclaimer}
+        onClose={() => setShowDisclaimer(false)}
+        onAccept={handleDisclaimerAccept}
+        type="advisor"
+      />
     </ErrorBoundary>
   );
 }
