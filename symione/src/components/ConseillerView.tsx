@@ -75,8 +75,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
   const { loading, error, startLoading, stopLoading, setErrorState } = useLoadingState();
 
   const analyzeAndRecommend = async () => {
-    if (!problem || problem.trim().length < 50) {
-      showToast('Veuillez décrire votre situation en détail (min 50 caractères)', 'error');
+    if (!problem || problem.trim().length < 20) {
+      showToast('Veuillez décrire votre situation en détail (min 20 caractères)', 'error');
       return;
     }
     
@@ -108,6 +108,9 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
         'pas_urgent': 3
       };
       
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 12000);
+
       const response = await ConseillerAPI.analyze({ 
         problem, 
         city,
@@ -115,6 +118,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
         urgency: urgencyMap[urgence] || 5,
         hasEvidence: hasProofs === 'oui'
       });
+
+      clearTimeout(timeoutId);
       
       // Handle new response format
       if (response.success && response.analysis) {
@@ -142,13 +147,15 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       ]);
       
       showToast('Analyse terminée avec succès', 'success');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Analysis error:', err);
       
       if (err instanceof RateLimitError) {
         showToast(`Limite de taux atteinte. Réessayez dans ${err.retryAfter} secondes.`, 'error');
       } else if (err instanceof APIError) {
         showToast(err.message, 'error');
+      } else if ((err as any)?.name === 'AbortError') {
+        showToast(`L'analyse prend trop de temps. Réessayez avec une description plus courte.`, 'error');
       } else {
         showToast('Erreur lors de l\'analyse. Veuillez réessayer.', 'error');
       }
