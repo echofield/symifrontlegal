@@ -1,6 +1,5 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
   "framework": "vite",
-  "rootDirectory": "symione"
+  "buildCommand": "cd symione && npm ci --no-audit --progress=false && npm run build",
+  "outputDirectory": "symione/build"
 }
