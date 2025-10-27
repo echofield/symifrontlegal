@@ -27,7 +27,7 @@ async function callOpenAIAudit(params: {
   urgency: number;
   hasEvidence: boolean;
   city?: string;
-}) {
+}, signal?: AbortSignal) {
   const { description, category, urgency, hasEvidence, city } = params;
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
@@ -240,6 +240,7 @@ Tu es un expert. Montre ton expertise.`;
       ],
       response_format: { type: "json_object" }
     }),
+    signal,
   });
   
   if (!r.ok) {
@@ -272,7 +273,7 @@ Tu es un expert. Montre ton expertise.`;
   return analysis;
 }
 
-async function callPerplexityLawyers(city: string, specialty: string) {
+async function callPerplexityLawyers(city: string, specialty: string, signal?: AbortSignal) {
   try {
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey) {
@@ -303,8 +304,9 @@ années expérience, avis clients si disponibles. Format JSON: [{nom, cabinet, a
           }
         ],
         temperature: 0.2,
-        max_tokens: 1000,
+        max_tokens: 400,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -414,14 +416,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    // Call enhanced OpenAI audit
+    // Call enhanced OpenAI audit with timeout controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     const audit = await callOpenAIAudit({
       description: problem,
       category: category || situationType || 'Non spécifié',
       urgency: urgency || (urgence ? parseInt(urgence) : 5),
       hasEvidence: hasEvidence || hasProofs === 'true',
       city
-    });
+    }, controller.signal);
     // Get recommended template if specified
     let recommendedTemplate: any = null;
     if (audit?.recommendedTemplateId) {
@@ -447,7 +452,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const specialty = audit.recommandation.lawyerSpecialty || 
                        mapCategoryToSpecialty(audit.category || category || 'Autre');
       
-      recommendedLawyers = await callPerplexityLawyers(city, specialty);
+      try {
+        recommendedLawyers = await callPerplexityLawyers(city, specialty, controller.signal);
+      } catch (e) {
+        recommendedLawyers = [];
+      }
       
       // Add Google Maps URLs
       recommendedLawyers = recommendedLawyers.map((lawyer: any) => ({
@@ -477,6 +486,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
     };
 
+    clearTimeout(timeoutId);
     console.log('[CONSEILLER] Analysis completed successfully');
 
     return res.status(200).json({
@@ -484,8 +494,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       analysis: enrichedAnalysis
     });
   } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      return res.status(200).json({ success: false, error: "L'analyse prend trop de temps. Veuillez réessayer avec une description plus courte.", timeout: true } as any);
+    }
     console.error('conseiller:analyze error', err);
-    return res.status(500).json({ error: true, message: err?.message || 'Analyse failed' });
+    return res.status(200).json({ success: false, error: 'Une erreur est survenue lors de l\'analyse. Veuillez réessayer.' } as any);
   }
 }
 
