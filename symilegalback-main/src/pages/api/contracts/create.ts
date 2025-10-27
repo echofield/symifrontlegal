@@ -9,18 +9,18 @@ import { withValidation } from '@/lib/validation/middleware';
 const msSchema = z.object({
   title: z.string().min(2),
   description: z.string().min(2),
-  amount: z.number().int().positive(),
-  dueAt: z.string().datetime().optional(),
+  amount: z.coerce.number().int().positive(),
+  dueAt: z.coerce.string().datetime().optional(),
 });
 
 const schema = z.object({
   title: z.string().min(3),
-  payerId: z.string(),
-  payeeId: z.string(),
-  currency: z.string().min(3),
-  termsJson: z.record(z.unknown()),
+  payerId: z.string().optional(),
+  payeeId: z.string().optional(),
+  currency: z.string().min(3).default('EUR'),
+  termsJson: z.record(z.unknown()).default({}),
   milestones: z.array(msSchema).min(1),
-  totalAmount: z.number().int().positive().optional(),
+  totalAmount: z.coerce.number().int().positive().optional(),
 });
 
 const ResponseSchema = z.object({
@@ -45,17 +45,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ContractCreateR
   const body = req.body;
   
   try {
-    const total = body.totalAmount ?? body.milestones.reduce((s: any, m: any) => s + m.amount, 0);
+    const payerId = body.payerId || `anon_${Math.random().toString(36).slice(2,10)}`;
+    const payeeId = body.payeeId || `anon_${Math.random().toString(36).slice(2,10)}`;
+    const currency = body.currency || 'EUR';
+    const total = body.totalAmount ?? body.milestones.reduce((s: any, m: any) => s + Number(m.amount), 0);
     const slug = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
     
     const created = await prisma.contract.create({
       data: {
         slug,
         title: body.title,
-        creatorId: body.payerId,
-        payerId: body.payerId,
-        payeeId: body.payeeId,
-        currency: body.currency,
+        creatorId: payerId,
+        payerId,
+        payeeId,
+        currency,
         totalAmount: total,
         termsJson: body.termsJson,
         status: ContractStatus.ACTIVE,

@@ -8,7 +8,7 @@ import { rateLimit } from '@/middleware/rateLimit';
 export const runtime = 'nodejs';
 
 const RequestSchema = z.object({
-  problem: z.string().min(50),
+  problem: z.string().min(20, 'Veuillez décrire votre situation (≥ 20 caractères).'),
   city: z.string().optional(),
   category: z.string().optional(),
   urgency: z.number().optional(),
