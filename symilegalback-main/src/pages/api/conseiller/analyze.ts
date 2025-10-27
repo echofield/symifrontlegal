@@ -418,7 +418,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Call enhanced OpenAI audit with timeout controller
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const audit = await callOpenAIAudit({
       description: problem,
