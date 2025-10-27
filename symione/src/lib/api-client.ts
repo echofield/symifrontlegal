@@ -431,35 +431,8 @@ export const BondAPI = {
 
 // Enhanced Conseiller API
 export const ConseillerAPI = {
-  analyze: (payload: { 
-    problem: string; 
-    city?: string; 
-    situationType?: string; 
-    urgence?: string; 
-    hasProofs?: string; 
-  }) => 
-    apiClient.post<{
-      audit: {
-        summary: string;
-        risks: string[];
-        urgency: string;
-        complexity: string;
-        legalQualification?: string;
-        financialAnalysis?: string;
-        riskAssessment?: string;
-        actionPlan?: string[];
-        lawyerRecommendations?: any[];
-      };
-      recommendedTemplate?: {
-        id: string | null;
-        name: string | null;
-        slug: string | null;
-        available: boolean;
-        reason?: string;
-      };
-      needsLawyer?: boolean;
-      recommendedLawyers?: any[];
-    }>('/conseiller/analyze', payload),
+  // Accepts extended payload (category, urgency, hasEvidence) and returns flexible result shape
+  analyze: (payload: any) => apiClient.post<any>('/conseiller/analyze', payload),
 };
 
 // Enhanced Advisor API - LEX-ADVISOR Chatbot

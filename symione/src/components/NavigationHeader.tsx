@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
 
 interface NavigationHeaderProps {
   currentView: View;
@@ -64,7 +64,8 @@ export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }:
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => {
               const isActive = currentView === item.view || 
-                (item.view === 'bond' && ['bond-create', 'bond-contract', 'bond-payment', 'bond-settings'].includes(currentView));
+                (item.view === 'bond' && ['bond-create', 'bond-contract', 'bond-payment', 'bond-settings'].includes(currentView)) ||
+                (item.view === 'conseiller' && currentView === 'conseiller-wizard');
               
               return (
                 <button
@@ -102,7 +103,8 @@ export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }:
         <nav className="lg:hidden pb-4 flex gap-4 overflow-x-auto">
           {navItems.map((item) => {
             const isActive = currentView === item.view || 
-              (item.view === 'bond' && ['bond-create', 'bond-contract', 'bond-payment', 'bond-settings'].includes(currentView));
+              (item.view === 'bond' && ['bond-create', 'bond-contract', 'bond-payment', 'bond-settings'].includes(currentView)) ||
+              (item.view === 'conseiller' && currentView === 'conseiller-wizard');
             
             return (
               <button

@@ -7,6 +7,7 @@ import { ControlSurface } from './components/ControlSurface';
 import { ContractsListView } from './components/ContractsListView';
 import { ContractEditorView } from './components/ContractEditorView';
 import { ConseillerView } from './components/ConseillerView';
+import ConseillerWizardView from './components/ConseillerWizardView';
 import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
@@ -24,7 +25,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializePerformanceMonitoring, useRenderPerformance } from './lib/performance-monitoring';
 import { supabase } from './lib/supabaseClient';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -35,6 +36,52 @@ function AppContent() {
   // Initialize performance monitoring
   useEffect(() => {
     initializePerformanceMonitoring();
+  }, []);
+
+  // Lightweight path-based routing for deep links
+  useEffect(() => {
+    const viewToPath = (view: View) => {
+      switch (view) {
+        case 'home': return '/';
+        case 'contracts': return '/modeles';
+        case 'editor': return '/editeur';
+        case 'conseiller': return '/conseiller';
+        case 'conseiller-wizard': return '/conseiller/wizard';
+        case 'pricing': return '/prix';
+        case 'docs': return '/documentation';
+        case 'contact': return '/nous-consulter';
+        case 'bond': return '/bond';
+        case 'bond-create': return '/bond/create';
+        case 'bond-guide': return '/bond/guide';
+        default: return '/';
+      }
+    };
+
+    const pathToView = (path: string): View => {
+      if (path.startsWith('/conseiller/wizard')) return 'conseiller-wizard';
+      if (path.startsWith('/conseiller')) return 'conseiller';
+      if (path.startsWith('/modeles')) return 'contracts';
+      if (path.startsWith('/prix')) return 'pricing';
+      if (path.startsWith('/documentation')) return 'docs';
+      if (path.startsWith('/nous-consulter')) return 'contact';
+      if (path.startsWith('/bond/guide')) return 'bond-guide';
+      if (path.startsWith('/bond/create')) return 'bond-create';
+      if (path.startsWith('/bond')) return 'bond';
+      return 'home';
+    };
+
+    // Initialize from current path
+    const initialView = pathToView(window.location.pathname);
+    setCurrentView(initialView);
+    setNavigationHistory([initialView]);
+
+    // Sync back/forward navigation
+    const onPopState = () => {
+      const view = pathToView(window.location.pathname);
+      setCurrentView(view);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   const [navigationHistory, setNavigationHistory] = useState<View[]>(['home']);
@@ -48,6 +95,29 @@ function AppContent() {
     setCurrentView(view);
     if (templateId) setSelectedTemplateId(templateId);
     if (jurisdiction) setSelectedJurisdiction(jurisdiction);
+    // Update URL path for deep links
+    try {
+      const viewToPath = (v: View) => {
+        switch (v) {
+          case 'home': return '/';
+          case 'contracts': return '/modeles';
+          case 'editor': return '/editeur';
+          case 'conseiller': return '/conseiller';
+          case 'conseiller-wizard': return '/conseiller/wizard';
+          case 'pricing': return '/prix';
+          case 'docs': return '/documentation';
+          case 'contact': return '/nous-consulter';
+          case 'bond': return '/bond';
+          case 'bond-create': return '/bond/create';
+          case 'bond-guide': return '/bond/guide';
+          default: return '/';
+        }
+      };
+      const path = viewToPath(view);
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
+    } catch {}
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -294,6 +364,18 @@ function AppContent() {
               <ConseillerView 
                 onBack={handleBack}
               />
+            </motion.div>
+          )}
+
+          {currentView === 'conseiller-wizard' && (
+            <motion.div
+              key="conseiller-wizard"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <ConseillerWizardView />
             </motion.div>
           )}
 

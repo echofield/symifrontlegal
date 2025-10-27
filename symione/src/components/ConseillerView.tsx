@@ -111,7 +111,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       const abortController = new AbortController();
       const timeoutId = setTimeout(() => abortController.abort(), 12000);
 
-      const response = await ConseillerAPI.analyze({ 
+      const response: any = await ConseillerAPI.analyze({ 
         problem, 
         city,
         category: categoryMap[situationType] || situationType,
@@ -122,8 +122,8 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
       clearTimeout(timeoutId);
       
       // Handle new response format
-      if (response.success && response.analysis) {
-        const analysis = response.analysis;
+      if ((response as any)?.success && (response as any)?.analysis) {
+        const analysis = (response as any).analysis;
         setResult({
           audit: {
             summary: analysis.resume || '',
@@ -260,6 +260,15 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
             <h1 className="text-[2rem] md:text-[3rem] tracking-[-0.03em]" style={{ fontWeight: 600, lineHeight: 1.1 }}>
               Conseiller juridique
             </h1>
+            <div className="mt-4">
+              <a
+                href="/conseiller/wizard"
+                className="inline-block px-4 py-2 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground"
+                style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
+              >
+                Essayer le mode pas-à-pas
+              </a>
+            </div>
           </div>
         </motion.div>
 
@@ -435,19 +444,19 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
               {/* Audit */}
               <div className="bg-card border border-border p-6 lg:p-8">
                 <h2 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Analyse de votre situation</h2>
-                <p className="text-[0.875rem] mb-4" style={{ lineHeight: 1.6 }}>{result.audit.summary}</p>
-                {Array.isArray(result.audit.risks) && result.audit.risks.length > 0 && (
+                <p className="text-[0.875rem] mb-4" style={{ lineHeight: 1.6 }}>{result.audit?.summary || ''}</p>
+                {Array.isArray(result.audit?.risks) && result.audit!.risks.length > 0 && (
                   <div className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>
                     <div className="mb-1" style={{ fontWeight: 600 }}>Points d'attention:</div>
                     <ul className="list-disc pl-5">
-                      {result.audit.risks.map((r, i) => (
+                      {result.audit!.risks.map((r, i) => (
                         <li key={i}>{r}</li>
                       ))}
                     </ul>
                   </div>
                 )}
                 <div className="text-[0.75rem] text-muted-foreground mt-3" style={{ fontFamily: 'var(--font-mono)' }}>
-                  <span>Urgence: {result.audit.urgency}</span> • <span>Complexité: {result.audit.complexity}</span>
+                  <span>Urgence: {result.audit?.urgency}</span> • <span>Complexité: {result.audit?.complexity}</span>
                 </div>
               </div>
 
@@ -618,19 +627,19 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 {/* Message 1: Audit */}
                 <div className="border border-border p-4">
                   <h4 className="text-[0.95rem] mb-2">📋 Analyse de votre situation</h4>
-                  <p className="text-[0.875rem] mb-2"><strong>Résumé:</strong> {result.audit.summary}</p>
-                  {Array.isArray(result.audit.risks) && result.audit.risks.length > 0 && (
+                  <p className="text-[0.875rem] mb-2"><strong>Résumé:</strong> {result.audit?.summary || ''}</p>
+                  {Array.isArray(result.audit?.risks) && result.audit!.risks.length > 0 && (
                     <div className="text-[0.875rem] mb-2">
                       <strong>Points d'attention:</strong>
                       <ul className="list-disc pl-5">
-                        {result.audit.risks.map((p, i) => (<li key={i}>{p}</li>))}
+                        {result.audit!.risks.map((p, i) => (<li key={i}>{p}</li>))}
                       </ul>
                     </div>
                   )}
                   <div className="flex items-center gap-3 text-[0.75rem] text-muted-foreground">
-                    <span>Urgence: {result.audit.urgency}</span>
+                    <span>Urgence: {result.audit?.urgency}</span>
                     <span>•</span>
-                    <span>Complexité: {result.audit.complexity}</span>
+                    <span>Complexité: {result.audit?.complexity}</span>
                   </div>
                 </div>
 
