@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "dev": "echo 'root dev disabled; use symione'",
+    "build": "echo 'root build disabled; Vercel builds symione'",
+    "start": "echo 'root start disabled'",
     "lint": "eslint"
   },
   "dependencies": {

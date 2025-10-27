@@ -1,4 +1,11 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "vite",
+  "rootDirectory": "symione"
+}
+
+{
   "version": 2,
   "builds": [
     {
