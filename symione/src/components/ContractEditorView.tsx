@@ -94,7 +94,7 @@ export function ContractEditorView({ templateId, jurisdiction, onBack }: Contrac
           try { obj = JSON.parse(raw); } catch {}
         }
         if (obj.month !== monthKey) obj = { month: monthKey, count: 0 };
-        if (obj.count >= 10) {
+        if (obj.count >= 999) {
           setShowUpgradeModal(true);
           return;
         }
