@@ -331,15 +331,15 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                 
                 {/* Question 3: Preuves */}
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-foreground mb-2">Avez-vous des preuves/documents?</label>
-                  <div className="flex gap-4">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Avez-vous des preuves/documents?</label>
+                  <div className="flex gap-3">
                     <label className="flex items-center">
                       <input 
                         type="radio" 
                         value="oui" 
                         checked={hasProofs === 'oui'}
                         onChange={(e) => setHasProofs(e.target.value)}
-                        className="mr-2"
+                        className="mr-1.5"
                       />
                       <span className="text-sm text-foreground">Oui, j'ai des preuves</span>
                     </label>
@@ -349,7 +349,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
                         value="non" 
                         checked={hasProofs === 'non'}
                         onChange={(e) => setHasProofs(e.target.value)}
-                        className="mr-2"
+                        className="mr-1.5"
                       />
                       <span className="text-sm text-foreground">Non, pas de preuves</span>
                     </label>

@@ -318,11 +318,11 @@ export default function ConseillerWizardView() {
 
                         {currentQuestion.type === 'radio' && currentQuestion.options && (
                           <RadioGroup value={currentAnswer} onValueChange={setCurrentAnswer}>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {currentQuestion.options.map(opt => (
-                                <div key={opt.value} className="flex items-center space-x-3">
+                                <div key={opt.value} className="flex items-center space-x-2">
                                   <RadioGroupItem value={opt.value} id={opt.value} />
-                                  <Label htmlFor={opt.value} className="cursor-pointer">{opt.label}</Label>
+                                  <Label htmlFor={opt.value} className="cursor-pointer text-sm">{opt.label}</Label>
                                 </div>
                               ))}
                             </div>
