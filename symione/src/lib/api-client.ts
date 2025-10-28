@@ -1,16 +1,4 @@
-// Import API types from backend
-import type { 
-  ContractCreateResponse,
-  ContractListResponse,
-  ContractDetailResponse,
-  MilestoneSubmitResponse,
-  MilestoneValidateResponse,
-  TemplateListResponse,
-  QuestionListResponse,
-  ContractSuggestResponse,
-  BondContract,
-  BondMilestone
-} from '../../symilegalback/src/types/api';
+// Types are intentionally generic here to avoid tight coupling with backend build artifacts
 
 // Enterprise-grade API Client with comprehensive error handling and monitoring
 class APIClient {
@@ -203,9 +191,21 @@ class NetworkError extends Error {
 }
 
 // Export instance configurée
-export const apiClient = new APIClient(
-  process.env.NEXT_PUBLIC_API_URL || 'https://symilegalback.vercel.app/api'
-);
+// Resolve base URL for both Vite and Next.js builds
+const viteBase = (typeof window === 'undefined' ? undefined : (import.meta as any)?.env?.VITE_API_BASE_URL) || (import.meta as any)?.env?.VITE_API_BASE_URL;
+const nextBase = (process as any)?.env?.NEXT_PUBLIC_API_URL;
+// Prefer Vite base (without trailing slash) + '/api' when provided, else Next base, else default stable API domain
+const resolvedBase = (() => {
+  if (viteBase) {
+    return `${String(viteBase).replace(/\/$/, '')}/api`;
+  }
+  if (nextBase) {
+    return String(nextBase).replace(/\/$/, '');
+  }
+  return 'https://api.symione.com/api';
+})();
+
+export const apiClient = new APIClient(resolvedBase);
 
 // Enhanced React hook for API calls with comprehensive state management
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -390,13 +390,13 @@ interface BondQuestion {
 export const BondAPI = {
   // Template management
   getTemplates: async () => {
-    const response = await apiClient.get<{ success: boolean; data: { templates: any[] }; message: string; timestamp: string }>('/contracts/templates');
+    const response = await apiClient.get<any>('/contracts/templates');
     return { ok: true, templates: response.data?.templates || [] };
   },
 
   // Question management
   getQuestions: async (id?: string) => {
-    const response = await apiClient.get<{ success: boolean; data: { questions: any }; message: string; timestamp: string }>(
+    const response = await apiClient.get<any>(
       id ? `/contracts/questions?id=${encodeURIComponent(id)}` : '/contracts/questions'
     );
     return { ok: true, questions: response.data.questions };
@@ -404,29 +404,29 @@ export const BondAPI = {
   
   // Contract generation
   suggest: (payload: { templateId: string; answers: Record<string, any> }) => 
-    apiClient.post<ContractSuggestResponse>('/contracts/suggest', payload),
+    apiClient.post<any>('/contracts/suggest', payload),
   
   create: (payload: { templateId: string; answers: Record<string, any> }) => 
-    apiClient.post<ContractCreateResponse>('/contracts/create', payload),
+    apiClient.post<any>('/contracts/create', payload),
   
   // Contract management
-  getContracts: () => apiClient.get<ContractListResponse>('/escrow/contracts'),
+  getContracts: () => apiClient.get<any>('/escrow/contracts'),
   
-  getContract: (id: string) => apiClient.get<ContractDetailResponse>(`/escrow/contracts/${id}`),
+  getContract: (id: string) => apiClient.get<any>(`/escrow/contracts/${id}`),
   
   // Payment management
   createPaymentIntent: (payload: { contractId: string; amount: number; currency: string }) => 
-    apiClient.post<{ success: boolean; clientSecret: string; paymentIntentId: string }>('/escrow/intent/create', payload),
+    apiClient.post<any>('/escrow/intent/create', payload),
   
   intentCreate: (payload: { contractId: string; milestoneId: string; amount: number }) => 
-    apiClient.post<{ success: boolean; clientSecret: string; paymentIntentId: string }>('/escrow/intent/create', payload),
+    apiClient.post<any>('/escrow/intent/create', payload),
   
   // Milestone management
   submitMilestone: (payload: { milestoneId: string; proof: string; description?: string }) => 
-    apiClient.post<MilestoneSubmitResponse>('/escrow/milestone/submit', payload),
+    apiClient.post<any>('/escrow/milestone/submit', payload),
   
   validateMilestone: (payload: { milestoneId: string; approved: boolean; feedback?: string }) => 
-    apiClient.post<MilestoneValidateResponse>('/escrow/milestone/validate', payload),
+    apiClient.post<any>('/escrow/milestone/validate', payload),
 };
 
 // Enhanced Conseiller API

@@ -273,9 +273,9 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
         </motion.div>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left column: Input */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[450px_1fr] gap-6">
+        {/* Left column: Input (sticky on desktop) */}
+        <div className="space-y-6 lg:sticky lg:top-20 self-start">
           {/* System greeting */}
           <div className="bg-blue-50 border border-blue-200 text-blue-900 p-4" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
             {SYSTEM_GREETING}
@@ -605,7 +605,7 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
           )}
           </div>
         {/* Right column: Chat-style results */}
-        <div className="lg:col-span-7">
+        <div>
           <div className="bg-card border border-border p-4 lg:p-6 min-h-[520px] flex flex-col gap-4">
             {!result && !loading && (
               <div className="text-center text-[0.875rem] text-muted-foreground py-16">
