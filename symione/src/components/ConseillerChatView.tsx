@@ -247,7 +247,12 @@ export const ConseillerChatView: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-gray-900">Conseiller Symione</h1>
-            <p className="text-sm text-gray-500">Assistant juridique conversationnel</p>
+            <p className="text-sm text-gray-500">
+              Assistant juridique conversationnel
+              {currentQuestion && (
+                <span className="ml-2 text-gray-400">• Question {Math.min(progress.answered + 1, progress.total)} sur {progress.total}</span>
+              )}
+            </p>
           </div>
           {session.isComplete && (
             <button

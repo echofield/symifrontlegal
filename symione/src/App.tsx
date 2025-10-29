@@ -24,8 +24,9 @@ import { NotificationContainer } from './components/NotificationSystem';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializePerformanceMonitoring, useRenderPerformance } from './lib/performance-monitoring';
 import { supabase } from './lib/supabaseClient';
+import ConseillerChatView from './components/ConseillerChatView';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'conseiller-chat' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -47,6 +48,7 @@ function AppContent() {
         case 'editor': return '/editeur';
         case 'conseiller': return '/conseiller';
         case 'conseiller-wizard': return '/conseiller/wizard';
+        case 'conseiller-chat': return '/conseiller-chat';
         case 'pricing': return '/prix';
         case 'docs': return '/documentation';
         case 'contact': return '/nous-consulter';
@@ -58,6 +60,7 @@ function AppContent() {
     };
 
     const pathToView = (path: string): View => {
+      if (path.startsWith('/conseiller-chat')) return 'conseiller-chat';
       if (path.startsWith('/conseiller/wizard')) return 'conseiller-wizard';
       if (path.startsWith('/conseiller')) return 'conseiller';
       if (path.startsWith('/modeles')) return 'contracts';
@@ -104,6 +107,7 @@ function AppContent() {
           case 'editor': return '/editeur';
           case 'conseiller': return '/conseiller';
           case 'conseiller-wizard': return '/conseiller/wizard';
+          case 'conseiller-chat': return '/conseiller-chat';
           case 'pricing': return '/prix';
           case 'docs': return '/documentation';
           case 'contact': return '/nous-consulter';
@@ -363,7 +367,20 @@ function AppContent() {
             >
               <ConseillerView 
                 onBack={handleBack}
+                onNavigate={(v: any) => handleNavigate(v as any)}
               />
+            </motion.div>
+          )}
+
+          {currentView === 'conseiller-chat' && (
+            <motion.div
+              key="conseiller-chat"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <ConseillerChatView />
             </motion.div>
           )}
 
