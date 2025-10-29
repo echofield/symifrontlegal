@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationHeader } from './components/NavigationHeader';
 import { Footer } from './components/Footer';
@@ -17,7 +17,7 @@ import { BondSimpleView } from './components/BondSimpleView';
 import { BondGuideView } from './components/BondGuideView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
-import { SupportAgent } from './components/SupportAgent';
+const SupportAgent = lazy(() => import('./components/SupportAgent'));
 import { UIProvider } from './components/state-management';
 import { ThemeProvider } from './components/ThemeSystem';
 import { NotificationContainer } from './components/NotificationSystem';
@@ -485,7 +485,7 @@ function AppContent() {
       {currentView === 'home' && <Footer />}
       <SystemToast />
       <SystemStatus />
-      <SupportAgent />
+      <Suspense fallback={null}><SupportAgent /></Suspense>
       <NotificationContainer />
     </div>
   );
