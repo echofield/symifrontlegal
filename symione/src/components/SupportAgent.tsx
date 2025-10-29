@@ -14,6 +14,7 @@ interface ChatMessage {
     args?: Record<string, any>;
   };
   followupQuestion?: string;
+  handoffSuggested?: boolean;
 }
 
 export function SupportAgent() {
@@ -75,19 +76,14 @@ export function SupportAgent() {
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: response.output.reply_text,
+        content: response.reply,
         timestamp: new Date(),
-        action: response.output.action,
-        followupQuestion: response.output.followup_question || undefined,
+        handoffSuggested: !!response.handoffSuggested,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Update context with new information
-      if (response.output.action?.args) {
-        setContext(prev => ({ ...prev, ...response.output.action.args }));
-      }
-
+      // Update context if we later add fields
     } catch (err) {
       console.error('Chat error:', err);
       const errorMessage: ChatMessage = {
@@ -176,7 +172,7 @@ export function SupportAgent() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'linear' }}
-            className="fixed bottom-24 right-6 z-50 w-[420px] max-h-[600px] bg-card border border-border shadow-2xl overflow-hidden flex flex-col"
+            className="fixed bottom-24 right-6 z-50 w-[420px] max-h_[600px] bg-card border border-border shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="p-4 border-b border-border bg-accent/5">
@@ -225,28 +221,15 @@ export function SupportAgent() {
                         {message.content}
                       </p>
                     </div>
-                    
-                    {/* Action buttons */}
-                    {message.action && (
+
+                    {/* Handoff CTA */}
+                    {message.handoffSuggested && (
                       <div className="mt-2">
                         <button
-                          onClick={() => handleActionClick(message.action)}
-                          className="flex items-center gap-2 px-3 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors text-[0.75rem]"
+                          onClick={() => (window.location.href = '/conseiller-chat')}
+                          className="px-3 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors text-[0.75rem] border border-accent/30"
                         >
-                          {getActionIcon(message.action.type)}
-                          {getActionLabel(message.action.type)}
-                        </button>
-                      </div>
-                    )}
-                    
-                    {/* Follow-up question */}
-                    {message.followupQuestion && (
-                      <div className="mt-2">
-                        <button
-                          onClick={() => setInputValue(message.followupQuestion!)}
-                          className="px-3 py-2 bg-muted/50 hover:bg-muted text-foreground rounded-lg transition-colors text-[0.75rem] border border-border"
-                        >
-                          {message.followupQuestion}
+                          Passer en mode conseiller (18 questions)
                         </button>
                       </div>
                     )}

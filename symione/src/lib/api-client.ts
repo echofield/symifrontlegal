@@ -442,16 +442,10 @@ export const AdvisorAPI = {
     context?: Record<string, any> 
   }) => 
     apiClient.post<{
-      output: {
-        thought: string;
-        followup_question: string | null;
-        action: { 
-          type: 'triage' | 'generate_contract' | 'review' | 'explain' | 'search_lawyers' | 'none';
-          args?: Record<string, any>;
-        };
-        reply_text: string;
-      };
-      timestamp: string;
+      success: boolean;
+      reply: string;
+      handoffSuggested?: boolean;
+      entryQuestionId?: string;
     }>('/advisor', payload),
 };
 

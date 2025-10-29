@@ -80,24 +80,54 @@ export const ConseillerChatView: React.FC = () => {
     inputRef.current?.focus();
   }, []);
 
-  // Initialize conversation and start deterministic session
+  // Initialize/resume session
   useEffect(() => {
     (async () => {
-      const resp = await apiClient.post('/api/conseiller/chat/session/start', { sessionId: session.id });
-      const q = (resp as any).nextQuestion as ServerQuestion;
-      setCurrentQuestion(q);
-      setProgress((resp as any).progress || { answered: 0, total: 18 });
-      setSession(prev => ({
-        ...prev,
-        messages: [
-          {
-            id: 'welcome',
-            role: 'assistant',
-            content: 'Bonjour ! Je vais vous poser 18 questions pour comprendre votre situation. ' + q.text,
-            timestamp: new Date(),
-          },
-        ],
-      }));
+      try {
+        const url = new URL(window.location.href);
+        const sid = url.searchParams.get('sid') || localStorage.getItem('conseillerSessionId') || session.id;
+        // Try resume if sid exists and differs
+        if (sid && sid !== session.id) {
+          const resume = await apiClient.get(`/api/conseiller/chat/session/get?sessionId=${encodeURIComponent(sid)}`);
+          if ((resume as any).sessionId) {
+            setSession(prev => ({ ...prev, id: (resume as any).sessionId }));
+            setCurrentQuestion((resume as any).nextQuestion || null);
+            setProgress((resume as any).progress || { answered: 0, total: 18 });
+            setSession(prev => ({
+              ...prev,
+              messages: [
+                {
+                  id: 'resume',
+                  role: 'assistant',
+                  content: (resume as any).nextQuestion ? 'Session reprise. ' + (resume as any).nextQuestion.text : 'Session reprise.',
+                  timestamp: new Date(),
+                },
+              ],
+            }));
+            localStorage.setItem('conseillerSessionId', (resume as any).sessionId);
+            return;
+          }
+        }
+        // Fresh start
+        const resp = await apiClient.post('/api/conseiller/chat/session/start', { sessionId: session.id });
+        const q = (resp as any).nextQuestion as ServerQuestion;
+        setCurrentQuestion(q);
+        setProgress((resp as any).progress || { answered: 0, total: 18 });
+        setSession(prev => ({
+          ...prev,
+          messages: [
+            {
+              id: 'welcome',
+              role: 'assistant',
+              content: 'Bonjour ! Je vais vous poser 18 questions pour comprendre votre situation. ' + q.text,
+              timestamp: new Date(),
+            },
+          ],
+        }));
+        localStorage.setItem('conseillerSessionId', (resp as any).sessionId || session.id);
+      } catch (_e) {
+        // minimal fallback: keep UI usable
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -152,9 +182,9 @@ export const ConseillerChatView: React.FC = () => {
           let safeSummary: string | undefined;
           if (typeof rawSummary === 'string') safeSummary = rawSummary;
           else if (rawSummary && typeof rawSummary === 'object') {
-            const titre = rawSummary.titre || '';
-            const prob = rawSummary.problematiquePrincipale || '';
-            const tags = Array.isArray(rawSummary.tagsJuridiques) ? rawSummary.tagsJuridiques.join(', ') : '';
+            const titre = (rawSummary as any).titre || '';
+            const prob = (rawSummary as any).problematiquePrincipale || '';
+            const tags = Array.isArray((rawSummary as any).tagsJuridiques) ? (rawSummary as any).tagsJuridiques.join(', ') : '';
             safeSummary = [titre, prob, tags].filter(Boolean).join(' — ');
           }
           const finalMessage: Message = {
@@ -188,6 +218,8 @@ export const ConseillerChatView: React.FC = () => {
           setSession(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
         }
       }
+      // Persist session id for resume
+      try { localStorage.setItem('conseillerSessionId', session.id); } catch {}
     } catch (err: any) {
       console.error('[ConseillerChatView] Error:', err);
       setError(err.response?.data?.message || "Une erreur est survenue. Veuillez réessayer.");
