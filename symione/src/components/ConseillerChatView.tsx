@@ -93,7 +93,7 @@ export const ConseillerChatView: React.FC = () => {
         const sid = url.searchParams.get('sid') || localStorage.getItem('conseillerSessionId') || session.id;
         // Try resume if sid exists and differs
         if (sid && sid !== session.id) {
-          const resume = await apiClient.get(`/api/conseiller/chat/session/get?sessionId=${encodeURIComponent(sid)}`);
+        const resume = await apiClient.get(`/conseiller/chat/session/get?sessionId=${encodeURIComponent(sid)}`);
           if ((resume as any).sessionId) {
             setSession(prev => ({ ...prev, id: (resume as any).sessionId }));
             setCurrentQuestion((resume as any).nextQuestion || null);
@@ -114,7 +114,7 @@ export const ConseillerChatView: React.FC = () => {
           }
         }
         // Fresh start
-        const resp = await apiClient.post('/api/conseiller/chat/session/start', { sessionId: session.id });
+        const resp = await apiClient.post('/conseiller/chat/session/start', { sessionId: session.id });
         const q = (resp as any).nextQuestion as ServerQuestion;
         setCurrentQuestion(q);
         setProgress((resp as any).progress || { answered: 0, total: 18 });
@@ -159,7 +159,7 @@ export const ConseillerChatView: React.FC = () => {
     try {
       if (!currentQuestion) {
         // Free-form before first question
-        const response: any = await apiClient.post('/api/conseiller/chat/session/freeform', {
+        const response: any = await apiClient.post('/conseiller/chat/session/freeform', {
           sessionId: session.id,
           message: userMessage.content,
         });
@@ -175,14 +175,14 @@ export const ConseillerChatView: React.FC = () => {
         setSession(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
       } else {
         // Deterministic answer
-        const response: any = await apiClient.post('/api/conseiller/chat/session/answer', {
+        const response: any = await apiClient.post('/conseiller/chat/session/answer', {
           sessionId: session.id,
           questionId: currentQuestion.id,
           answer: userMessage.content,
         });
         setProgress(response.progress);
         if (response.isComplete) {
-          const final: any = await apiClient.post('/api/conseiller/chat/session/finalize', { sessionId: session.id });
+          const final: any = await apiClient.post('/conseiller/chat/session/finalize', { sessionId: session.id });
           // Normalize summary to a string to avoid React rendering objects
           const rawSummary = final?.analysis?.summary ?? final?.analysis?.resume;
           let safeSummary: string | undefined;
@@ -257,7 +257,7 @@ export const ConseillerChatView: React.FC = () => {
     if (!session.isComplete) return;
 
     try {
-      const response = await apiClient.post('/api/conseiller/export', {
+      const response = await apiClient.post('/conseiller/export', {
         sessionId: session.id,
       }, {
         responseType: 'blob',
