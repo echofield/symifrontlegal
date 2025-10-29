@@ -56,6 +56,11 @@ export const ConseillerChatView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const quickExamples = [
+    'Facture impayée de 5000€ depuis 3 mois malgré relances',
+    'Voisin bruyant toutes les nuits, main courante déposée',
+    'Licenciement pour faute contesté, 2 ans d\'ancienneté'
+  ];
 
   const toDisplay = (val: any): string => {
     if (val == null) return '';
@@ -132,13 +137,14 @@ export const ConseillerChatView: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSendMessage = async (override?: string) => {
+    const payload = (override ?? input).trim();
+    if (!payload || isLoading) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: input.trim(),
+      content: payload,
       timestamp: new Date(),
     };
 
@@ -146,7 +152,7 @@ export const ConseillerChatView: React.FC = () => {
       ...prev,
       messages: [...prev.messages, userMessage],
     }));
-    setInput('');
+    if (!override) setInput('');
     setIsLoading(true);
     setError(null);
 
@@ -301,6 +307,13 @@ export const ConseillerChatView: React.FC = () => {
       {/* Chat Container */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* Helper line before first interaction */}
+          {session.messages.length <= 1 && !session.isComplete && (
+            <div className="text-sm text-gray-500">
+              Astuce: une phrase suffit pour commencer. Je pré-remplirai les réponses et poserai 18 questions guidées.
+            </div>
+          )}
+
           {/* Messages */}
           {session.messages.map((msg) => (
             <div
@@ -325,6 +338,24 @@ export const ConseillerChatView: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {/* Quick examples (onboarding) */}
+          {session.messages.length <= 1 && !session.isComplete && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-sm text-gray-700 mb-2">Exemples rapides</div>
+              <div className="flex flex-wrap gap-2">
+                {quickExamples.map((ex) => (
+                  <button
+                    key={ex}
+                    onClick={() => handleSendMessage(ex)}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Loading indicator */}
           {isLoading && (
