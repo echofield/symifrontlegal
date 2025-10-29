@@ -447,6 +447,23 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
               <div className="bg-card border border-border p-6 lg:p-8">
                 <h2 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Analyse de votre situation</h2>
                 <p className="text-[0.875rem] mb-4" style={{ lineHeight: 1.6 }}>{result.audit?.summary || ''}</p>
+                {/* V2 chips if present on analysis */}
+                {(result as any).analysis?.risk_matrix && (
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    {((result as any).analysis.risk_matrix.severity) && (
+                      <span className={`px-2 py-1 text-[0.75rem] rounded ${
+                        (result as any).analysis.risk_matrix.severity === 'Élevé' ? 'bg-red-100 text-red-800' :
+                        (result as any).analysis.risk_matrix.severity === 'Moyen' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                      }`}>Sévérité: {(result as any).analysis.risk_matrix.severity}</span>
+                    )}
+                    {((result as any).analysis.risk_matrix.proof_strength) && (
+                      <span className="px-2 py-1 text-[0.75rem] rounded bg-blue-100 text-blue-800">Preuve: {(result as any).analysis.risk_matrix.proof_strength}</span>
+                    )}
+                    {((result as any).analysis.estimated_costs) && (
+                      <span className="px-2 py-1 text-[0.75rem] rounded bg-gray-100 text-gray-800">Coûts: {((result as any).analysis.estimated_costs.amiable || '-')}/{((result as any).analysis.estimated_costs.judiciaire || '-')}</span>
+                    )}
+                  </div>
+                )}
                 {Array.isArray(result.audit?.risks) && result.audit!.risks.length > 0 && (
                   <div className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>
                     <div className="mb-1" style={{ fontWeight: 600 }}>Points d'attention:</div>
@@ -460,6 +477,11 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
                 <div className="text-[0.75rem] text-muted-foreground mt-3" style={{ fontFamily: 'var(--font-mono)' }}>
                   <span>Urgence: {result.audit?.urgency}</span> • <span>Complexité: {result.audit?.complexity}</span>
                 </div>
+                {((result as any).analysis?.next_critical_step) && (
+                  <div className="mt-3 text-[0.875rem] text-indigo-900 bg-indigo-50 border border-indigo-200 p-3">
+                    <strong>Prochaine étape critique:</strong> {(result as any).analysis.next_critical_step}
+                  </div>
+                )}
               </div>
 
               {/* Template */}

@@ -26,6 +26,13 @@ interface PartialAnalysis {
   urgency?: string;
   complexity?: string;
   progress?: number; // 0-100
+  riskSeverity?: string;
+  proofStrength?: string;
+  amiableCost?: string;
+  judiciaireCost?: string;
+  traps?: string[];
+  predictions?: string[];
+  nextStep?: string;
 }
 
 interface ChatSession {
@@ -208,6 +215,13 @@ export const ConseillerChatView: React.FC = () => {
               urgency: String(final.analysis?.urgency ?? '5'),
               complexity: final.analysis?.complexity,
               progress: 100,
+              riskSeverity: final.analysis?.risk_matrix?.severity,
+              proofStrength: final.analysis?.risk_matrix?.proof_strength,
+              amiableCost: final.analysis?.estimated_costs?.amiable,
+              judiciaireCost: final.analysis?.estimated_costs?.judiciaire,
+              traps: Array.isArray(final.analysis?.pieges_juridiques) ? final.analysis.pieges_juridiques : undefined,
+              predictions: Array.isArray(final.analysis?.predictions_echec) ? final.analysis.predictions_echec : undefined,
+              nextStep: final.analysis?.next_critical_step,
             },
             isComplete: true,
           }));
@@ -440,6 +454,57 @@ export const ConseillerChatView: React.FC = () => {
               <div>
                 <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Résumé</dt>
                 <dd className="mt-1 text-sm text-gray-700 leading-relaxed">{session.partialAnalysis.summary}</dd>
+              </div>
+            )}
+            {(session.partialAnalysis.riskSeverity || session.partialAnalysis.proofStrength) && (
+              <div>
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Risque & Preuve</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {session.partialAnalysis.riskSeverity && (
+                    <span className={`inline-flex px-2 py-1 mr-2 text-xs font-medium rounded ${
+                      session.partialAnalysis.riskSeverity === 'Élevé' ? 'bg-red-100 text-red-800' :
+                      session.partialAnalysis.riskSeverity === 'Moyen' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                    }`}>{session.partialAnalysis.riskSeverity}</span>
+                  )}
+                  {session.partialAnalysis.proofStrength && (
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">Preuve: {session.partialAnalysis.proofStrength}</span>
+                  )}
+                </dd>
+              </div>
+            )}
+            {(session.partialAnalysis.amiableCost || session.partialAnalysis.judiciaireCost) && (
+              <div>
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Coûts estimés</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {session.partialAnalysis.amiableCost && (<div>Amiable: {session.partialAnalysis.amiableCost}</div>)}
+                  {session.partialAnalysis.judiciaireCost && (<div>Judiciaire: {session.partialAnalysis.judiciaireCost}</div>)}
+                </dd>
+              </div>
+            )}
+            {Array.isArray(session.partialAnalysis.traps) && session.partialAnalysis.traps.length > 0 && (
+              <div>
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pièges juridiques</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  <ul className="list-disc pl-4">
+                    {session.partialAnalysis.traps.slice(0,4).map((t, i) => (<li key={i}>{t}</li>))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+            {Array.isArray(session.partialAnalysis.predictions) && session.partialAnalysis.predictions.length > 0 && (
+              <div>
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Prédictions d'échec</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  <ul className="list-disc pl-4">
+                    {session.partialAnalysis.predictions.slice(0,4).map((t, i) => (<li key={i}>{t}</li>))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+            {session.partialAnalysis.nextStep && (
+              <div>
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Prochaine étape critique</dt>
+                <dd className="mt-1 text-sm text-gray-900">{session.partialAnalysis.nextStep}</dd>
               </div>
             )}
           </dl>
