@@ -134,6 +134,16 @@ export const ConseillerChatView: React.FC = () => {
         setProgress(response.progress);
         if (response.isComplete) {
           const final: any = await apiClient.post('/api/conseiller/chat/session/finalize', { sessionId: session.id });
+          // Normalize summary to a string to avoid React rendering objects
+          const rawSummary = final?.analysis?.summary ?? final?.analysis?.resume;
+          let safeSummary: string | undefined;
+          if (typeof rawSummary === 'string') safeSummary = rawSummary;
+          else if (rawSummary && typeof rawSummary === 'object') {
+            const titre = rawSummary.titre || '';
+            const prob = rawSummary.problematiquePrincipale || '';
+            const tags = Array.isArray(rawSummary.tagsJuridiques) ? rawSummary.tagsJuridiques.join(', ') : '';
+            safeSummary = [titre, prob, tags].filter(Boolean).join(' — ');
+          }
           const finalMessage: Message = {
             id: `assistant-final-${Date.now()}`,
             role: 'assistant',
@@ -144,7 +154,7 @@ export const ConseillerChatView: React.FC = () => {
             ...prev,
             messages: [...prev.messages, finalMessage],
             partialAnalysis: {
-              summary: final.analysis?.summary,
+              summary: safeSummary,
               category: final.analysis?.category,
               urgency: String(final.analysis?.urgency ?? '5'),
               complexity: final.analysis?.complexity,
