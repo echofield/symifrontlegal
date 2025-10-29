@@ -7,6 +7,8 @@
     plugins: [react()],
     define: {
       'process.env': {},
+      'process.env.NODE_ENV': '"production"',
+      global: 'window',
     },
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
