@@ -1,15 +1,22 @@
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
-  export default defineConfig({
-    plugins: [react()],
-    define: {
-      'process.env': {},
-      'process.env.NODE_ENV': '"production"',
-      global: 'window',
-    },
+export default defineConfig({
+  base: '/',
+  plugins: [
+    react(),
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
+  ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
@@ -54,10 +61,26 @@
         '@': path.resolve(__dirname, './src'),
       },
     },
-    build: {
-      target: 'esnext',
-      outDir: 'build',
+  build: {
+    target: 'esnext',
+    outDir: 'build',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+        },
+      },
     },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@supabase/supabase-js'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
     server: {
       port: 3000,
       open: true,
