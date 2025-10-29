@@ -35,6 +35,13 @@ interface ChatSession {
   isComplete: boolean;
 }
 
+interface ServerQuestion {
+  id: string;
+  text: string;
+  type: 'choice' | 'text' | 'number' | 'date' | 'boolean' | 'multi';
+  options?: string[];
+}
+
 export const ConseillerChatView: React.FC = () => {
   const [session, setSession] = useState<ChatSession>({
     id: Math.random().toString(36).slice(2, 10),
@@ -42,6 +49,8 @@ export const ConseillerChatView: React.FC = () => {
     partialAnalysis: null,
     isComplete: false,
   });
+  const [currentQuestion, setCurrentQuestion] = useState<ServerQuestion | null>(null);
+  const [progress, setProgress] = useState<{ answered: number; total: number }>({ answered: 0, total: 18 });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,20 +67,26 @@ export const ConseillerChatView: React.FC = () => {
     inputRef.current?.focus();
   }, []);
 
-  // Initialize conversation with welcome message
+  // Initialize conversation and start deterministic session
   useEffect(() => {
-    if (session.messages.length === 0) {
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        role: 'assistant',
-        content: "Bonjour ! Je suis votre assistant juridique Symione. Décrivez-moi votre situation en quelques phrases, et je vous poserai ensuite des questions ciblées pour affiner mon analyse.",
-        timestamp: new Date(),
-      };
+    (async () => {
+      const resp = await apiClient.post('/api/conseiller/chat/session/start', { sessionId: session.id });
+      const q = (resp as any).nextQuestion as ServerQuestion;
+      setCurrentQuestion(q);
+      setProgress((resp as any).progress || { answered: 0, total: 18 });
       setSession(prev => ({
         ...prev,
-        messages: [welcomeMessage],
+        messages: [
+          {
+            id: 'welcome',
+            role: 'assistant',
+            content: 'Bonjour ! Je vais vous poser 18 questions pour comprendre votre situation. ' + q.text,
+            timestamp: new Date(),
+          },
+        ],
       }));
-    }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSendMessage = async () => {
@@ -93,74 +108,61 @@ export const ConseillerChatView: React.FC = () => {
     setError(null);
 
     try {
-      // Determine if this is the first user message (initial description)
-      const userMessages = session.messages.filter(m => m.role === 'user');
-      const isFirstMessage = userMessages.length === 0;
-
-      if (isFirstMessage) {
-        // Initial description - start session with backend
-        const response = await apiClient.post('/api/conseiller/chat', {
+      if (!currentQuestion) {
+        // Free-form before first question
+        const response: any = await apiClient.post('/api/conseiller/chat/session/freeform', {
           sessionId: session.id,
-          message: input.trim(),
-          isInitial: true,
+          message: userMessage.content,
         });
-
-        const { nextQuestion, partialAnalysis } = response.data;
-
+        setProgress(response.progress);
+        const nextQ = response.nextQuestion as ServerQuestion | null;
+        setCurrentQuestion(nextQ);
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
-          content: nextQuestion || "Merci. Pouvez-vous préciser les dates clés de votre situation ?",
+          content: nextQ ? nextQ.text : "Merci, poursuivons.",
           timestamp: new Date(),
         };
-
-        setSession(prev => ({
-          ...prev,
-          messages: [...prev.messages, assistantMessage],
-          partialAnalysis: partialAnalysis || null,
-        }));
+        setSession(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
       } else {
-        // Follow-up answer - continue conversation
-        const response = await apiClient.post('/api/conseiller/chat', {
+        // Deterministic answer
+        const response: any = await apiClient.post('/api/conseiller/chat/session/answer', {
           sessionId: session.id,
-          message: input.trim(),
-          isInitial: false,
+          questionId: currentQuestion.id,
+          answer: userMessage.content,
         });
-
-        const { nextQuestion, partialAnalysis, isComplete } = response.data;
-
-        if (isComplete) {
-          // Final analysis ready
+        setProgress(response.progress);
+        if (response.isComplete) {
+          const final: any = await apiClient.post('/api/conseiller/chat/session/finalize', { sessionId: session.id });
           const finalMessage: Message = {
             id: `assistant-final-${Date.now()}`,
             role: 'assistant',
-            content: "Parfait ! J'ai toutes les informations nécessaires. Voici votre analyse juridique complète :",
+            content: "Parfait ! J'ai toutes les informations. Voici votre analyse.",
             timestamp: new Date(),
           };
-
           setSession(prev => ({
             ...prev,
             messages: [...prev.messages, finalMessage],
-            partialAnalysis: partialAnalysis || prev.partialAnalysis,
+            partialAnalysis: {
+              summary: final.analysis?.summary,
+              category: final.analysis?.category,
+              urgency: String(final.analysis?.urgency ?? '5'),
+              complexity: final.analysis?.complexity,
+              progress: 100,
+            },
             isComplete: true,
           }));
-
-          // Optionally navigate to full analysis view
-          // window.location.hash = '#/conseiller/results';
+          setCurrentQuestion(null);
         } else {
-          // Continue conversation
+          const nextQ = response.nextQuestion as ServerQuestion | null;
+          setCurrentQuestion(nextQ);
           const assistantMessage: Message = {
             id: `assistant-${Date.now()}`,
             role: 'assistant',
-            content: nextQuestion || "Merci. Pouvez-vous développer ce point ?",
+            content: nextQ ? nextQ.text : "Merci. Poursuivons.",
             timestamp: new Date(),
           };
-
-          setSession(prev => ({
-            ...prev,
-            messages: [...prev.messages, assistantMessage],
-            partialAnalysis: partialAnalysis || prev.partialAnalysis,
-          }));
+          setSession(prev => ({ ...prev, messages: [...prev.messages, assistantMessage] }));
         }
       }
     } catch (err: any) {
