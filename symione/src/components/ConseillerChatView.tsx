@@ -57,6 +57,19 @@ export const ConseillerChatView: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const toDisplay = (val: any): string => {
+    if (val == null) return '';
+    if (typeof val === 'string') return val;
+    // Handle { titre, problematiquePrincipale, tagsJuridiques }
+    if (typeof val === 'object' && (val.titre || val.problematiquePrincipale || val.tagsJuridiques)) {
+      const titre = val.titre || '';
+      const prob = val.problematiquePrincipale || '';
+      const tags = Array.isArray(val.tagsJuridiques) ? val.tagsJuridiques.join(', ') : '';
+      return [titre, prob, tags].filter(Boolean).join(' — ');
+    }
+    try { return JSON.stringify(val); } catch { return String(val); }
+  };
+
   // Auto-scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -264,7 +277,7 @@ export const ConseillerChatView: React.FC = () => {
                     : 'bg-white border border-gray-200 text-gray-900'
                 } shadow-sm`}
               >
-                <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-base leading-relaxed whitespace-pre-wrap">{toDisplay(msg.content)}</p>
                 <span
                   className={`block mt-2 text-xs ${
                     msg.role === 'user' ? 'text-primary-100' : 'text-gray-500'
