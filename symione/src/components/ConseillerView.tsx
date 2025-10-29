@@ -262,13 +262,14 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
               Conseiller juridique
             </h1>
             <div className="mt-4">
-              <button
-                onClick={() => onNavigate?.('conseiller-chat')}
+              <a
+                href="/conseiller-chat"
+                onClick={(e) => { if (onNavigate) { e.preventDefault(); onNavigate('conseiller-chat'); } }}
                 className="inline-block px-4 py-2 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground transition-all duration-200"
                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
               >
                 Essayer le mode chat
-              </button>
+              </a>
             </div>
           </div>
         </motion.div>
