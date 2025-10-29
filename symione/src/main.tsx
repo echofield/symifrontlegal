@@ -1,5 +1,6 @@
 
 import React, { Component, ReactNode } from "react";
+import "./shims";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
