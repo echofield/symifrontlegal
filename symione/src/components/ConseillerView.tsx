@@ -18,6 +18,7 @@ Comment puis-je vous aider aujourd'hui?`;
 
 interface ConseillerViewProps {
   onBack: () => void;
+  onNavigate?: (view: any) => void;
 }
 
 interface LawyerRec {
@@ -60,7 +61,7 @@ const HELPER_QUESTIONS = [
   "Actions déjà entreprises ?"
 ];
 
-export function ConseillerView({ onBack }: ConseillerViewProps) {
+export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
   const [problem, setProblem] = useState('');
   const [city, setCity] = useState('');
   const [situationType, setSituationType] = useState('');
@@ -261,13 +262,13 @@ export function ConseillerView({ onBack }: ConseillerViewProps) {
               Conseiller juridique
             </h1>
             <div className="mt-4">
-              <a
-                href="/conseiller/wizard"
-                className="inline-block px-4 py-2 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground"
+              <button
+                onClick={() => onNavigate?.('conseiller-chat')}
+                className="inline-block px-4 py-2 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground transition-all duration-200"
                 style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
               >
-                Essayer le mode pas-à-pas
-              </a>
+                Essayer le mode chat
+              </button>
             </div>
           </div>
         </motion.div>

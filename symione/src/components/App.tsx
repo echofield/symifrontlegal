@@ -7,6 +7,7 @@ import { ControlSurface } from './components/ControlSurface';
 import { ContractsListView } from './components/ContractsListView';
 import { ContractEditorView } from './components/ContractEditorView';
 import { ConseillerView } from './components/ConseillerView';
+import { ConseillerChatView } from './components/ConseillerChatView';
 import { PricingView } from './components/PricingView';
 import { LoginView } from './components/LoginView';
 import { DocsView } from './components/DocsView';
@@ -24,7 +25,7 @@ const BondContractView = lazy(() => import('./components/BondContractView').then
 const BondPaymentView = lazy(() => import('./components/BondPaymentView').then(m => ({ default: m.BondPaymentView })));
 const BondSettingsView = lazy(() => import('./components/BondSettingsView').then(m => ({ default: m.BondSettingsView })));
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-chat' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -273,7 +274,20 @@ export default function App() {
             >
               <ConseillerView 
                 onBack={handleBack}
+                onNavigate={handleNavigate}
               />
+            </motion.div>
+          )}
+
+          {currentView === 'conseiller-chat' && (
+            <motion.div
+              key="conseiller-chat"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <ConseillerChatView />
             </motion.div>
           )}
 
