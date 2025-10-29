@@ -1,0 +1,451 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/tokens.json",
+  "symione": {
+    "color": {
+      "primary": {
+        "blue": {
+          "$type": "color",
+          "$value": "#1B4CFF",
+          "$description": "Primary brand color for actions and links"
+        },
+        "blue-hover": {
+          "$type": "color",
+          "$value": "#1640E6",
+          "$description": "Hover state for primary blue"
+        },
+        "blue-light": {
+          "$type": "color",
+          "$value": "rgba(27, 76, 255, 0.1)",
+          "$description": "Light background for primary blue contexts"
+        }
+      },
+      "gray": {
+        "50": {
+          "$type": "color",
+          "$value": "#F8FAFC",
+          "$description": "Page background"
+        },
+        "100": {
+          "$type": "color",
+          "$value": "#F1F5F9",
+          "$description": "Input backgrounds"
+        },
+        "200": {
+          "$type": "color",
+          "$value": "#EAECF0",
+          "$description": "Default borders and dividers"
+        },
+        "700": {
+          "$type": "color",
+          "$value": "#667085",
+          "$description": "Secondary text and metadata"
+        },
+        "900": {
+          "$type": "color",
+          "$value": "#101828",
+          "$description": "Primary text and headings"
+        }
+      },
+      "semantic": {
+        "success": {
+          "$type": "color",
+          "$value": "#19B37A",
+          "$description": "Success states and positive indicators"
+        },
+        "warning": {
+          "$type": "color",
+          "$value": "#FFB020",
+          "$description": "Warning states and attention indicators"
+        },
+        "error": {
+          "$type": "color",
+          "$value": "#EF4444",
+          "$description": "Error states and danger indicators"
+        }
+      },
+      "bg": {
+        "page": {
+          "$type": "color",
+          "$value": "{symione.color.gray.50}",
+          "$description": "Main page background"
+        },
+        "card": {
+          "$type": "color",
+          "$value": "#FFFFFF",
+          "$description": "Card and surface backgrounds"
+        },
+        "input": {
+          "$type": "color",
+          "$value": "{symione.color.gray.100}",
+          "$description": "Input field backgrounds"
+        },
+        "bubble": {
+          "assistant": {
+            "$type": "color",
+            "$value": "#FFFFFF",
+            "$description": "Assistant message bubble background"
+          },
+          "user": {
+            "$type": "color",
+            "$value": "{symione.color.primary.blue}",
+            "$description": "User message bubble background"
+          }
+        }
+      },
+      "border": {
+        "default": {
+          "$type": "color",
+          "$value": "{symione.color.gray.200}",
+          "$description": "Default border color"
+        },
+        "focus": {
+          "$type": "color",
+          "$value": "{symione.color.primary.blue}",
+          "$description": "Focus state border color"
+        }
+      },
+      "text": {
+        "primary": {
+          "$type": "color",
+          "$value": "{symione.color.gray.900}",
+          "$description": "Primary text color"
+        },
+        "secondary": {
+          "$type": "color",
+          "$value": "{symione.color.gray.700}",
+          "$description": "Secondary text and metadata"
+        },
+        "inverse": {
+          "$type": "color",
+          "$value": "#FFFFFF",
+          "$description": "Text on dark backgrounds"
+        }
+      }
+    },
+    "chip": {
+      "severity": {
+        "faible": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(25, 179, 122, 0.1)",
+            "$description": "Low severity chip background"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.success}",
+            "$description": "Low severity chip text"
+          },
+          "border": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.success}",
+            "$description": "Low severity chip border"
+          }
+        },
+        "moyen": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(245, 184, 32, 0.1)",
+            "$description": "Medium severity chip background"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.warning}",
+            "$description": "Medium severity chip text"
+          },
+          "border": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.warning}",
+            "$description": "Medium severity chip border"
+          }
+        },
+        "élevé": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(239, 68, 68, 0.1)",
+            "$description": "High severity chip background"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.error}",
+            "$description": "High severity chip text"
+          },
+          "border": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.error}",
+            "$description": "High severity chip border"
+          }
+        }
+      },
+      "proof": {
+        "faible": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(239, 68, 68, 0.1)"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.error}"
+          }
+        },
+        "moyen": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(245, 184, 32, 0.1)"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.warning}"
+          }
+        },
+        "élevé": {
+          "bg": {
+            "$type": "color",
+            "$value": "rgba(25, 179, 122, 0.1)"
+          },
+          "fg": {
+            "$type": "color",
+            "$value": "{symione.color.semantic.success}"
+          }
+        }
+      }
+    },
+    "banner": {
+      "info": {
+        "bg": {
+          "$type": "color",
+          "$value": "rgba(27, 76, 255, 0.05)",
+          "$description": "Info banner background"
+        },
+        "border": {
+          "$type": "color",
+          "$value": "rgba(27, 76, 255, 0.3)",
+          "$description": "Info banner border"
+        },
+        "text": {
+          "$type": "color",
+          "$value": "{symione.color.gray.900}",
+          "$description": "Info banner text"
+        }
+      },
+      "warning": {
+        "bg": {
+          "$type": "color",
+          "$value": "rgba(245, 184, 32, 0.1)",
+          "$description": "Warning banner background"
+        },
+        "border": {
+          "$type": "color",
+          "$value": "{symione.color.semantic.warning}",
+          "$description": "Warning banner border"
+        },
+        "text": {
+          "$type": "color",
+          "$value": "{symione.color.gray.900}",
+          "$description": "Warning banner text"
+        }
+      }
+    },
+    "urgency": {
+      "low": {
+        "bg": {
+          "$type": "color",
+          "$value": "rgba(25, 179, 122, 0.1)"
+        },
+        "fg": {
+          "$type": "color",
+          "$value": "{symione.color.semantic.success}"
+        }
+      },
+      "medium": {
+        "bg": {
+          "$type": "color",
+          "$value": "rgba(245, 184, 32, 0.1)"
+        },
+        "fg": {
+          "$type": "color",
+          "$value": "{symione.color.semantic.warning}"
+        }
+      },
+      "high": {
+        "bg": {
+          "$type": "color",
+          "$value": "rgba(239, 68, 68, 0.1)"
+        },
+        "fg": {
+          "$type": "color",
+          "$value": "{symione.color.semantic.error}"
+        }
+      }
+    },
+    "spacing": {
+      "1": {
+        "$type": "dimension",
+        "$value": "8px",
+        "$description": "Micro spacing - tight gaps, icon spacing"
+      },
+      "2": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$description": "Small spacing - form fields, card internal"
+      },
+      "3": {
+        "$type": "dimension",
+        "$value": "24px",
+        "$description": "Medium spacing - between sections, large cards"
+      },
+      "4": {
+        "$type": "dimension",
+        "$value": "32px",
+        "$description": "Large spacing - major sections"
+      },
+      "6": {
+        "$type": "dimension",
+        "$value": "48px",
+        "$description": "XL spacing - hero sections"
+      },
+      "8": {
+        "$type": "dimension",
+        "$value": "64px",
+        "$description": "XXL spacing - major breaks"
+      }
+    },
+    "radius": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "8px",
+        "$description": "Small radius - inputs, small buttons"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "12px",
+        "$description": "Medium radius - bubbles, cards"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$description": "Large radius - modals, dialogs"
+      },
+      "full": {
+        "$type": "dimension",
+        "$value": "9999px",
+        "$description": "Full radius - badges, pills"
+      }
+    },
+    "shadow": {
+      "sm": {
+        "$type": "shadow",
+        "$value": {
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px",
+          "color": "rgba(0, 0, 0, 0.05)"
+        },
+        "$description": "Subtle elevation"
+      },
+      "md": {
+        "$type": "shadow",
+        "$value": {
+          "offsetX": "0px",
+          "offsetY": "4px",
+          "blur": "6px",
+          "spread": "-1px",
+          "color": "rgba(0, 0, 0, 0.1)"
+        },
+        "$description": "Medium elevation"
+      },
+      "lg": {
+        "$type": "shadow",
+        "$value": {
+          "offsetX": "0px",
+          "offsetY": "10px",
+          "blur": "15px",
+          "spread": "-3px",
+          "color": "rgba(0, 0, 0, 0.1)"
+        },
+        "$description": "High elevation for modals"
+      }
+    },
+    "typography": {
+      "font": {
+        "sans": {
+          "$type": "fontFamily",
+          "$value": "Inter, system-ui, sans-serif",
+          "$description": "Primary sans-serif font"
+        },
+        "mono": {
+          "$type": "fontFamily",
+          "$value": "IBM Plex Mono, Courier New, monospace",
+          "$description": "Monospace font for code and metadata"
+        }
+      },
+      "size": {
+        "xs": {
+          "$type": "dimension",
+          "$value": "12px",
+          "$description": "Extra small text - labels, hints"
+        },
+        "sm": {
+          "$type": "dimension",
+          "$value": "14px",
+          "$description": "Small text - body small"
+        },
+        "base": {
+          "$type": "dimension",
+          "$value": "16px",
+          "$description": "Base text - body"
+        },
+        "lg": {
+          "$type": "dimension",
+          "$value": "18px",
+          "$description": "Large text - question text"
+        },
+        "xl": {
+          "$type": "dimension",
+          "$value": "20px",
+          "$description": "XL text - section titles"
+        },
+        "2xl": {
+          "$type": "dimension",
+          "$value": "24px",
+          "$description": "2XL text - page titles"
+        },
+        "3xl": {
+          "$type": "dimension",
+          "$value": "32px",
+          "$description": "3XL text - hero"
+        }
+      },
+      "weight": {
+        "normal": {
+          "$type": "fontWeight",
+          "$value": "400"
+        },
+        "medium": {
+          "$type": "fontWeight",
+          "$value": "500"
+        },
+        "semibold": {
+          "$type": "fontWeight",
+          "$value": "600"
+        }
+      },
+      "lineHeight": {
+        "tight": {
+          "$type": "number",
+          "$value": "1.1"
+        },
+        "normal": {
+          "$type": "number",
+          "$value": "1.5"
+        },
+        "relaxed": {
+          "$type": "number",
+          "$value": "1.75"
+        }
+      }
+    }
+  }
+}
+
+
