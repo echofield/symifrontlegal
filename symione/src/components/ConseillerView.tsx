@@ -625,6 +625,60 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
                 Créez un compte pour sauvegarder vos consultations et générer des contrats personnalisés.
                 <button onClick={() => (window.location.href = '/login')} className="ml-3 underline text-accent">Créer un compte</button>
               </div>
+
+              {/* Deep analysis request (email follow-up) */}
+              <div className="border border-border p-4 bg-card">
+                <div className="text-[0.95rem] mb-2" style={{ fontWeight: 600 }}>Recevoir une étude approfondie par email</div>
+                <p className="text-[0.875rem] text-muted-foreground mb-3">Vous recevrez une version détaillée (citations, jurisprudence, coûts, protocole) sous 30–120 minutes.</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="email"
+                    placeholder="votre@email.com"
+                    className="flex-1 px-3 py-2 bg-input-background border border-border"
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter') {
+                        const target = e.target as HTMLInputElement;
+                        const email = target.value.trim();
+                        if (!email) return;
+                        try {
+                          const categoryValue = situationType || 'Général';
+                          const urgencyMap: Record<string, number> = { 'tres_urgent': 9, 'urgent': 7, 'moyen': 5, 'pas_urgent': 3 };
+                          await fetch('https://api.symione.com/api/conseiller/jobs/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ problem, category: categoryValue, urgency: urgencyMap[urgence] || 5, hasEvidence: hasProofs === 'oui', city, email })
+                          });
+                        } catch {}
+                        target.value = '';
+                        alert('Merci. Vous recevrez l’étude approfondie par email.');
+                      }
+                    }}
+                  />
+                  <button
+                    className="px-4 py-2 border border-border"
+                    onClick={async () => {
+                      const input = (document.activeElement as HTMLInputElement)?.type === 'email'
+                        ? (document.activeElement as HTMLInputElement)
+                        : (document.querySelector('input[type="email"]') as HTMLInputElement);
+                      const email = input?.value?.trim();
+                      if (!email) return;
+                      try {
+                        const categoryValue = situationType || 'Général';
+                        const urgencyMap: Record<string, number> = { 'tres_urgent': 9, 'urgent': 7, 'moyen': 5, 'pas_urgent': 3 };
+                        await fetch('https://api.symione.com/api/conseiller/jobs/create', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ problem, category: categoryValue, urgency: urgencyMap[urgence] || 5, hasEvidence: hasProofs === 'oui', city, email })
+                        });
+                      } catch {}
+                      if (input) input.value = '';
+                      alert('Merci. Vous recevrez l’étude approfondie par email.');
+                    }}
+                  >
+                    Demander l’étude par email
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
           </div>

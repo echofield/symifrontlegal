@@ -540,6 +540,59 @@ export const ConseillerChatView: React.FC = () => {
           </p>
         </div>
       </footer>
+
+      {/* Deep analysis email request once complete */}
+      {session.isComplete && (
+        <div className="bg-white border-t border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="text-sm font-medium mb-1">Recevoir une étude approfondie par email</div>
+            <p className="text-xs text-gray-500 mb-2">Version détaillée (citations, jurisprudence, coûts) sous 30–120 minutes.</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                placeholder="votre@email.com"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded"
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter') {
+                    const email = (e.target as HTMLInputElement).value.trim();
+                    if (!email) return;
+                    try {
+                      await fetch('https://api.symione.com/api/conseiller/jobs/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ problem: session.partialAnalysis?.summary || 'Analyse V2', category: session.partialAnalysis?.category || 'Général', urgency: Number(session.partialAnalysis?.urgency || 5), email })
+                      });
+                    } catch {}
+                    (e.target as HTMLInputElement).value = '';
+                    alert('Merci. Vous recevrez l’étude approfondie par email.');
+                  }
+                }}
+              />
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={async () => {
+                  const input = (document.activeElement as HTMLInputElement)?.type === 'email'
+                    ? (document.activeElement as HTMLInputElement)
+                    : (document.querySelector('footer ~ div input[type="email"]') as HTMLInputElement);
+                  const email = input?.value?.trim();
+                  if (!email) return;
+                  try {
+                    await fetch('https://api.symione.com/api/conseiller/jobs/create', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ problem: session.partialAnalysis?.summary || 'Analyse V2', category: session.partialAnalysis?.category || 'Général', urgency: Number(session.partialAnalysis?.urgency || 5), email })
+                    });
+                  } catch {}
+                  if (input) input.value = '';
+                  alert('Merci. Vous recevrez l’étude approfondie par email.');
+                }}
+              >
+                Demander par email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
