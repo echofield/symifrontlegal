@@ -9,7 +9,7 @@ const plans = [
   {
     id: 'documents',
     name: 'Documents',
-    price: '119',
+    price: 'À partir de 29',
     period: '/ document',
     description: 'Tous types de contrats juridiques professionnels',
     features: [
