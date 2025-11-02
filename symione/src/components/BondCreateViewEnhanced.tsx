@@ -128,21 +128,22 @@ export function BondCreateViewEnhanced({ onNavigate, templateId }: BondCreateVie
         answers: answers
       });
       
-      if (response.success) {
+      if ((response as any)?.success && (response as any)?.data?.id) {
+        const created = (response as any).data;
         // Calculate total amount
         const totalAmount = 119 + (projectAmount * 0.03);
         
         // Create Stripe payment intent
         const paymentResponse = await BondAPI.createPaymentIntent({
-          contractId: response.contractId,
-          amount: Math.round(totalAmount * 100), // Convert to cents
+          contractId: String(created.id),
+          amount: Math.round(totalAmount * 100),
           currency: 'eur'
         });
         
-        if (paymentResponse.success && paymentResponse.clientSecret) {
+        if ((paymentResponse as any)?.clientSecret) {
           // Redirect to Stripe Checkout or handle payment
           // For now, navigate to contract view
-          onNavigate('bond-contract', response.contractId);
+          onNavigate('bond-contract', String(created.id));
         } else {
           throw new Error('Failed to create payment intent');
         }
