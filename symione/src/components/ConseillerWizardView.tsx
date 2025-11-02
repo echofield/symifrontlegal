@@ -179,8 +179,9 @@ export default function ConseillerWizardView() {
     }
   };
 
+  const safeText = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
   const handleNext = async () => {
-    if (!currentAnswer.trim()) return;
+    if (!safeText(currentAnswer).trim()) return;
     setDirection('forward');
     if (currentStep === totalSteps) {
       await generateSummary();
@@ -203,7 +204,7 @@ export default function ConseillerWizardView() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && currentAnswer.trim()) {
+    if (e.key === 'Enter' && safeText(currentAnswer).trim()) {
       handleNext();
     }
   };

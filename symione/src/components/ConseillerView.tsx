@@ -62,6 +62,7 @@ const HELPER_QUESTIONS = [
 ];
 
 export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
+  const safeText = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
   const [problem, setProblem] = useState('');
   const [city, setCity] = useState('');
   const [situationType, setSituationType] = useState('');
@@ -76,7 +77,7 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
   const { loading, error, startLoading, stopLoading, setErrorState } = useLoadingState();
 
   const analyzeAndRecommend = async () => {
-    if (!problem || problem.trim().length < 20) {
+    if (!safeText(problem) || safeText(problem).trim().length < 20) {
       showToast('Veuillez décrire votre situation en détail (min 20 caractères)', 'error');
       return;
     }
@@ -168,7 +169,7 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
   };
 
   const handleFollowUp = () => {
-    if (!followUpQuestion.trim()) return;
+    if (!safeText(followUpQuestion).trim()) return;
     setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', content: followUpQuestion }, { id: `a-${Date.now()}`, role: 'assistant', content: 'Réponse contextuelle (bientôt disponible).' }]);
     setFollowUpQuestion('');
   };
@@ -179,7 +180,7 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
   const [searching, setSearching] = useState(false);
 
   const handleSearchLawyers = async () => {
-    if (!searchQuery.trim()) {
+    if (!safeText(searchQuery).trim()) {
       showToast('Veuillez entrer une localisation', 'error');
       return;
     }
@@ -413,7 +414,7 @@ export function ConseillerView({ onBack, onNavigate }: ConseillerViewProps) {
                 <LoadingButton
                   loading={loading}
                   onClick={analyzeAndRecommend}
-                  disabled={!problem.trim()}
+                  disabled={!safeText(problem).trim()}
                   className="w-full px-6 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.625rem] uppercase tracking-[0.12em]"
                 >
                   {loading ? 'Analyse en cours...' : 'Analyser ma situation'}

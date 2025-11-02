@@ -8,11 +8,12 @@ interface BondCreateViewProps {
 
 export function BondCreateView({ onNavigate }: BondCreateViewProps) {
   const [description, setDescription] = useState("");
+  const safeText = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const handleSuggest = async () => {
-    if (!description.trim()) return;
+    if (!safeText(description).trim()) return;
     
     setLoading(true);
     try {
@@ -102,7 +103,7 @@ export function BondCreateView({ onNavigate }: BondCreateViewProps) {
             />
             <button
               onClick={handleSuggest}
-              disabled={loading || !description.trim()}
+              disabled={loading || !safeText(description).trim()}
               className="mt-4 px-10 py-4 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 inline-flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
             >

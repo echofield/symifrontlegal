@@ -18,6 +18,7 @@ interface ChatMessage {
 }
 
 export function SupportAgent() {
+  const safeText = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -53,12 +54,12 @@ export function SupportAgent() {
   ];
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || loading) return;
+    if (!safeText(inputValue).trim() || loading) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: inputValue.trim(),
+      content: safeText(inputValue).trim(),
       timestamp: new Date(),
     };
 
@@ -69,7 +70,7 @@ export function SupportAgent() {
 
     try {
       const response = await AdvisorAPI.chat({
-        question: inputValue.trim(),
+        question: safeText(inputValue).trim(),
         context: context,
       });
 
@@ -297,7 +298,7 @@ export function SupportAgent() {
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || loading}
+                  disabled={!safeText(inputValue).trim() || loading}
                   className="px-3 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-4 h-4" strokeWidth={1.5} />

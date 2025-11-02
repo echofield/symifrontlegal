@@ -50,6 +50,7 @@ interface ServerQuestion {
 }
 
 export const ConseillerChatView: React.FC = () => {
+  const safeText = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
   const [session, setSession] = useState<ChatSession>({
     id: Math.random().toString(36).slice(2, 10),
     messages: [],
@@ -145,7 +146,7 @@ export const ConseillerChatView: React.FC = () => {
   }, []);
 
   const handleSendMessage = async (override?: string) => {
-    const payload = (override ?? input).trim();
+    const payload = safeText(override ?? input).trim();
     if (!payload || isLoading) return;
 
     const userMessage: Message = {
@@ -528,7 +529,7 @@ export const ConseillerChatView: React.FC = () => {
             />
             <button
               onClick={handleSendMessage}
-              disabled={!input.trim() || isLoading || session.isComplete}
+              disabled={!safeText(input).trim() || isLoading || session.isComplete}
               className="px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
               aria-label="Envoyer le message"
             >
