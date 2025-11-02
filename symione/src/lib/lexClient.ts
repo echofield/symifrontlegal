@@ -39,9 +39,13 @@ export const LexClient = {
       { id, clause_id: clauseId, ...updates }
     ),
 
-  // Generate contract
+  // Generate contract (map to backend schema)
   generate: (body: { contract_id: string; user_inputs: Record<string, any>; lawyer_mode?: boolean }) =>
-    apiPost<GenerateResponse>('/api/generate', body),
+    apiPost<GenerateResponse>('/api/generate', {
+      templateId: body.contract_id,
+      inputs: body.user_inputs,
+      lawyer_mode: body.lawyer_mode,
+    }),
 
   // Review contract
   review: (body: { contract_text: string }) =>
