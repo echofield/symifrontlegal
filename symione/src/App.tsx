@@ -17,7 +17,7 @@ import { BondSimpleView } from './components/BondSimpleView';
 import { BondGuideView } from './components/BondGuideView';
 import { SystemToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
-const SupportAgent = lazy(() => import('./components/SupportAgent'));
+const SupportAgent = lazy(() => import('./components/SupportAgent').then(m => ({ default: m.SupportAgent })));
 import { UIProvider } from './components/state-management';
 import { ThemeProvider } from './components/ThemeSystem';
 import { NotificationContainer } from './components/NotificationSystem';
