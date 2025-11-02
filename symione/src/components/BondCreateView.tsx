@@ -17,18 +17,17 @@ export function BondCreateView({ onNavigate }: BondCreateViewProps) {
     
     setLoading(true);
     try {
-      const response = await fetch('https://symilegalback.vercel.app/api/contracts/suggest', {
+      const response = await fetch('https://api.symione.com/api/contracts/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSuggestions(Array.isArray(data) ? data : [data]);
       } else {
         console.error('Suggest failed:', response.status);
-        // Fallback: show mock suggestions
         setSuggestions([
           "Contrat de prestation de services informatiques",
           "Contrat de freelance développement web",
