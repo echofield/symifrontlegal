@@ -15,7 +15,7 @@ import { ContactView } from './components/ContactView';
 import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
 import { BondSimpleView } from './components/BondSimpleView';
 import { BondGuideView } from './components/BondGuideView';
-import { SystemToast } from './components/SystemToast';
+import { SystemToast, showToast } from './components/SystemToast';
 import { SystemStatus } from './components/SystemStatus';
 const SupportAgent = lazy(() => import('./components/SupportAgent').then(m => ({ default: m.SupportAgent })));
 import { UIProvider } from './components/state-management';
@@ -77,6 +77,18 @@ function AppContent() {
     const initialView = pathToView(window.location.pathname);
     setCurrentView(initialView);
     setNavigationHistory([initialView]);
+
+    // Show success toast if returning from checkout
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      if (qs.get('success') === '1') {
+        showToast('Paiement confirmé. Votre contrat va être généré et envoyé.', 'success');
+        // Clean query param for subsequent navigation
+        const url = new URL(window.location.href);
+        url.searchParams.delete('success');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {}
 
     // Sync back/forward navigation
     const onPopState = () => {
