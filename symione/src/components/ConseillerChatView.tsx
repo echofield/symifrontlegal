@@ -201,10 +201,31 @@ export const ConseillerChatView: React.FC = () => {
             const tags = Array.isArray((rawSummary as any).tagsJuridiques) ? (rawSummary as any).tagsJuridiques.join(', ') : '';
             safeSummary = [titre, prob, tags].filter(Boolean).join(' — ');
           }
+          // Compose a readable analysis block for the chat
+          const a = final?.analysis || {};
+          const sev = a?.risk_matrix?.severity || '-';
+          const proof = a?.risk_matrix?.proof_strength || '-';
+          const urgStr = typeof a?.risk_matrix?.urgency === 'number' ? String(a.risk_matrix.urgency) : String(a?.urgency ?? '5');
+          const act0 = Array.isArray(a?.action_plan?.immediate_0_48h) ? a.action_plan.immediate_0_48h[0]?.action : undefined;
+          const act1 = Array.isArray(a?.action_plan?.short_3_15j) ? a.action_plan.short_3_15j[0]?.action : undefined;
+          const act2 = Array.isArray(a?.action_plan?.medium_1_3m) ? a.action_plan.medium_1_3m[0]?.action : undefined;
+          const costs = `Amiable: ${a?.estimated_costs?.amiable || '-'} | Judiciaire: ${a?.estimated_costs?.judiciaire || '-'}`;
+          const next = a?.next_critical_step || '-';
+          const analysisBlock = [
+            `Résumé: ${safeText(safeSummary || '')}`,
+            `Catégorie: ${safeText(a?.category || 'Général')}`,
+            `Urgence: ${urgStr}/10 • Sévérité: ${sev} • Preuve: ${proof}`,
+            `Actions (0-48h / 3-15j / 1-3m):`,
+            `- ${safeText(act0 || 'Débuter constitution des pièces')}`,
+            `- ${safeText(act1 || 'Avis avocat spécialisé')}`,
+            `- ${safeText(act2 || 'Mettre en demeure si nécessaire')}`,
+            `Coûts estimés: ${costs}`,
+            `Prochaine étape: ${safeText(next)}`
+          ].join('\n');
           const finalMessage: Message = {
             id: `assistant-final-${Date.now()}`,
             role: 'assistant',
-            content: "Parfait ! J'ai toutes les informations. Voici votre analyse.",
+            content: "Parfait ! J'ai toutes les informations. Voici votre analyse.\n\n" + analysisBlock,
             timestamp: new Date(),
           };
           setSession(prev => ({
