@@ -46,7 +46,7 @@ export function BondSimpleView({ onNavigate }: BondSimpleViewProps) {
   useEffect(() => {
     const fetchContracts = async () => {
       try {
-        const response = await fetch('https://symilegalback.vercel.app/api/escrow/contracts');
+        const response = await fetch('https://api.symione.com/api/escrow/contracts');
         const data = await response.json();
         if (data.success && data.contracts) {
           setContracts(data.contracts);
