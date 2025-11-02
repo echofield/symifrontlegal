@@ -5,10 +5,15 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: any }> {
-  state = { hasError: false, error: null };
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: any; componentStack?: string }> {
+  state = { hasError: false, error: null as any, componentStack: '' };
   static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
+  }
+  componentDidCatch(error: any, info: any) {
+    this.setState({ componentStack: info?.componentStack || '' });
+    // eslint-disable-next-line no-console
+    console.error('[ErrorBoundary]', error, info);
   }
   render() {
     if (this.state.hasError) {
@@ -18,6 +23,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
           <pre style={{ background: "#f5f5f5", padding: 12, borderRadius: 8, overflow: "auto" }}>
             {String(this.state.error)}
           </pre>
+          {this.state.componentStack && (
+            <pre style={{ background: "#fafafa", padding: 12, borderRadius: 8, overflow: "auto", marginTop: 12 }}>
+              {this.state.componentStack}
+            </pre>
+          )}
         </div>
       );
     }
