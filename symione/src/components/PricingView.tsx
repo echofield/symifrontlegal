@@ -7,47 +7,76 @@ interface PricingViewProps {
 
 const plans = [
   {
-    id: 'documents_unit',
-    name: 'Documents à l’unité',
-    price: '79',
+    id: 'documents',
+    name: 'Documents',
+    price: 'À partir de 79',
     period: '/ document',
-    description: 'Export professionnel. Prévisualisation gratuite.',
+    description: 'Tous types de contrats juridiques professionnels',
     features: [
-      '12 modèles actifs',
-      'Conformes au droit français',
-      'Génération < 5 minutes',
+      'CDI, CDD, Stage, Freelance',
+      'NDA, CGU/CGV, Prestation services',
+      'Bail habitation, Promesse vente',
+      'Reconnaissance dette, Pacte associés',
+      'Export PDF professionnel',
+      'Support standard',
     ],
     icon: MessageSquare,
-    iconText: 'Simple, clair, sans engagement',
-    cta: 'Voir les modèles',
+    iconText: 'Accès immédiat sans engagement',
+    cta: 'Générer un contrat',
     variant: 'outline' as const,
-    target: 'Professionnels & TPE/PME',
+    target: 'Particuliers & Professionnels',
   },
   {
-    id: 'forfaits',
-    name: 'Forfaits d’intelligence',
-    price: '590 / 990 / ≥ 3 000',
-    period: '€',
-    description: 'Impulse 48 • Kernel 360 • Continuum 30',
+    id: 'cabinet',
+    name: 'Cabinet',
+    price: '350',
+    period: '/ mois',
+    description: 'Pour cabinets d\'avocats et directions juridiques',
     features: [
-      'Décider vite (48 h) + mini‑implémentation',
-      'Architecture + 1 bloc connecté (7 j)',
-      'Production complète (30 j) — sans dette technique',
+      'Rapport BODACC hebdomadaire',
+      'Veille juridique entreprises',
+      'Référencement prioritaire conseiller',
+      'Support prioritaire 48h',
+      'Accès API données entreprises',
     ],
     icon: Scale,
-    iconText: 'Systèmes fiables, mesurables et vivants',
-    cta: 'Découvrir les forfaits',
+    iconText: 'Partenariat professionnel et visibilité',
+    cta: 'Devenir partenaire',
     variant: 'accent' as const,
     highlighted: true,
-    target: 'Activation en 48 h → 30 j',
+    target: 'Cabinets & Directions juridiques',
+  },
+  {
+    id: 'enterprise',
+    name: 'Entreprise',
+    price: 'Sur consultation',
+    period: '',
+    description: 'Pour grandes organisations (20+ employés)',
+    features: [
+      'Documents illimités',
+      'API Access (ERP/CRM)',
+      'White-label complet',
+      'Support dédié',
+      'SLA 99.9%',
+      'Installation sur-mesure',
+    ],
+    icon: Phone,
+    iconText: 'Solutions sur-mesure et intégration',
+    cta: 'Nous consulter',
+    variant: 'outline' as const,
+    target: 'Grandes organisations',
   },
 ];
 
 export function PricingView({ onNavigate }: PricingViewProps) {
   const handleSelectPlan = (planId: string) => {
-    if (planId === 'documents_unit') onNavigate('contracts');
-    else if (planId === 'forfaits') onNavigate('services');
-    else onNavigate('contact');
+    if (planId === 'cabinet' || planId === 'enterprise') {
+      onNavigate('contact');
+    } else if (planId === 'documents') {
+      onNavigate('contracts');
+    } else {
+      onNavigate('login');
+    }
   };
 
   return (
@@ -126,7 +155,7 @@ export function PricingView({ onNavigate }: PricingViewProps) {
                     {plan.target}
                   </p>
                   <div className="flex items-baseline gap-2 mb-4">
-                    {(
+                    {(plan.id !== 'enterprise') ? (
                       <>
                         <span 
                           className="text-[3.5rem] tracking-[-0.03em]"
@@ -138,9 +167,16 @@ export function PricingView({ onNavigate }: PricingViewProps) {
                           className="text-[1rem] text-muted-foreground"
                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                         >
-                          {plan.period}
+                          € {plan.period}
                         </span>
                       </>
+                    ) : (
+                      <span 
+                        className="text-[1.75rem] tracking-[-0.01em]"
+                        style={{ fontWeight: 600, lineHeight: 1.2 }}
+                      >
+                        {plan.price}
+                      </span>
                     )}
                   </div>
                   <p 
@@ -310,6 +346,25 @@ export function PricingView({ onNavigate }: PricingViewProps) {
               Créer un contrat Bond
             </button>
           </div>
+        </motion.div>
+
+        {/* Forfaits d'intelligence (redirect to Services) */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.3, ease: 'linear', delay: 0.35 }}
+          className="mt-12 border border-border p-10"
+        >
+          <h3 className="text-[1.5rem] mb-4" style={{ fontWeight: 600 }}>Forfaits d’intelligence</h3>
+          <div className="text-3xl font-semibold mb-2" style={{ fontFamily: 'var(--font-mono)' }}>590 / 990 / ≥ 3 000 €</div>
+          <p className="text-sm text-muted-foreground mb-4">Impulse 48 • Kernel 360 • Continuum 30</p>
+          <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Décider vite (48 h) + mini‑implémentation</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture + 1 bloc connecté (7 j)</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Production complète (30 j) — sans dette technique</li>
+          </ul>
+          <button onClick={() => onNavigate('services')} className="px-8 py-3 bg-accent text-accent-foreground text-[0.75rem] uppercase tracking-[0.12em] hover:shadow-[0_0_20px_var(--accent-glow)] transition-all">Découvrir les forfaits</button>
         </motion.div>
 
         {/* Additional info */}
