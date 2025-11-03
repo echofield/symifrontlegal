@@ -192,8 +192,9 @@ function AppContent() {
                       Systèmes d’intelligence en production.
                     </h1>
                     <div className="text-[1rem] text-muted-foreground mb-8" style={{ lineHeight: 1.7 }}>
-                      <p className="mb-2">L’intelligence n’est plus un concept — c’est l’infrastructure de l’entreprise moderne.</p>
-                      <p>Nous analysons votre activité à 360° et livrons des systèmes fiables, mesurables et vivants. Des résultats tangibles, sans promesse creuse.</p>
+                      <p>L’intelligence n’est plus un concept — c’est l’infrastructure de l’entreprise moderne.</p>
+                      <p>Nous analysons votre activité et livrons des systèmes fiables, mesurables et vivants.</p>
+                      <p>Des résultats tangibles, sans promesse creuse.</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button onClick={() => handleNavigate('services')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Démarrer un Audit 48h — 590 €</button>
@@ -207,15 +208,7 @@ function AppContent() {
                 </div>
               </section>
 
-              {/* Keep existing components below */}
-              <InstrumentHero />
-              <ControlSurface 
-                onNavigate={(route) => {
-                  if (route === 'contracts') handleNavigate('contracts');
-                  if (route === 'editor') handleNavigate('editor');
-                }}
-                onNavigateConseiller={() => handleNavigate('conseiller')}
-              />
+              {/* Duplicate legacy block removed */}
               
               {/* System capabilities */}
               <section className="py-20 lg:py-24 border-t border-border">
@@ -234,18 +227,18 @@ function AppContent() {
                       {[
                         {
                           code: 'MDL',
-                          title: '50+ Modèles',
+                          title: '12 Modèles',
                           description: 'Documents professionnels vérifiés',
                         },
                         {
                           code: 'JUR',
-                          title: '3 Juridictions',
-                          description: 'FR, UK, US',
+                          title: '1 Juridiction',
+                          description: 'France',
                         },
                         {
                           code: 'SYS',
                           title: 'Capacités Natives',
-                          description: 'Données chiffrées • API ERP/CRM • < 5 min',
+                          description: 'API interne • Données chiffrées • Génération < 5 min',
                         },
                       ].map((feature, index) => (
                         <motion.div
@@ -272,28 +265,7 @@ function AppContent() {
                 </div>
               </section>
 
-              {/* Pillars */}
-              <section className="py-20 lg:py-24 border-t border-border">
-                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-                  <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-10" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>MODULES D’INTELLIGENCE OPÉRATIONNELLE</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
-                    <div className="border border-border p-8">
-                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Documents</h3>
-                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Génération et révision automatisée de documents professionnels.</p>
-                    </div>
-                    <div className="border border-border p-8">
-                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Processus</h3>
-                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Architecture et automatisation de vos flux métiers (juridique, commercial, support).</p>
-                    </div>
-                    <div className="border border-border p-8">
-                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Conseil</h3>
-                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Accompagnement humain et stratégique pour fiabiliser la décision.</p>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-8">PRÉCISION 99.7% • LATENCE &lt; 200 ms • 12+ secteurs couverts</div>
-                  <button onClick={() => handleNavigate('services')} className="px-6 py-3 border border-border hover:border-foreground transition text-[0.75rem] uppercase tracking-[0.12em]">Commencer</button>
-                </div>
-              </section>
+              {/* Pillars removed per cleanup */}
 
               {/* Modules */}
               <section className="py-20 lg:py-24 border-t border-border">
@@ -301,9 +273,9 @@ function AppContent() {
                   <h2 className="text-[1.5rem] mb-2" style={{ fontWeight: 600 }}>Surface de contrôle</h2>
                   <p className="text-sm text-muted-foreground mb-8">3 modules prêts à l’emploi.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[{ code: 'SYN', title: 'Module Synthèse • Documents', desc: 'Création automatisée de documents à partir de modèles vérifiés.', action: () => handleNavigate('contracts') },
-                      { code: 'CMP', title: 'Module Conformité • Analyse', desc: 'Vérification instantanée des risques et écarts réglementaires.', action: () => handleNavigate('contracts') },
-                      { code: 'CNS', title: 'Module Conseil • Assistance', desc: 'Réponses expertes et réseau de partenaires métiers.', action: () => handleNavigate('conseiller') }].map((m) => (
+                    {[{ code: 'SYN', title: 'Module Synthèse • Documents', desc: 'Création automatisée de documents à partir de modèles vérifiés (12 modèles actifs).', action: () => handleNavigate('contracts') },
+                      { code: 'CMP', title: 'Module Conformité • Analyse', desc: 'Vérification instantanée de conformité et d’écarts réglementaires.', action: () => handleNavigate('contracts') },
+                      { code: 'CNS', title: 'Module Conseil • Assistance', desc: 'Conseil expert et orientation stratégique.', action: () => handleNavigate('conseiller') }].map((m) => (
                       <div key={m.code} className="border border-border p-8">
                         <div className="text-xs text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>{m.code}</div>
                         <h3 className="text-[1.125rem] mb-2" style={{ fontWeight: 600 }}>{m.title}</h3>
@@ -315,72 +287,9 @@ function AppContent() {
                 </div>
               </section>
 
-              {/* System metrics */}
-              <section className="py-20 lg:py-24 border-t border-border">
-                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-                    {[
-                      { value: '50+', label: 'Templates professionnels', unit: 'DOCS' },
-                      { value: '3', label: 'Juridictions', unit: 'FR, UK, US' },
-                      { value: '<5', label: 'Par contrat', unit: 'MIN' },
-                    ].map((stat, index) => (
-                      <motion.div
-                        key={stat.label}
-                        initial={{ opacity: 0, y: 6 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.2, delay: index * 0.08, ease: 'linear' }}
-                        className="border-l-2 border-border pl-6"
-                      >
-                        <div className="mb-2">
-                          <div className="text-[3.5rem] md:text-[4.5rem] tracking-[-0.03em] mb-2" style={{ fontWeight: 600, lineHeight: 1, fontFamily: 'var(--font-mono)' }}>
-                            {stat.value}
-                          </div>
-                          <span className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground block" style={{ fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                            {stat.unit}
-                          </span>
-                        </div>
-                        <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                          {stat.label}
-                        </p>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </section>
+              {/* System metrics removed per cleanup */}
 
-              {/* Initialization prompt */}
-              <section className="py-20 lg:py-24 border-t border-border">
-                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, ease: 'linear' }}
-                    className="max-w-4xl"
-                  >
-                    <div className="flex items-start gap-3 mb-6">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
-                      <div>
-                        <h2 className="text-[2rem] md:text-[3rem] mb-3 tracking-[-0.03em]" style={{ fontWeight: 600, lineHeight: 1.1 }}>
-                          Système prêt.
-                        </h2>
-                        <p className="text-[0.875rem] text-muted-foreground" style={{ lineHeight: 1.7, fontFamily: 'var(--font-mono)', fontWeight: 300 }}>
-                          50+ templates professionnels • 3 juridictions • Génération {'<5'} min
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-[0.9375rem] mb-10" style={{ lineHeight: 1.7 }}>
-                      Automatisation juridique de précision pour pratique professionnelle.
-                      Démarrez la synthèse documentaire ou consultez un expert.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button onClick={() => handleNavigate('contracts')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Créer un contrat</button>
-                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Services</button>
-                    </div>
-                  </motion.div>
-                </div>
-              </section>
+              {/* Duplicate "Système prêt" block removed */}
 
               {/* Méthode 360° */}
               <section className="py-20 lg:py-24 border-t border-border">
