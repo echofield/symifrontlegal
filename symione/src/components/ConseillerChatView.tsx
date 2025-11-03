@@ -315,23 +315,23 @@ export const ConseillerChatView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-[#F8FAFC]">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-white border-b border-[#EAECF0]">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Conseiller Symione</h1>
-            <p className="text-sm text-gray-500">
-              Assistant juridique conversationnel
+            <h1 className="text-xl font-semibold text-[#101828] tracking-tight">Symione — Conseiller</h1>
+            <p className="text-sm text-[#667085]">
+              Orientation systémique (intelligence opérationnelle)
               {currentQuestion && (
-                <span className="ml-2 text-gray-400">• Question {Math.min(progress.answered + 1, progress.total)} sur {progress.total}</span>
+                <span className="ml-2 text-[#98A2B3]">• Question {Math.min(progress.answered + 1, progress.total)} sur {progress.total}</span>
               )}
             </p>
           </div>
           {session.isComplete && (
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded shadow-sm transition-colors duration-200"
+              className="px-4 py-2 bg-[#1B4CFF] hover:bg-[#1640E6] text-white text-sm font-medium rounded transition-colors duration-200"
               aria-label="Exporter l'analyse en PDF"
             >
               Exporter PDF
@@ -342,7 +342,7 @@ export const ConseillerChatView: React.FC = () => {
 
       {/* Chat Container */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
           {/* Helper line before first interaction */}
           {session.messages.length <= 1 && !session.isComplete && (
             <div className="text-sm text-gray-500">
@@ -359,9 +359,9 @@ export const ConseillerChatView: React.FC = () => {
               <div
                 className={`max-w-2xl px-4 py-3 rounded-lg ${
                   msg.role === 'user'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white border border-gray-200 text-gray-900'
-                } shadow-sm`}
+                    ? 'bg-[#1B4CFF] text-white'
+                    : 'bg-white border border-[#EAECF0] text-gray-900'
+                }`}
               >
                 <p className="text-base leading-relaxed whitespace-pre-wrap">{toDisplay(msg.content)}</p>
                 <span
@@ -377,18 +377,22 @@ export const ConseillerChatView: React.FC = () => {
 
           {/* Quick examples (onboarding) */}
           {session.messages.length <= 1 && !session.isComplete && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
               <div className="text-sm text-gray-700 mb-2">Exemples rapides</div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {quickExamples.map((ex) => (
                   <button
                     key={ex}
                     onClick={() => handleSendMessage(ex)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-3 py-2 text-sm border border-[#EAECF0] rounded-lg hover:bg-[#F8FAFC]"
                   >
                     {ex}
                   </button>
                 ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <a href="/services?plan=impulse" className="px-3 py-2 text-sm bg-[#1B4CFF] hover:bg-[#1640E6] text-white rounded">Activer Impulse 48 — 590 €</a>
+                <a href="/services#forfaits" className="px-3 py-2 text-sm border border-[#1B4CFF] text-[#1B4CFF] rounded hover:bg-[#1B4CFF] hover:text-white">Découvrir nos systèmes</a>
               </div>
             </div>
           )}
@@ -396,11 +400,11 @@ export const ConseillerChatView: React.FC = () => {
           {/* Loading indicator */}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="max-w-2xl px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <div className="max-w-2xl px-4 py-3 bg-white border border-[#EAECF0] rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="w-2 h-2 bg-[#1B4CFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-[#1B4CFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-[#1B4CFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   <span className="ml-2 text-sm text-gray-500">Analyse en cours...</span>
                 </div>
               </div>
@@ -423,7 +427,7 @@ export const ConseillerChatView: React.FC = () => {
 
       {/* Partial Analysis Sidebar (Desktop only) */}
       {session.partialAnalysis && (
-        <aside className="hidden lg:block fixed top-20 right-8 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-6">
+        <aside className="hidden lg:block fixed top-20 right-8 w-80 bg-white border border-[#EAECF0] rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Analyse en cours</h3>
           
           {/* Progress bar */}
@@ -534,8 +538,8 @@ export const ConseillerChatView: React.FC = () => {
       )}
 
       {/* Input Footer */}
-      <footer className="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+      <footer className="sticky bottom-0 bg-white border-t border-[#EAECF0]">
+        <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center gap-3">
             <input
               ref={inputRef}
@@ -544,14 +548,14 @@ export const ConseillerChatView: React.FC = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={session.messages.length <= 1 ? "Décrivez votre situation juridique..." : "Votre réponse..."}
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-base"
+              className="flex-1 px-4 py-3 border border-[#EAECF0] rounded-lg focus:ring-2 focus:ring-[#1B4CFF] focus:border-transparent transition-all duration-200 text-base"
               disabled={isLoading || session.isComplete}
               aria-label="Message à envoyer"
             />
             <button
               onClick={handleSendMessage}
               disabled={!safeText(input).trim() || isLoading || session.isComplete}
-              className="px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+              className="px-6 py-3 bg-[#1B4CFF] hover:bg-[#1640E6] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors duration-200"
               aria-label="Envoyer le message"
             >
               {isLoading ? 'Envoi...' : 'Envoyer'}
@@ -567,6 +571,10 @@ export const ConseillerChatView: React.FC = () => {
       {session.isComplete && (
         <div className="bg-white border-t border-gray-200">
           <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <a href="/services?plan=impulse" className="px-4 py-2 bg-black text-white rounded hover:bg-black/90">Activer Impulse 48 — 590 €</a>
+              <a href="/services#forfaits" className="px-4 py-2 border border-black rounded hover:bg-black hover:text-white">Kernel 360 / Continuum 30</a>
+            </div>
             <div className="text-sm font-medium mb-1">Recevoir une étude approfondie par email</div>
             <p className="text-xs text-gray-500 mb-2">Version détaillée (citations, jurisprudence, coûts) sous 30–120 minutes.</p>
             <div className="flex items-center gap-2">

@@ -70,7 +70,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         </div>
 
         {/* Offers */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-14">
+        <div id="forfaits" className="grid lg:grid-cols-3 gap-6 mb-14">
           {/* Impulse 48 */}
           <div className="sd-border p-8">
             <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Démarrage 48 h</p>
@@ -149,11 +149,6 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Finance/OPS : rapprochements, contrôles qualité</li>
             </ul>
           </div>
-        </div>
-
-        {/* Legal system inclusion note */}
-        <div className="mt-12 text-sm text-muted-foreground">
-          Chaque plan inclut le système SYMIONE pour créer, réviser et automatiser vos documents juridiques.
         </div>
 
         {/* Global CTA */}
