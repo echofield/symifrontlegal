@@ -74,49 +74,68 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
 
         {/* Offers */}
         <div className="grid lg:grid-cols-3 gap-6 mb-14">
-          {/* Audit Lite */}
+          {/* Impulse 48 */}
           <div className="border border-border p-8">
-            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Audit 48h</p>
-            <h3 className="text-xl font-semibold mb-1">Audit Lite</h3>
+            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Démarrage 48 h</p>
+            <h3 className="text-xl font-semibold mb-1">Impulse 48</h3>
             <div className="text-3xl font-semibold mb-4">590 €</div>
             <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> 3 cas d’usage prioritaires</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> ROI estimatif + risques majeurs</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Plan d’actions 30 jours</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Carte d’opportunités (3 priorités 90 j)</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Mini‑implémentation utilisable dès aujourd’hui</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Rapport 1 page + plan d’action</li>
             </ul>
             <button onClick={onStartAuditLite} className="w-full px-4 py-3 border border-border hover:border-foreground transition">
-              Commencer (48h)
+              Démarrer en 48 h
             </button>
           </div>
 
-          {/* Audit Pro */}
+          {/* Kernel 360 */}
           <div className="border border-border p-8 ring-1 ring-accent">
-            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Audit 1 semaine</p>
-            <h3 className="text-xl font-semibold mb-1">Audit Pro</h3>
+            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Architecture + Bloc</p>
+            <h3 className="text-xl font-semibold mb-1">Kernel 360</h3>
             <div className="text-3xl font-semibold mb-4">990 €</div>
             <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture cible + feuille de route 90 jours</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Maquette du cas prioritaire</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> KPI & gouvernance (sécurité, coûts)</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture cible + feuille de route 90 j</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> 1 bloc opérationnel connecté à vos outils</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> 2 KPI actifs + garde‑fous coûts/sécurité</li>
             </ul>
             <button onClick={onStartAuditPro} className="w-full px-4 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition">
-              Réserver l’audit
+              Activer Kernel 360
             </button>
           </div>
 
-          {/* Implementation */}
+          {/* Continuum 30 */}
           <div className="border border-border p-8">
-            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Pilote 30 jours</p>
-            <h3 className="text-xl font-semibold mb-1">Implémentation</h3>
+            <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Production 30 jours</p>
+            <h3 className="text-xl font-semibold mb-1">Continuum 30</h3>
             <div className="text-3xl font-semibold mb-4">À partir de 3 000 €</div>
             <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Agent métier en production</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Tableau de bord & transfert</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Revue KPI mensuelle</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Cas d’usage complet en production</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Intégrations, monitoring, SOPs, transfert</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Revue KPI & itérations — sans dette technique</li>
             </ul>
             <button onClick={onContactPilot} className="w-full px-4 py-3 border border-border hover:border-foreground transition inline-flex items-center justify-center gap-2">
-              Parler d’un pilote <ArrowRight className="w-4 h-4" />
+              Parler d’un déploiement <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div className="border border-border p-8 mb-14">
+          <h2 className="text-xl font-semibold mb-4">Timeline</h2>
+          <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div className="border border-dashed border-border p-4">
+              <div className="text-xs text-muted-foreground mb-1">Impulse 48</div>
+              <div className="font-semibold">Démarrage sous 48 h</div>
+            </div>
+            <div className="border border-dashed border-border p-4">
+              <div className="text-xs text-muted-foreground mb-1">Kernel 360</div>
+              <div className="font-semibold">Bloc opérationnel en 7 j ouvrés</div>
+            </div>
+            <div className="border border-dashed border-border p-4">
+              <div className="text-xs text-muted-foreground mb-1">Continuum 30</div>
+              <div className="font-semibold">Cas complet en prod en 30 j</div>
+            </div>
           </div>
         </div>
 
