@@ -186,17 +186,18 @@ function AppContent() {
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
                   <div className="max-w-4xl">
                     <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-                      SYSTÈMES IA EN PRODUCTION
+                      SYSTÈMES D’INTELLIGENCE EN PRODUCTION
                     </p>
                     <h1 className="text-[2.25rem] md:text-[3rem] tracking-[-0.03em] mb-4" style={{ fontWeight: 600, lineHeight: 1.1 }}>
-                      L’IA n’est plus une option. C’est l’électricité de l’entreprise moderne.
+                      Systèmes d’intelligence en production.
                     </h1>
-                    <p className="text-[1rem] text-muted-foreground mb-8" style={{ lineHeight: 1.7 }}>
-                      Nous analysons votre activité à 360° et livrons des systèmes fiables, mesurables et rentables. Pas de buzzwords — des résultats chiffrés, en production.
-                    </p>
+                    <div className="text-[1rem] text-muted-foreground mb-8" style={{ lineHeight: 1.7 }}>
+                      <p className="mb-2">L’intelligence n’est plus un concept — c’est l’infrastructure de l’entreprise moderne.</p>
+                      <p>Nous analysons votre activité à 360° et livrons des systèmes fiables, mesurables et vivants. Des résultats tangibles, sans promesse creuse.</p>
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button onClick={() => handleNavigate('contracts')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Créer un contrat</button>
-                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Services</button>
+                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Démarrer un Audit 48h — 590 €</button>
+                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Systèmes</button>
                     </div>
                     <div className="flex flex-wrap gap-3 mt-4">
                       <button onClick={() => handleNavigate('bond')} className="px-6 py-3 border border-border text-[0.6875rem] uppercase tracking-[0.12em]">Escrow Bond</button>
@@ -232,19 +233,19 @@ function AppContent() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
                       {[
                         {
-                          code: 'TPL',
-                          title: '50+ Templates',
-                          description: 'Bibliothèque professionnelle de modèles juridiques',
+                          code: 'MDL',
+                          title: '50+ Modèles',
+                          description: 'Documents professionnels vérifiés',
                         },
                         {
                           code: 'JUR',
                           title: '3 Juridictions',
-                          description: 'France, Royaume-Uni, États-Unis',
+                          description: 'FR, UK, US',
                         },
                         {
-                          code: 'VIT',
-                          title: 'Génération Rapide',
-                          description: 'Moins de 5 minutes par contrat',
+                          code: 'SYS',
+                          title: 'Capacités Natives',
+                          description: 'Données chiffrées • API ERP/CRM • < 5 min',
                         },
                       ].map((feature, index) => (
                         <motion.div
@@ -271,31 +272,43 @@ function AppContent() {
                 </div>
               </section>
 
-              {/* Products */}
+              {/* Pillars */}
               <section className="py-20 lg:py-24 border-t border-border">
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-                  <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-10" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>PRODUITS</p>
+                  <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-10" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>MODULES D’INTELLIGENCE OPÉRATIONNELLE</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+                    <div className="border border-border p-8">
+                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Documents</h3>
+                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Génération et révision automatisée de documents professionnels.</p>
+                    </div>
+                    <div className="border border-border p-8">
+                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Processus</h3>
+                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Architecture et automatisation de vos flux métiers (juridique, commercial, support).</p>
+                    </div>
+                    <div className="border border-border p-8">
+                      <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>Conseil</h3>
+                      <p className="text-sm text-muted-foreground" style={{ lineHeight: 1.6 }}>Accompagnement humain et stratégique pour fiabiliser la décision.</p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground mb-8">PRÉCISION 99.7% • LATENCE &lt; 200 ms • 12+ secteurs couverts</div>
+                  <button onClick={() => handleNavigate('services')} className="px-6 py-3 border border-border hover:border-foreground transition text-[0.75rem] uppercase tracking-[0.12em]">Commencer</button>
+                </div>
+              </section>
+
+              {/* Modules */}
+              <section className="py-20 lg:py-24 border-t border-border">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+                  <h2 className="text-[1.5rem] mb-2" style={{ fontWeight: 600 }}>Surface de contrôle</h2>
+                  <p className="text-sm text-muted-foreground mb-8">3 modules prêts à l’emploi.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[{
-                      title: 'Documents',
-                      desc: 'À partir de 79 € / document. Prévisualisation gratuite, export professionnel.',
-                      cta: 'Voir les modèles',
-                      action: () => handleNavigate('contracts')
-                    },{
-                      title: 'Bond (Escrow)',
-                      desc: '149 / 299 / 499 € selon le ticket. Paiements par jalons, libération conditionnelle.',
-                      cta: 'Découvrir Bond',
-                      action: () => handleNavigate('bond')
-                    },{
-                      title: 'Conseiller IA (BETA)',
-                      desc: 'Réponse rapide et orientation stratégique. Audit 48h: 590 €.',
-                      cta: 'Ouvrir Conseiller',
-                      action: () => handleNavigate('conseiller')
-                    }].map((card) => (
-                      <div key={card.title} className="border border-border p-8">
-                        <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>{card.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-6" style={{ lineHeight: 1.6 }}>{card.desc}</p>
-                        <button onClick={card.action} className="px-6 py-3 border border-border hover:border-foreground transition text-[0.75rem] uppercase tracking-[0.12em]">{card.cta}</button>
+                    {[{ code: 'SYN', title: 'Module Synthèse • Documents', desc: 'Création automatisée de documents à partir de modèles vérifiés.', action: () => handleNavigate('contracts') },
+                      { code: 'CMP', title: 'Module Conformité • Analyse', desc: 'Vérification instantanée des risques et écarts réglementaires.', action: () => handleNavigate('contracts') },
+                      { code: 'CNS', title: 'Module Conseil • Assistance', desc: 'Réponses expertes et réseau de partenaires métiers.', action: () => handleNavigate('conseiller') }].map((m) => (
+                      <div key={m.code} className="border border-border p-8">
+                        <div className="text-xs text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>{m.code}</div>
+                        <h3 className="text-[1.125rem] mb-2" style={{ fontWeight: 600 }}>{m.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-6" style={{ lineHeight: 1.6 }}>{m.desc}</p>
+                        <button onClick={m.action} className="px-6 py-3 border border-border hover:border-foreground transition text-[0.75rem] uppercase tracking-[0.12em]">Ouvrir le module</button>
                       </div>
                     ))}
                   </div>
