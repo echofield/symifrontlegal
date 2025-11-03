@@ -22,11 +22,12 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
             CONSEIL & MISE EN OEUVRE IA
           </p>
           <h1 className="text-[2rem] md:text-[2.5rem] tracking-[-0.02em] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
-            L'IA n’est plus une option. C’est l’électricité de l’entreprise moderne.
+            Systèmes d’intelligence en production.
           </h1>
-          <p className="text-[1rem] text-muted-foreground max-w-3xl" style={{ lineHeight: 1.7 }}>
-            Nous analysons votre activité à 360° et livrons des systèmes fiables, mesurables et rentables. Pas de buzzwords — des résultats chiffrés, en production.
-          </p>
+          <div className="text-[1rem] text-muted-foreground max-w-3xl" style={{ lineHeight: 1.7 }}>
+            <p>L’intelligence n’est plus un concept — c’est l’infrastructure vivante de l’entreprise moderne.</p>
+            <p>Des résultats tangibles, sans promesse creuse.</p>
+          </div>
         </motion.div>
 
         {/* Positioning */}
@@ -58,18 +59,14 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         {/* Method */}
         <div className="border border-border p-8 mb-14">
           <h2 className="text-xl font-semibold mb-4">Méthode 360°</h2>
-          <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
-            <ul className="space-y-2">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Marché & clients (frictions, parcours)</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Processus & outils (où l’IA remplace/accélère)</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Données & sécurité (qualité, confidentialité)</li>
-            </ul>
-            <ul className="space-y-2">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture & coûts (cloud/on‑device, observation)</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Organisation & gouvernance (rôles, risques)</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Indicateurs & ROI (KPI, contrat d’objectifs)</li>
-            </ul>
-          </div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Activité & clients</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Processus & outils</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Données & sécurité</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture & coûts</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Organisation & gouvernance</li>
+            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Indicateurs & ROI</li>
+          </ul>
         </div>
 
         {/* Offers */}
@@ -157,6 +154,12 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         {/* Legal system inclusion note */}
         <div className="mt-12 text-sm text-muted-foreground">
           Chaque plan inclut le système SYMIONE pour créer, réviser et automatiser vos documents juridiques.
+        </div>
+
+        {/* Global CTA */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button onClick={onStartAuditLite} className="px-6 py-3 bg-accent text-accent-foreground text-[0.75rem] uppercase tracking-[0.12em] hover:shadow-[0_0_20px_var(--accent-glow)] transition">Activer Impulse 48 — 590 €</button>
+          <button onClick={onContactPilot} className="px-6 py-3 border border-border text-[0.75rem] uppercase tracking-[0.12em]">Découvrir nos systèmes</button>
         </div>
       </div>
     </div>
