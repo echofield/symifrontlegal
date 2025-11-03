@@ -1,5 +1,7 @@
 import { motion } from 'motion/react';
-import { Check, ArrowRight, Shield, Target, Gauge } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
+import { Button } from './ui/button';
+import { useState } from 'react';
 
 interface ServicesViewProps {
   onStartAuditLite?: () => void;
@@ -7,7 +9,60 @@ interface ServicesViewProps {
   onContactPilot?: () => void;
 }
 
+const plans = [
+  {
+    id: 'impulse',
+    name: 'Impulse 48',
+    price: '590 €',
+    label: 'DÉMARRAGE 48 H',
+    description: 'Architecture + bloc opérationnel',
+    features: [
+      "Carte d'opportunités (3 priorités 90 j)",
+      "Mini-implémentation utilisable dès aujourd'hui",
+      "Rapport 1 page + plan d'action"
+    ],
+    cta: 'Démarrer en 48 h',
+    timeline: 'Démarrage sous 48 h',
+    delivery: 'Impulse 48',
+    popular: false
+  },
+  {
+    id: 'kernel',
+    name: 'Kernel 360',
+    price: '990 €',
+    label: 'ARCHITECTURE + BLOC',
+    description: 'Bloc opérationnel en 7 j ouvrés',
+    features: [
+      'Architecture cible + feuille de route 90 j',
+      '1 bloc opérationnel connecté à vos outils',
+      '2 KPI actifs + garde-fous coûts/sécurité'
+    ],
+    cta: 'Activer Kernel 360',
+    timeline: 'Bloc opérationnel en 7 j ouvrés',
+    delivery: 'Kernel 360',
+    popular: true
+  },
+  {
+    id: 'continuum',
+    name: 'Continuum 30',
+    price: 'À partir de 3 000 €',
+    label: 'PRODUCTION 30 JOURS',
+    description: 'Cas complet en prod en 30 j',
+    features: [
+      "Cas d'usage complet en production",
+      'Intégrations, monitoring, SOPs, transfert',
+      'Revue KPI & itérations — sans dette technique'
+    ],
+    cta: "Parler d'un déploiement",
+    timeline: 'Cas complet en prod en 30 j',
+    delivery: 'Continuum 30',
+    popular: false,
+    contact: true
+  }
+];
+
 export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot }: ServicesViewProps) {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   return (
     <div className="min-h-screen py-16 lg:py-24 services-swiss">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
@@ -30,180 +85,145 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
           </div>
         </motion.div>
 
-        {/* Intent → Resonance → Pattern → Emergence (ASCII) */}
-        <div className="mb-12 border border-border p-6 bg-card">
-          <pre
-            className="text-[0.875rem] leading-6 whitespace-pre-wrap"
-            style={{ fontFamily: 'var(--font-mono)' }}
-          >{`Human Intent ────> Clarté
-
-                    ↓
-
-               [Résonance]
-
-                    ↑
-
-          AI Pattern ────┘
-
-                    ↓
-
-              ROI  •  Sérénité
-
-                    ↓
-
-             Emergent System`}</pre>
-        </div>
-
-        {/* Positioning */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {[{
-            icon: Target,
-            title: 'Clarté',
-            text: 'Plan 90 jours priorisé, focalisé sur vos objectifs métier.'
-          },{
-            icon: Gauge,
-            title: 'ROI',
-            text: 'Gains et économies documentés (heures, revenus, NPS).'
-          },{
-            icon: Shield,
-            title: 'Sérénité',
-            text: 'Gouvernance, sécurité et conformité dès le jour 1.'
-          }].map((b, i) => {
-            const Icon = b.icon as any;
-            return (
-              <motion.div key={b.title} initial={{ opacity: 0, y: 6 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.2, delay: i * 0.06, ease: 'linear' }} className="sd-border p-6">
-                <Icon className="w-5 h-5 mb-3 text-accent" />
-                <h3 className="font-semibold mb-1">{b.title}</h3>
-                <p className="text-sm text-foreground/80">{b.text}</p>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Method */}
-        <div className="sd-border p-8 mb-14">
-          <h2 className="text-xl font-semibold mb-4">Méthode 360°</h2>
-          <ul className="space-y-2 text-sm text-foreground/80">
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Activité & clients</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Processus & outils</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Données & sécurité</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Architecture & coûts</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Organisation & gouvernance</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Indicateurs & ROI</li>
-          </ul>
-        </div>
-
-        {/* Offers */}
-        <div id="forfaits" className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-14">
-          {/* Impulse 48 */}
-          <div className="border border-border bg-card p-8 lg:p-10 relative hover:border-accent/50 transition-all duration-200">
-            <div className="mb-8 pb-8 border-b border-border">
-              <h3 className="text-[1.5rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>Impulse 48</h3>
-              <p className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Démarrage 48 h</p>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-[3.5rem] tracking-[-0.03em]" style={{ fontWeight: 600, lineHeight: 1, fontFamily: 'var(--font-mono)' }}>590</span>
-                <span className="text-[1rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>€</span>
-              </div>
-              <p className="text-[0.8125rem] text-foreground/80" style={{ lineHeight: 1.5 }}>Audit express et mini‑implémentation livrable.</p>
-            </div>
-
-            <ul className="space-y-3 mb-10">
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Carte d’opportunités (3 priorités 90 j)</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Mini‑implémentation utilisable dès aujourd’hui</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Rapport 1 page + plan d’action</span></li>
-            </ul>
-
-            <button onClick={onStartAuditLite} className="w-full px-8 py-5 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground hover:bg-accent/5 transition-all duration-200" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-              Démarrer en 48 h
-            </button>
-          </div>
-
-          {/* Kernel 360 (highlighted) */}
-          <div className="border border-border bg-card p-8 lg:p-10 relative transition-all duration-200 ring-2 ring-accent ring-offset-2 ring-offset-background">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-accent text-accent-foreground text-[0.625rem] uppercase tracking-[0.12em]" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Recommandé</div>
-            <div className="mb-8 pb-8 border-b border-border">
-              <h3 className="text-[1.5rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>Kernel 360</h3>
-              <p className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Architecture + Bloc</p>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-[3.5rem] tracking-[-0.03em]" style={{ fontWeight: 600, lineHeight: 1, fontFamily: 'var(--font-mono)' }}>990</span>
-                <span className="text-[1rem] text-muted-foreground" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>€</span>
-              </div>
-              <p className="text-[0.8125rem] text-foreground/80" style={{ lineHeight: 1.5 }}>Architecture cible + premier bloc opérationnel connecté.</p>
-            </div>
-
-            <ul className="space-y-3 mb-10">
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Architecture cible + feuille de route 90 j</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>1 bloc opérationnel connecté à vos outils</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>2 KPI actifs + garde‑fous coûts/sécurité</span></li>
-            </ul>
-
-            <button onClick={onStartAuditPro} className="w-full px-8 py-5 text-[0.75rem] uppercase tracking-[0.12em] bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-              Activer Kernel 360
-            </button>
-          </div>
-
-          {/* Continuum 30 */}
-          <div className="border border-border bg-card p-8 lg:p-10 relative hover:border-accent/50 transition-all duration-200">
-            <div className="mb-8 pb-8 border-b border-border">
-              <h3 className="text-[1.5rem] mb-2 tracking-[-0.01em]" style={{ fontWeight: 600 }}>Continuum 30</h3>
-              <p className="text-[0.75rem] uppercase tracking-[0.1em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Production 30 jours</p>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-[1.75rem] tracking-[-0.01em]" style={{ fontWeight: 600, lineHeight: 1.2 }}>À partir de 3 000 €</span>
-              </div>
-              <p className="text-[0.8125rem] text-foreground/80" style={{ lineHeight: 1.5 }}>Cas d’usage complet en production avec transfert.</p>
-            </div>
-
-            <ul className="space-y-3 mb-10">
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Intégrations, monitoring, SOPs, transfert</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Revue KPI & itérations — sans dette technique</span></li>
-              <li className="flex items-start gap-3"><Check className="w-4 h-4 text-accent" /><span className="text-[0.875rem]" style={{ lineHeight: 1.6 }}>Accompagnement gouvernance et sécurité</span></li>
-            </ul>
-
-            <button onClick={onContactPilot} className="w-full px-8 py-5 text-[0.75rem] uppercase tracking-[0.12em] border border-border hover:border-foreground hover:bg-accent/5 transition-all duration-200 inline-flex items-center justify-center gap-2" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-              Parler d’un déploiement <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
         {/* Timeline */}
-        <div className="border border-border p-8 mb-14">
-          <h2 className="text-xl font-semibold mb-4">Timeline</h2>
-          <div className="grid md:grid-cols-3 gap-6 text-sm">
-            <div className="border border-dashed border-border p-4">
-              <div className="text-xs text-muted-foreground mb-1">Impulse 48</div>
-              <div className="font-semibold">Démarrage sous 48 h</div>
-            </div>
-            <div className="border border-dashed border-border p-4">
-              <div className="text-xs text-muted-foreground mb-1">Kernel 360</div>
-              <div className="font-semibold">Bloc opérationnel en 7 j ouvrés</div>
-            </div>
-            <div className="border border-dashed border-border p-4">
-              <div className="text-xs text-muted-foreground mb-1">Continuum 30</div>
-              <div className="font-semibold">Cas complet en prod en 30 j</div>
+        <section className="border-b border-[#EAECF0] bg-white py-16">
+          <div className="mx-auto max-w-7xl px-6">
+            <h3 className="text-xs uppercase tracking-wider text-[#667085] font-mono mb-12">TIMELINE</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {plans.map((plan, index) => (
+                <div key={plan.id} className="relative">
+                  {index < plans.length - 1 && (
+                    <div className="hidden md:block absolute top-2 left-full w-full h-px bg-[#EAECF0]" />
+                  )}
+                  <div className="relative">
+                    <div className="w-4 h-4 rounded-full bg-accent mb-4" />
+                    <p className="text-sm mb-1">{plan.delivery}</p>
+                    <p className="text-xs text-[#667085] font-mono">{plan.timeline}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Use cases */}
-        <div className="sd-border p-8">
-          <h2 className="text-xl font-semibold mb-4">Cas d’usage</h2>
-          <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
-            <ul className="space-y-2">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Juridique : génération, revue, triage dossiers</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Commercial : qualification, outreach ciblé, RDV</li>
-            </ul>
-            <ul className="space-y-2">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Support : réponses de niveau 1, escalade contextualisée</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Finance/OPS : rapprochements, contrôles qualité</li>
-            </ul>
+        {/* Pricing */}
+        <section className="bg-white py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl tracking-tight mb-4">Choisissez votre départ</h2>
+              <p className="text-lg text-[#667085]">Du prototype 48h au système complet en production</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
+              {plans.map((plan) => (
+                <motion.div key={plan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+                  className={`relative border rounded-xl p-8 bg-white ${plan.popular ? 'border-accent shadow-lg ring-2 ring-accent ring-opacity-20' : 'border-[#EAECF0] hover:border-accent hover:shadow-md'} transition-all duration-200`}>
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-accent text-accent-foreground text-xs font-mono uppercase tracking-wider px-3 py-1 rounded-full">Populaire</span>
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <p className="text-xs uppercase tracking-wider text-[#667085] font-mono mb-2">{plan.label}</p>
+                    <h3 className="text-2xl mb-2">{plan.name}</h3>
+                    <div className="flex items-baseline gap-2 mb-3"><span className="text-3xl tracking-tight">{plan.price}</span></div>
+                    <p className="text-sm text-[#667085]">{plan.description}</p>
+                  </div>
+                  <div className="space-y-3 mb-8">
+                    {plan.features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-3"><Check className="h-4 w-4 text-[#19B37A] flex-shrink-0 mt-0.5" strokeWidth={2} /><span className="text-sm text-[#101828] leading-relaxed">{feature}</span></div>
+                    ))}
+                  </div>
+                  <Button onClick={() => setSelectedPlan(plan.id)} className={`w-full ${plan.popular ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : 'bg-white border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground'}`}>
+                    {plan.cta}
+                    {plan.contact && <ArrowRight className="h-4 w-4 ml-2" />}
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Global CTA */}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button onClick={onStartAuditLite} className="px-6 py-3 bg-accent text-accent-foreground text-[0.75rem] uppercase tracking-[0.12em] hover:shadow-[0_0_20px_var(--accent-glow)] transition">Activer Impulse 48 — 590 €</button>
-          <button onClick={onContactPilot} className="px-6 py-3 border border-border text-[0.75rem] uppercase tracking-[0.12em]">Découvrir nos systèmes</button>
-        </div>
+        {/* Impact measured */}
+        <section className="bg-white py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-20">
+                <h3 className="text-3xl tracking-tight">Impact mesuré</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-[#EAECF0]">
+                <div className="relative bg-[#F8FAFC] p-12 border-r border-[#EAECF0]">
+                  <div className="absolute top-6 left-6"><span className="text-xs uppercase tracking-wider text-[#667085] font-mono">Sans SYMIONE</span></div>
+                  <div className="mt-8 space-y-8">
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">2-4</span><span className="text-sm text-[#101828] font-mono">semaines</span></div>
+                      <div className="h-px bg-[#EAECF0]" />
+                      <p className="text-xs text-[#667085] mt-2">Délai de livraison</p>
+                    </div>
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">2000-5000</span><span className="text-sm text-[#101828] font-mono">€</span></div>
+                      <div className="h-px bg-[#EAECF0]" />
+                      <p className="text-xs text-[#667085] mt-2">Coût moyen</p>
+                    </div>
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">100%</span><span className="text-sm text-[#101828] font-mono">manuel</span></div>
+                      <div className="h-px bg-[#EAECF0]" />
+                      <p className="text-xs text-[#667085] mt-2">Processus humain</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="relative bg-white p-12">
+                  <div className="absolute top-6 left-6"><span className="text-xs uppercase tracking-wider text-accent font-mono">Avec SYMIONE</span></div>
+                  <div className="mt-8 space-y-8">
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">48H-30J</span><span className="text-sm text-accent font-mono">-70%</span></div>
+                      <div className="h-px bg-accent" />
+                      <p className="text-xs text-[#667085] mt-2">Délai de livraison</p>
+                    </div>
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">590-2900</span><span className="text-sm text-accent font-mono">€ -60%</span></div>
+                      <div className="h-px bg-accent" />
+                      <p className="text-xs text-[#667085] mt-2">Coût moyen</p>
+                    </div>
+                    <div>
+                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">IA+Humain</span><span className="text-sm text-accent font-mono">+100%</span></div>
+                      <div className="h-px bg-accent" />
+                      <p className="text-xs text-[#667085] mt-2">Qualité & gouvernance</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-px bg-[#EAECF0] border border-[#EAECF0] mt-0">
+                <div className="bg-white px-6 py-4 text-center"><p className="text-2xl tracking-tight mb-1">48H</p><p className="text-xs text-[#667085] font-mono">Premier livrable</p></div>
+                <div className="bg-white px-6 py-4 text-center"><p className="text-2xl tracking-tight mb-1">100%</p><p className="text-xs text-[#667085] font-mono">Traçabilité</p></div>
+                <div className="bg-white px-6 py-4 text-center"><p className="text-2xl tracking-tight mb-1">0</p><p className="text-xs text-[#667085] font-mono">Engagement initial</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Use Cases Section */}
+        <section className="border-t border-[#EAECF0] bg-[#F8FAFC] py-16">
+          <div className="mx-auto max-w-7xl px-6">
+            <h3 className="text-xs uppercase tracking-wider text-[#667085] font-mono mb-8">CAS D'USAGE</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { category: 'Juridique', examples: 'génération, revue, triage dossiers' },
+                { category: 'Commercial', examples: 'qualification, outreach ciblé, RDV' },
+                { category: 'Support', examples: 'réponses de niveau 1, escalade contextualisée' },
+                { category: 'Finance/OPS', examples: 'rapprochements, contrôles qualité' }
+              ].map((useCase, index) => (
+                <div key={index} className="bg-white border border-[#EAECF0] rounded-lg px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <Check className="h-4 w-4 text-[#19B37A] flex-shrink-0 mt-0.5" strokeWidth={2} />
+                    <div>
+                      <p className="text-sm"><span className="text-[#101828]">{useCase.category}</span><span className="text-[#667085]"> : {useCase.examples}</span></p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
