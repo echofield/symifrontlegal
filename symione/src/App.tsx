@@ -15,7 +15,8 @@ import { ContactView } from './components/ContactView';
 import { BondCreateViewEnhanced } from './components/BondCreateViewEnhanced';
 import { BondSimpleView } from './components/BondSimpleView';
 import { BondGuideView } from './components/BondGuideView';
-import { SystemToast, showToast } from './components/SystemToast';
+import { SystemToast } from './components/SystemToast';
+import ServicesView from './components/ServicesView';
 import { SystemStatus } from './components/SystemStatus';
 const SupportAgent = lazy(() => import('./components/SupportAgent').then(m => ({ default: m.SupportAgent })));
 import { UIProvider } from './components/state-management';
@@ -26,7 +27,7 @@ import { initializePerformanceMonitoring, useRenderPerformance } from './lib/per
 import { supabase } from './lib/supabaseClient';
 import ConseillerChatView from './components/ConseillerChatView';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'conseiller-chat' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'conseiller-chat' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'bond-guide' | 'services';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -50,6 +51,7 @@ function AppContent() {
         case 'conseiller-wizard': return '/conseiller/wizard';
         case 'conseiller-chat': return '/conseiller-chat';
         case 'pricing': return '/prix';
+        case 'services': return '/services';
         case 'docs': return '/documentation';
         case 'contact': return '/nous-consulter';
         case 'bond': return '/bond';
@@ -65,6 +67,7 @@ function AppContent() {
       if (path.startsWith('/conseiller')) return 'conseiller';
       if (path.startsWith('/modeles')) return 'contracts';
       if (path.startsWith('/prix')) return 'pricing';
+      if (path.startsWith('/services')) return 'services';
       if (path.startsWith('/documentation')) return 'docs';
       if (path.startsWith('/nous-consulter')) return 'contact';
       if (path.startsWith('/bond/guide')) return 'bond-guide';
@@ -77,18 +80,6 @@ function AppContent() {
     const initialView = pathToView(window.location.pathname);
     setCurrentView(initialView);
     setNavigationHistory([initialView]);
-
-    // Show success toast if returning from checkout
-    try {
-      const qs = new URLSearchParams(window.location.search);
-      if (qs.get('success') === '1') {
-        showToast('Paiement confirmé. Votre contrat va être généré et envoyé.', 'success');
-        // Clean query param for subsequent navigation
-        const url = new URL(window.location.href);
-        url.searchParams.delete('success');
-        window.history.replaceState({}, '', url.toString());
-      }
-    } catch {}
 
     // Sync back/forward navigation
     const onPopState = () => {
@@ -121,6 +112,7 @@ function AppContent() {
           case 'conseiller-wizard': return '/conseiller/wizard';
           case 'conseiller-chat': return '/conseiller-chat';
           case 'pricing': return '/prix';
+          case 'services': return '/services';
           case 'docs': return '/documentation';
           case 'contact': return '/nous-consulter';
           case 'bond': return '/bond';
@@ -417,6 +409,22 @@ function AppContent() {
               transition={{ duration: 0.2, ease: 'linear' }}
             >
               <PricingView onNavigate={handleNavigate} />
+            </motion.div>
+          )}
+
+          {currentView === 'services' && (
+            <motion.div
+              key="services"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
+            >
+              <ServicesView 
+                onStartAuditLite={() => window.location.href = 'mailto:contact@symione.com?subject=Audit%2048h%20(590€)'}
+                onStartAuditPro={() => window.location.href = 'mailto:contact@symione.com?subject=Audit%20Pro%20(990€)'}
+                onContactPilot={() => window.location.href = 'mailto:contact@symione.com?subject=Pilote%20IA%20(≥3000€)'}
+              />
             </motion.div>
           )}
 
