@@ -7,8 +7,12 @@ const contexts = (global as any).__SYMI_CONTEXT__ || new Map<string, Record<stri
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: true, message: 'Method not allowed' });
-  const { contextId } = req.body || {};
-  const a = contexts.get(contextId);
+  const { contextId, answers } = req.body || {};
+  let a: Record<string, string> | undefined = contexts.get(contextId);
+  // Fallback: accept answers directly from client if in-memory context is not available (serverless cold start)
+  if (!a && answers && typeof answers === 'object') {
+    a = answers as Record<string, string>;
+  }
   if (!a) return res.status(200).json({ success: false, error: 'Contexte introuvable' });
 
   // Fast summary (court) < 8s – ici simplifié sans appel IA pour stabiliser

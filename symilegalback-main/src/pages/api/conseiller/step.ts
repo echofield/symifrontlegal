@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withCors } from '@/lib/http/cors';
 
-// In-memory context (suffisant pour tests; pour prod: KV/DB)
-const contexts = new Map<string, Record<string, string>>();
+// In-memory context shared across routes (for POC). In prod: KV/DB/Redis.
+const contexts = (global as any).__SYMI_CONTEXT__ || new Map<string, Record<string, string>>();
+(global as any).__SYMI_CONTEXT__ = contexts;
 
 type Question = {
   id: string;

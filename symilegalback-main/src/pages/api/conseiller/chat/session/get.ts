@@ -1,0 +1,42 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { QUESTIONS_18, getNextQuestionId, getQuestionById } from '@/lib/conseiller/questions';
+
+type SessionData = {
+  answers: Record<string, any>;
+  order: string[];
+  createdAt: number;
+};
+
+const sessions: Map<string, SessionData> = (global as any).__SYMI_CHAT_SESSIONS__ || new Map();
+(global as any).__SYMI_CHAT_SESSIONS__ = sessions;
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { sessionId } = req.query as { sessionId?: string };
+  if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
+
+  let s = sessions.get(sessionId);
+  if (!s) {
+    // Auto-initialize session to avoid 404 during resume
+    s = { answers: {}, order: QUESTIONS_18.map(q => q.id), createdAt: Date.now() };
+    sessions.set(sessionId, s);
+  }
+
+  const nextId = getNextQuestionId(s.answers);
+  const nextQuestion = nextId ? getQuestionById(nextId) : null;
+  return res.status(200).json({
+    sessionId,
+    answers: s.answers,
+    nextQuestion,
+    progress: { answered: Object.keys(s.answers).length, total: QUESTIONS_18.length },
+  });
+}
+
+
