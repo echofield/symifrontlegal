@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 
-type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'pricing' | 'docs' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'services';
+type View = 'home' | 'contracts' | 'editor' | 'conseiller' | 'conseiller-wizard' | 'pricing' | 'contact' | 'login' | 'bond' | 'bond-create' | 'bond-contract' | 'bond-payment' | 'bond-settings' | 'services';
 
 interface NavigationHeaderProps {
   currentView: View;
@@ -14,9 +14,7 @@ export function NavigationHeader({ currentView, onNavigate, canGoBack, onBack }:
     { label: 'Modèles', view: 'contracts' as View },
     { label: 'Bond', view: 'bond' as View },
     { label: 'Services', view: 'services' as View },
-    { label: 'Conseiller IA (BETA)', view: 'conseiller' as View },
     { label: 'Prix', view: 'pricing' as View },
-    { label: 'Documentation', view: 'docs' as View },
     { label: 'Nous consulter', view: 'contact' as View },
   ];
 

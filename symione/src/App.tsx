@@ -197,12 +197,11 @@ function AppContent() {
                       <p>Des résultats tangibles, sans promesse creuse.</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Démarrer un Audit 48h — 590 €</button>
+                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Activer Impulse 48 — 590 €</button>
                       <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Systèmes</button>
                     </div>
                     <div className="flex flex-wrap gap-3 mt-4">
                       <button onClick={() => handleNavigate('bond')} className="px-6 py-3 border border-border text-[0.6875rem] uppercase tracking-[0.12em]">Escrow Bond</button>
-                      <button onClick={() => handleNavigate('conseiller')} className="px-6 py-3 border border-border text-[0.6875rem] uppercase tracking-[0.12em]">Conseiller IA (BETA)</button>
                     </div>
                   </div>
                 </div>

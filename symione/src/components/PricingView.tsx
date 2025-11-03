@@ -2,81 +2,52 @@ import { motion } from 'motion/react';
 import { Check, Phone, MessageSquare, Scale } from 'lucide-react';
 
 interface PricingViewProps {
-  onNavigate: (view: 'contracts' | 'login' | 'contact') => void;
+  onNavigate: (view: 'contracts' | 'login' | 'contact' | 'services') => void;
 }
 
 const plans = [
   {
-    id: 'documents',
-    name: 'Documents',
-    price: 'À partir de 79',
+    id: 'documents_unit',
+    name: 'Documents à l’unité',
+    price: '79',
     period: '/ document',
-    description: 'Tous types de contrats juridiques professionnels',
+    description: 'Export professionnel. Prévisualisation gratuite.',
     features: [
-      'CDI, CDD, Stage, Freelance',
-      'NDA, CGU/CGV, Prestation services',
-      'Bail habitation, Promesse vente',
-      'Reconnaissance dette, Pacte associés',
-      'Export PDF professionnel',
-      'Support standard',
+      '12 modèles actifs',
+      'Conformes au droit français',
+      'Génération < 5 minutes',
     ],
     icon: MessageSquare,
-    iconText: 'Accès immédiat sans engagement',
-    cta: 'Générer un contrat',
+    iconText: 'Simple, clair, sans engagement',
+    cta: 'Voir les modèles',
     variant: 'outline' as const,
-    target: 'Particuliers & Professionnels',
+    target: 'Professionnels & TPE/PME',
   },
   {
-    id: 'cabinet',
-    name: 'Cabinet',
-    price: '350',
-    period: '/ mois',
-    description: 'Pour cabinets d\'avocats et directions juridiques',
+    id: 'forfaits',
+    name: 'Forfaits d’intelligence',
+    price: '590 / 990 / ≥ 3 000',
+    period: '€',
+    description: 'Impulse 48 • Kernel 360 • Continuum 30',
     features: [
-      'Rapport BODACC hebdomadaire',
-      'Veille juridique entreprises',
-      'Référencement prioritaire conseiller',
-      'Support prioritaire 48h',
-      'Accès API données entreprises',
+      'Décider vite (48 h) + mini‑implémentation',
+      'Architecture + 1 bloc connecté (7 j)',
+      'Production complète (30 j) — sans dette technique',
     ],
     icon: Scale,
-    iconText: 'Partenariat professionnel et visibilité',
-    cta: 'Devenir partenaire',
+    iconText: 'Systèmes fiables, mesurables et vivants',
+    cta: 'Découvrir les forfaits',
     variant: 'accent' as const,
     highlighted: true,
-    target: 'Cabinets & Directions juridiques',
-  },
-  {
-    id: 'enterprise',
-    name: 'Entreprise',
-    price: 'Sur consultation',
-    period: '',
-    description: 'Pour grandes organisations (20+ employés)',
-    features: [
-      'Documents illimités',
-      'API Access (ERP/CRM)',
-      'White-label complet',
-      'Support dédié',
-      'SLA 99.9%',
-      'Installation sur-mesure',
-    ],
-    icon: Phone,
-    iconText: 'Solutions sur-mesure et intégration',
-    cta: 'Nous consulter',
-    variant: 'outline' as const,
-    target: 'Grandes organisations',
+    target: 'Activation en 48 h → 30 j',
   },
 ];
 
 export function PricingView({ onNavigate }: PricingViewProps) {
   const handleSelectPlan = (planId: string) => {
-    if (planId === 'cabinet' || planId === 'enterprise') {
-      onNavigate('contact');
-    } else if (planId === 'documents') {
-      onNavigate('contracts');
-    } else {
-      onNavigate('login');
-    }
+    if (planId === 'documents_unit') onNavigate('contracts');
+    else if (planId === 'forfaits') onNavigate('services');
+    else onNavigate('contact');
   };
 
   return (
@@ -155,7 +126,7 @@ export function PricingView({ onNavigate }: PricingViewProps) {
                     {plan.target}
                   </p>
                   <div className="flex items-baseline gap-2 mb-4">
-                    {plan.id !== 'enterprise' ? (
+                    {(
                       <>
                         <span 
                           className="text-[3.5rem] tracking-[-0.03em]"
@@ -167,16 +138,9 @@ export function PricingView({ onNavigate }: PricingViewProps) {
                           className="text-[1rem] text-muted-foreground"
                           style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
                         >
-                          € {plan.period}
+                          {plan.period}
                         </span>
                       </>
-                    ) : (
-                      <span 
-                        className="text-[1.75rem] tracking-[-0.01em]"
-                        style={{ fontWeight: 600, lineHeight: 1.2 }}
-                      >
-                        {plan.price}
-                      </span>
                     )}
                   </div>
                   <p 
@@ -217,23 +181,7 @@ export function PricingView({ onNavigate }: PricingViewProps) {
 
                 {/* CTA */}
                 <button
-                  onClick={async () => {
-                    if (plan.id === 'cabinet') {
-                      try {
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://symilegalback-virid.vercel.app'}/api/cabinet/subscribe`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: '', cabinetName: '', siret: '' })
-                        });
-                        const data = await res.json();
-                        if (data?.checkoutUrl) window.location.href = data.checkoutUrl; else handleSelectPlan(plan.id);
-                      } catch {
-                        handleSelectPlan(plan.id);
-                      }
-                    } else {
-                      handleSelectPlan(plan.id);
-                    }
-                  }}
+                  onClick={() => handleSelectPlan(plan.id)}
                   className={`w-full px-8 py-5 text-[0.75rem] uppercase tracking-[0.12em] transition-all duration-200 ${
                     plan.variant === 'accent'
                       ? 'bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)]'

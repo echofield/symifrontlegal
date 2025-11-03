@@ -148,10 +148,15 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Commercial : qualification, outreach ciblé, RDV</li>
             </ul>
             <ul className="space-y-2">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Support : agent voix 24/7, escalade contextualisée</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Support : réponses de niveau 1, escalade contextualisée</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Finance/OPS : rapprochements, contrôles qualité</li>
             </ul>
           </div>
+        </div>
+
+        {/* Legal system inclusion note */}
+        <div className="mt-12 text-sm text-muted-foreground">
+          Chaque plan inclut le système SYMIONE pour créer, réviser et automatiser vos documents juridiques.
         </div>
       </div>
     </div>
