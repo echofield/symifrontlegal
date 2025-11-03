@@ -181,6 +181,32 @@ function AppContent() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: 'linear' }}
             >
+              {/* New Hero */}
+              <section className="py-16 lg:py-24">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+                  <div className="max-w-4xl">
+                    <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
+                      SYSTÈMES IA EN PRODUCTION
+                    </p>
+                    <h1 className="text-[2.25rem] md:text-[3rem] tracking-[-0.03em] mb-4" style={{ fontWeight: 600, lineHeight: 1.1 }}>
+                      L’IA n’est plus une option. C’est l’électricité de l’entreprise moderne.
+                    </h1>
+                    <p className="text-[1rem] text-muted-foreground mb-8" style={{ lineHeight: 1.7 }}>
+                      Nous analysons votre activité à 360° et livrons des systèmes fiables, mesurables et rentables. Pas de buzzwords — des résultats chiffrés, en production.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button onClick={() => handleNavigate('contracts')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Créer un contrat</button>
+                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Services</button>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      <button onClick={() => handleNavigate('bond')} className="px-6 py-3 border border-border text-[0.6875rem] uppercase tracking-[0.12em]">Escrow Bond</button>
+                      <button onClick={() => handleNavigate('conseiller')} className="px-6 py-3 border border-border text-[0.6875rem] uppercase tracking-[0.12em]">Conseiller IA (BETA)</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Keep existing components below */}
               <InstrumentHero />
               <ControlSurface 
                 onNavigate={(route) => {
@@ -245,6 +271,37 @@ function AppContent() {
                 </div>
               </section>
 
+              {/* Products */}
+              <section className="py-20 lg:py-24 border-t border-border">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+                  <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-10" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>PRODUITS</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {[{
+                      title: 'Documents',
+                      desc: 'À partir de 79 € / document. Prévisualisation gratuite, export professionnel.',
+                      cta: 'Voir les modèles',
+                      action: () => handleNavigate('contracts')
+                    },{
+                      title: 'Bond (Escrow)',
+                      desc: '149 / 299 / 499 € selon le ticket. Paiements par jalons, libération conditionnelle.',
+                      cta: 'Découvrir Bond',
+                      action: () => handleNavigate('bond')
+                    },{
+                      title: 'Conseiller IA (BETA)',
+                      desc: 'Réponse rapide et orientation stratégique. Audit 48h: 590 €.',
+                      cta: 'Ouvrir Conseiller',
+                      action: () => handleNavigate('conseiller')
+                    }].map((card) => (
+                      <div key={card.title} className="border border-border p-8">
+                        <h3 className="text-[1.25rem] mb-2" style={{ fontWeight: 600 }}>{card.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-6" style={{ lineHeight: 1.6 }}>{card.desc}</p>
+                        <button onClick={card.action} className="px-6 py-3 border border-border hover:border-foreground transition text-[0.75rem] uppercase tracking-[0.12em]">{card.cta}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
               {/* System metrics */}
               <section className="py-20 lg:py-24 border-t border-border">
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
@@ -305,25 +362,47 @@ function AppContent() {
                       Démarrez la synthèse documentaire ou consultez un expert.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button 
-                        onClick={() => handleNavigate('login')}
-                        className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3"
-                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}
-                      >
-                        S'inscrire pour accéder
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="stroke-current">
-                          <path d="M2 7H12M12 7L8 3M12 7L8 11" strokeWidth="1.5" strokeLinecap="square" />
-                        </svg>
-                      </button>
-                      <button 
-                        onClick={() => handleNavigate('conseiller')}
-                        className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3"
-                        style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}
-                      >
-                        Conseiller juridique
-                      </button>
+                      <button onClick={() => handleNavigate('contracts')} className="px-12 py-5 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>Créer un contrat</button>
+                      <button onClick={() => handleNavigate('services')} className="px-12 py-5 border border-border hover:border-foreground transition-all duration-200 text-[0.75rem] tracking-[0.12em] uppercase inline-flex items-center justify-center gap-3" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>Découvrir nos Services</button>
                     </div>
                   </motion.div>
+                </div>
+              </section>
+
+              {/* Méthode 360° */}
+              <section className="py-20 lg:py-24 border-t border-border">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+                  <h2 className="text-[1.5rem] mb-6" style={{ fontWeight: 600 }}>Méthode 360°</h2>
+                  <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
+                    <ul className="space-y-2">
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Marché & clients (frictions, parcours)</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Processus & outils (où l’IA remplace/accélère)</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Données & sécurité (qualité, confidentialité)</li>
+                    </ul>
+                    <ul className="space-y-2">
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Architecture & coûts (cloud/on‑device, observation)</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Organisation & gouvernance (rôles, risques)</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Indicateurs & ROI (KPI, contrat d’objectifs)</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Cas d’usage */}
+              <section className="py-20 lg:py-24 border-t border-border">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+                  <h2 className="text-[1.5rem] mb-6" style={{ fontWeight: 600 }}>Cas d’usage</h2>
+                  <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground mb-6">
+                    <ul className="space-y-2">
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Juridique : génération, revue, triage dossiers</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Commercial : qualification, outreach ciblé, RDV</li>
+                    </ul>
+                    <ul className="space-y-2">
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Support : agent voix 24/7, escalade contextualisée</li>
+                      <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></span> Finance/OPS : rapprochements, contrôles qualité</li>
+                    </ul>
+                  </div>
+                  <button onClick={() => handleNavigate('services')} className="px-8 py-4 bg-accent text-accent-foreground text-[0.75rem] uppercase tracking-[0.12em] hover:shadow-[0_0_20px_var(--accent-glow)] transition">Commencer par un Audit 48h — 590 €</button>
                 </div>
               </section>
             </motion.div>
