@@ -9,7 +9,7 @@ interface ServicesViewProps {
 
 export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot }: ServicesViewProps) {
   return (
-    <div className="min-h-screen py-16 lg:py-24">
+    <div className="min-h-screen py-16 lg:py-24 services-swiss">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
         {/* Hero */}
         <motion.div
@@ -47,7 +47,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
           }].map((b, i) => {
             const Icon = b.icon as any;
             return (
-              <motion.div key={b.title} initial={{ opacity: 0, y: 6 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.2, delay: i * 0.06, ease: 'linear' }} className="border border-border p-6">
+              <motion.div key={b.title} initial={{ opacity: 0, y: 6 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.2, delay: i * 0.06, ease: 'linear' }} className="sd-border p-6">
                 <Icon className="w-5 h-5 mb-3 text-accent" />
                 <h3 className="font-semibold mb-1">{b.title}</h3>
                 <p className="text-sm text-muted-foreground">{b.text}</p>
@@ -57,7 +57,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         </div>
 
         {/* Method */}
-        <div className="border border-border p-8 mb-14">
+        <div className="sd-border p-8 mb-14">
           <h2 className="text-xl font-semibold mb-4">Méthode 360°</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Activité & clients</li>
@@ -72,7 +72,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         {/* Offers */}
         <div className="grid lg:grid-cols-3 gap-6 mb-14">
           {/* Impulse 48 */}
-          <div className="border border-border p-8">
+          <div className="sd-border p-8">
             <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Démarrage 48 h</p>
             <h3 className="text-xl font-semibold mb-1">Impulse 48</h3>
             <div className="text-3xl font-semibold mb-4">590 €</div>
@@ -81,13 +81,13 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Mini‑implémentation utilisable dès aujourd’hui</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Rapport 1 page + plan d’action</li>
             </ul>
-            <button onClick={onStartAuditLite} className="w-full px-4 py-3 border border-border hover:border-foreground transition">
+            <button onClick={onStartAuditLite} className="w-full px-4 py-3 sd-outline transition">
               Démarrer en 48 h
             </button>
           </div>
 
           {/* Kernel 360 */}
-          <div className="border border-border p-8 ring-1 ring-accent">
+          <div className="sd-border p-8">
             <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Architecture + Bloc</p>
             <h3 className="text-xl font-semibold mb-1">Kernel 360</h3>
             <div className="text-3xl font-semibold mb-4">990 €</div>
@@ -96,13 +96,13 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> 1 bloc opérationnel connecté à vos outils</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> 2 KPI actifs + garde‑fous coûts/sécurité</li>
             </ul>
-            <button onClick={onStartAuditPro} className="w-full px-4 py-3 bg-accent text-accent-foreground hover:shadow-[0_0_20px_var(--accent-glow)] transition">
+            <button onClick={onStartAuditPro} className="w-full px-4 py-3 sd-primary hover:shadow-[0_0_20px_var(--accent-glow)] transition">
               Activer Kernel 360
             </button>
           </div>
 
           {/* Continuum 30 */}
-          <div className="border border-border p-8">
+          <div className="sd-border p-8">
             <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-2" style={{ fontFamily: 'var(--font-mono)' }}>Production 30 jours</p>
             <h3 className="text-xl font-semibold mb-1">Continuum 30</h3>
             <div className="text-3xl font-semibold mb-4">À partir de 3 000 €</div>
@@ -111,7 +111,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Intégrations, monitoring, SOPs, transfert</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-accent" /> Revue KPI & itérations — sans dette technique</li>
             </ul>
-            <button onClick={onContactPilot} className="w-full px-4 py-3 border border-border hover:border-foreground transition inline-flex items-center justify-center gap-2">
+            <button onClick={onContactPilot} className="w-full px-4 py-3 sd-outline transition inline-flex items-center justify-center gap-2">
               Parler d’un déploiement <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -137,7 +137,7 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
         </div>
 
         {/* Use cases */}
-        <div className="border border-border p-8">
+        <div className="sd-border p-8">
           <h2 className="text-xl font-semibold mb-4">Cas d’usage</h2>
           <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
             <ul className="space-y-2">

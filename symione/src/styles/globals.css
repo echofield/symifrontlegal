@@ -337,3 +337,35 @@ html {
   border-radius: 50%;
   animation: pulse-indicator 2s ease-in-out infinite;
 }
+
+/* Swiss design refinements for Services page only */
+.services-swiss * {
+  border-radius: 0 !important;
+}
+.services-swiss .sd-border {
+  border: 1px solid #000 !important;
+}
+.services-swiss .sd-border-2 {
+  border: 2px solid #000 !important;
+}
+.services-swiss .sd-muted {
+  background: #f8f8f8 !important;
+}
+.services-swiss .sd-text { color: #000 !important; }
+.services-swiss .sd-muted-text { color: rgba(0,0,0,0.7) !important; }
+.services-swiss .sd-primary {
+  background: #1B4332 !important;
+  color: #ffffff !important;
+  border: 1px solid #1B4332 !important;
+}
+.services-swiss .sd-outline {
+  border: 1px solid #000 !important;
+  color: #000 !important;
+  background: #ffffff !important;
+}
+.services-swiss h1, .services-swiss h2 {
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
+}
+.services-swiss .sd-section { padding-top: 128px; padding-bottom: 128px; }
+.services-swiss .sd-gap { gap: 32px; }
