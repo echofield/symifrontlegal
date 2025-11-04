@@ -1,14 +1,3 @@
-{
-  "version": 2,
-  "framework": "vite",
-  "installCommand": "cd symione && npm ci",
-  "buildCommand": "cd symione && npm run build",
-  "outputDirectory": "symione/build",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "https://api.symione.com/api/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
-}
+{}
 
 
