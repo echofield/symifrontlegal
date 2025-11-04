@@ -74,9 +74,9 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
           className="mb-14"
         >
           <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground mb-6" style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}>
-            CONSEIL & MISE EN OEUVRE
+            SOLUTIONS
           </p>
-          <h1 className="text-[2rem] md:text-[2.5rem] tracking-[-0.02em] mb-4" style={{ fontWeight: 600, lineHeight: 1.2 }}>
+          <h1 className="text-[2rem] md:text-[2.5rem] tracking-[-0.02em] mb-4" style={{ fontWeight: 700, lineHeight: 1.2 }}>
             Systèmes d’intelligence en production.
           </h1>
           <div className="text-[1rem] text-foreground/80 max-w-3xl" style={{ lineHeight: 1.7 }}>
@@ -175,19 +175,19 @@ export function ServicesView({ onStartAuditLite, onStartAuditPro, onContactPilot
                   <div className="absolute top-6 left-6"><span className="text-xs uppercase tracking-wider text-accent font-mono">Avec SYMIONE</span></div>
                   <div className="mt-8 space-y-8">
                     <div>
-                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">48H-30J</span><span className="text-sm text-accent font-mono">-70%</span></div>
+                  <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">48H-30J</span><span className="text-sm text-accent font-mono">-70%</span></div>
                       <div className="h-px bg-accent" />
                       <p className="text-xs text-[#667085] mt-2">Délai de livraison</p>
                     </div>
                     <div>
-                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">590-2900</span><span className="text-sm text-accent font-mono">€ -60%</span></div>
+                  <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">590-2900</span><span className="text-sm text-accent font-mono">€ -60%</span></div>
                       <div className="h-px bg-accent" />
                       <p className="text-xs text-[#667085] mt-2">Coût moyen</p>
                     </div>
                     <div>
-                      <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">IA+Humain</span><span className="text-sm text-accent font-mono">+100%</span></div>
-                      <div className="h-px bg-accent" />
-                      <p className="text-xs text-[#667085] mt-2">Qualité & gouvernance</p>
+                  <div className="flex items-baseline gap-3 mb-2"><span className="text-4xl tracking-tight text-[#101828]">Intelligence + HUMAINS</span><span className="text-sm text-accent font-mono">Assistance augmentée</span></div>
+                  <div className="h-px bg-accent" />
+                  <p className="text-xs text-[#667085] mt-2">Assistance augmentée</p>
                     </div>
                   </div>
                 </div>
