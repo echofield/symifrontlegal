@@ -1,3 +1,13 @@
-{}
+{
+  "version": 2,
+  "builds": [
+    { "src": "symione/package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://api.symione.com/api/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
 
 
