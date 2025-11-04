@@ -9,9 +9,10 @@
   ],
   "installCommand": "cd symione && npm ci",
   "buildCommand": "cd symione && npm run build",
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "https://api.symione.com/api/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://api.symione.com/api/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
 
