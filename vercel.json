@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "symione/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "symione/build" }
+    }
+  ],
+  "installCommand": "cd symione && npm ci",
+  "buildCommand": "cd symione && npm run build",
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://api.symione.com/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+
+
