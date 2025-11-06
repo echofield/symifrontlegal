@@ -1,9 +1,7 @@
 {
-  "version": 2,
   "framework": "vite",
-  "installCommand": "npm --prefix symione ci",
-  "buildCommand": "npm --prefix symione run build",
-  "outputDirectory": "symione/build",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://api.symione.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
